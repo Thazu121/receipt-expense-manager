@@ -1,6 +1,5 @@
 import React from "react"
 import { Outlet } from "react-router-dom"
-import Navbar from "../components/layout/Navbar"
 import { useSelector } from "react-redux"
 
 function RootLayout() {
@@ -13,7 +12,6 @@ function RootLayout() {
     return (
 
         <>
-            <Navbar />
             <main >
                 <Outlet />
             </main>

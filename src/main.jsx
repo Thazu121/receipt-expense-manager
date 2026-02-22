@@ -9,6 +9,8 @@ import RootLayout from "./Layouts/RootLayout"
 import ReactDOM from 'react-dom/client'
 import Landing from './components/pages/Landing.jsx'
 import Login from './components/pages/Login.jsx'
+import SignUp from './components/pages/SignUp.jsx'
+import ScanReceipt from "./components/pages/ReceiptScanner"
 
 
 
@@ -21,8 +23,8 @@ const router = createBrowserRouter([
     children:[
       {index:true,element:<Landing />},
       {path:"login",element:<Login />},
-      // {path:"contact", element:<Contact />},
-      // {path:"product/:productId",element:<SingleViewProduct />,loader:SingleProductLoader},
+      {path:"signup", element:<SignUp />},
+      {path:"scanner",element:<ScanReceipt />},
       // { path: "cart", element: <Cart /> },
 
 
