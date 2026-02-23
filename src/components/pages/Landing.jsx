@@ -2,7 +2,6 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#0b1f14] to-[#040a07] text-white">
 
-      {/* NAVBAR */}
       <header className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
         <div className="flex items-center gap-2 font-bold text-lg">
           <span className="text-green-400">🧾</span>

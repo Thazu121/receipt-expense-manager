@@ -11,6 +11,7 @@ import Landing from './components/pages/Landing.jsx'
 import Login from './components/pages/Login.jsx'
 import SignUp from './components/pages/SignUp.jsx'
 import ScanReceipt from "./components/pages/ReceiptScanner"
+import Report from './components/pages/Report.jsx'
 
 
 
@@ -24,8 +25,10 @@ const router = createBrowserRouter([
       {index:true,element:<Landing />},
       {path:"login",element:<Login />},
       {path:"signup", element:<SignUp />},
+      {path:"dashboard", element:<Dashboard />},
+
       {path:"scanner",element:<ScanReceipt />},
-      // { path: "cart", element: <Cart /> },
+      { path: "report", element: <Report /> },
 
 
     ]
