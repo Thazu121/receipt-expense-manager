@@ -11,24 +11,29 @@ import {
 import { useState } from "react";
 
 export default function SideNavbar() {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [active, setActive] = useState("Dashboard");
 
   return (
     <>
+      {/* SIDEBAR */}
       <aside
         className={`
-          fixed top-0 left-0 z-50
-          h-screen w-64
+          fixed top-16 left-0 z-40
+          h-[calc(100vh-4rem)] w-64
           bg-white border-r
           px-4 py-6
           transform transition-transform duration-300
           ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+          lg:translate-x-0 lg:static
         `}
       >
         <div className="flex justify-between items-center mb-6">
           <h2 className="font-bold text-lg">Menu</h2>
-          <button onClick={() => setSidebarOpen(false)}>
+          <button
+            className="lg:hidden"
+            onClick={() => setSidebarOpen(false)}
+          >
             <X size={18} />
           </button>
         </div>
@@ -47,23 +52,25 @@ export default function SideNavbar() {
         <NavItem icon={<HelpCircle size={18} />} label="Support" active={active} setActive={setActive} />
       </aside>
 
+      {/* OVERLAY (mobile only) */}
       {sidebarOpen && (
         <div
           onClick={() => setSidebarOpen(false)}
-          className="fixed inset-0 bg-black/40 z-40"
+          className="fixed inset-0 bg-black/40 z-30 lg:hidden"
         />
       )}
 
+      {/* MOBILE OPEN BUTTON */}
       {!sidebarOpen && (
         <button
           onClick={() => setSidebarOpen(true)}
-          className="fixed top-4 left-4 z-30  p-2 rounded-lg shadow"
+          className="fixed top-20 left-4 z-30 p-2 rounded-lg shadow bg-white lg:hidden"
         >
           ☰
         </button>
       )}
     </>
-  )
+  );
 }
 
 function NavItem({ icon, label, active, setActive }) {
@@ -73,13 +80,14 @@ function NavItem({ icon, label, active, setActive }) {
     <div
       onClick={() => setActive(label)}
       className={`flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer mb-1
-        ${isActive
-          ? "bg-green-500 text-white"
-          : "text-slate-600 hover:bg-slate-100"
+        ${
+          isActive
+            ? "bg-green-500 text-white"
+            : "text-slate-600 hover:bg-slate-100"
         }`}
     >
       {icon}
       <span className="text-sm">{label}</span>
     </div>
-  )
+  );
 }

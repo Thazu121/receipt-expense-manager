@@ -1,96 +1,95 @@
-import { useState } from "react";
-import { Mail, Lock, Eye, EyeOff, Sun } from "lucide-react";
+import { Link } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 export default function Login() {
-  const [showPassword, setShowPassword] = useState(false);
+  const isLight = useSelector((state) => state.theme.isLight);
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-[#0b1f14] via-[#0e2b1b] to-[#08150e] text-white">
-      <header className="flex items-center justify-between px-10 py-6">
-        <div className="flex items-center gap-2 text-xl font-semibold">
-          <div className="h-9 w-9 rounded-lg bg-green-500 flex items-center justify-center font-bold text-black">
-            S
-          </div>
-          SpendWise
-        </div>
+    <div className="min-h-screen flex items-center justify-center px-4 ">
+      <div
+        className={`w-full max-w-md rounded-2xl p-8 backdrop-blur-xl border transition-all duration-300 ${
+          isLight
+            ? "bg-white shadow-xl border-gray-200"
+            : "bg-[#0b2a1a]/80 border-white/10 shadow-2xl"
+        }`}
+      >
+        <h2 className="text-3xl font-bold text-center mb-2">
+          Welcome Back 👋
+        </h2>
+        <p
+          className={`text-center mb-8 ${
+            isLight ? "text-gray-500" : "text-gray-400"
+          }`}
+        >
+          Login to continue managing your expenses
+        </p>
 
-        <div className="flex items-center gap-6 text-sm">
-          <span className="text-gray-300">
-            New to SpendWise?{" "}
-            <span className="text-green-400 font-medium cursor-pointer">
-              Create an account
-            </span>
-          </span>
-          <button className="h-9 w-9 rounded-full border border-green-500/40 flex items-center justify-center">
-            <Sun size={18} className="text-green-400" />
-          </button>
-        </div>
-      </header>
-
-      <main className="flex items-center justify-center mt-16">
-        <div className="w-full max-w-md bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl p-8">
-          <h1 className="text-2xl text-center font-bold mb-1">Welcome back</h1>
-          <p className="text-sm text-center text-gray-400 mb-6">
-            Please enter your details to sign in.
-          </p>
-
-          <button className="w-full flex items-center justify-center gap-3 border border-green-500/30 rounded-lg py-3 mb-6 hover:bg-green-500/10 transition">
-            <img
-              src="https://www.svgrepo.com/show/475656/google-color.svg"
-              alt="google"
-              className="h-5 w-5"
-            />
-            Sign in with Google
-          </button>
-
-          <div className="flex items-center gap-4 text-xs text-gray-400 mb-5">
-            <div className="h-px bg-white/10 flex-1" />
-            OR CONTINUE WITH
-            <div className="h-px bg-white/10 flex-1" />
-          </div>
-
-          <label className="text-sm text-gray-300">Email Address</label>
-          <div className="relative mt-1 mb-4">
-            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+        {/* Form */}
+        <form className="space-y-5">
+          {/* Email */}
+          <div>
+            <label className="block text-sm mb-2">Email</label>
             <input
               type="email"
-              placeholder="name@company.com"
-              className="w-full pl-10 pr-4 py-3 rounded-lg bg-black/30 border border-white/10 focus:outline-none focus:ring-2 focus:ring-green-500"
+              placeholder="Enter your email"
+              className={`w-full px-4 py-3 rounded-lg outline-none transition ${
+                isLight
+                  ? "bg-gray-100 focus:ring-2 focus:ring-green-500"
+                  : "bg-white/5 border border-white/10 focus:border-green-400"
+              }`}
             />
           </div>
 
-          <label className="text-sm text-gray-300">Password</label>
-          <div className="relative mt-1 mb-2">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+          {/* Password */}
+          <div>
+            <label className="block text-sm mb-2">Password</label>
             <input
-              type={showPassword ? "text" : "password"}
-              placeholder="••••••••"
-              className="w-full pl-10 pr-10 py-3 rounded-lg bg-black/30 border border-white/10 focus:outline-none focus:ring-2 focus:ring-green-500"
+              type="password"
+              placeholder="Enter your password"
+              className={`w-full px-4 py-3 rounded-lg outline-none transition ${
+                isLight
+                  ? "bg-gray-100 focus:ring-2 focus:ring-green-500"
+                  : "bg-white/5 border border-white/10 focus:border-green-400"
+              }`}
             />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
-            >
-              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-            </button>
           </div>
 
-          <div className="text-right text-sm text-green-400 mb-6 cursor-pointer">
-            Forgot password?
+          {/* Remember + Forgot */}
+          <div className="flex items-center justify-between text-sm">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" />
+              Remember me
+            </label>
+
+            <a href="#" className="text-green-500 hover:underline">
+              Forgot password?
+            </a>
           </div>
 
-          <button className="w-full bg-green-400 hover:bg-green-500 text-black font-semibold py-3 rounded-lg transition">
-            Sign In
+          {/* Button */}
+          <button
+            type="submit"
+            className="w-full py-3 rounded-lg font-semibold bg-green-500 hover:bg-green-600 transition text-white"
+          >
+            Login
           </button>
-        </div>
-      </main>
+        </form>
 
-      <footer className="mt-10 flex justify-center gap-6 text-xs text-gray-400">
-        <span className="cursor-pointer hover:text-white">Privacy Policy</span>
-        <span className="cursor-pointer hover:text-white">Terms of Service</span>
-        <span className="cursor-pointer hover:text-white">Contact Support</span>
-      </footer>
+        {/* Signup Link */}
+        <p
+          className={`text-center mt-6 text-sm ${
+            isLight ? "text-gray-500" : "text-gray-400"
+          }`}
+        >
+          Don't have an account?{" "}
+          <Link
+            to="/signup"
+            className="text-green-500 font-medium hover:underline"
+          >
+            Create Account
+          </Link>
+        </p>
+      </div>
     </div>
-  )
+  );
 }

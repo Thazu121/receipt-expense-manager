@@ -1,9 +1,14 @@
-// import React from 'react';
-
-// const Footer = ({ isDark }) => (
-//   <footer className={`py-6 text-center text-xs transition-colors duration-500 ${isDark ? 'text-slate-600 bg-charcoal' : 'text-slate-400 bg-slate-50'}`}>
-//     <p>© 2024 Fintech AI Inc. All rights reserved.</p>
-//   </footer>
-// );
-
-// export default Footer;
+export default function Footer() {
+  return (
+    <footer className="bg-gray-100 dark:bg-gray-900 py-6">
+      <div className="max-w-7xl mx-auto px-6 flex justify-between text-sm">
+        <span>© 2026 SpendWise</span>
+        <div className="flex gap-4">
+          <span>Privacy</span>
+          <span>Terms</span>
+          <span>Contact</span>
+        </div>
+      </div>
+    </footer>
+  );
+}

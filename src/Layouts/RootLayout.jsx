@@ -1,22 +1,25 @@
-import React from "react"
-import { Outlet } from "react-router-dom"
-import { useSelector } from "react-redux"
-import SideNavbar from "../components/layout/SideNavbar"
+import { Outlet } from "react-router-dom";
+// import Sidebar from "../components/layout/Sidebar";
+import Navbar from "../components/layout/Navbar";
+import { useSelector } from "react-redux";
 
-function RootLayout() {
-    // const isLight = useSelector((state) => {
-    //     console.log(state);
-    //     return state.theme.isLight
-    // })
+export default function RootLayout() {
+  const isLight = useSelector((state) => state.theme.isLight);
+
+  return (
+    <div className={isLight ? "" : "dark"}>
+      <div className="flex min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white transition-colors">
 
 
-    return (
+        <div className="flex-1">
+          <Navbar />
 
-        <>
-            <main >
-                <Outlet />
-            </main>
-        </>
-    )
+          <main className="p-6">
+            <Outlet />
+          </main>
+        </div>
+
+      </div>
+    </div>
+  );
 }
-export default RootLayout

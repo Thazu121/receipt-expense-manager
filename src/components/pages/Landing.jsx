@@ -1,117 +1,170 @@
+import { useSelector } from "react-redux";
+
 export default function Landing() {
+  const darkMode = useSelector((state) => state.theme.darkMode);
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0b1f14] to-[#040a07] text-white">
+    <div className={darkMode ? "dark" : ""}>
+      <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-white transition">
 
-      <header className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
-        <div className="flex items-center gap-2 font-bold text-lg">
-          <span className="text-green-400">🧾</span>
-          SpendWise
-        </div>
+        <Hero />
+        <Features />
+        <Steps />
 
-        <nav className="hidden md:flex gap-8 text-sm text-gray-300">
-          <a href="#" className="hover:text-white">Features</a>
-          <a href="#" className="hover:text-white">Why SpendWise</a>
-          <a href="#" className="hover:text-white">About</a>
-        </nav>
+      </div>
+    </div>
+  );
+}
 
-        <button className="bg-green-500 hover:bg-green-400 text-black px-5 py-2 rounded-lg text-sm font-medium">
-          Get Started
-        </button>
-      </header>
+/* ================= HERO ================= */
 
+function Hero() {
+  return (
+    <section className="relative bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-900 dark:to-gray-800 pt-24 pb-32">
+      <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-16 items-center">
 
-      <section className="max-w-7xl mx-auto px-6 py-20 grid md:grid-cols-2 gap-16 items-center">
         <div>
-          <span className="inline-block mb-4 px-4 py-1 text-xs rounded-full bg-green-500/10 text-green-400">
-            AI RECEIPT SCANNING
+          <span className="inline-block bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 text-xs font-semibold px-4 py-1 rounded-full">
+            AI-POWERED RECEIPT SCANNING
           </span>
 
-          <h1 className="text-5xl font-extrabold leading-tight">
-            Scan Receipts. <br />
-            <span className="text-green-400">Track Expenses.</span><br />
-            Save Money.
+          <h1 className="text-5xl font-bold mt-6 leading-tight">
+            Take control of <br />
+            your <span className="text-green-600">wealth</span> in seconds.
           </h1>
 
-          <p className="mt-6 text-gray-300 max-w-md">
-            Stop manual entry. Upload receipts and automatically track your personal expenses
-            with smart insights and clean reports.
+          <p className="mt-6 text-gray-600 dark:text-gray-400 max-w-lg leading-relaxed">
+            SpendWise uses advanced AI to track your expenses,
+            scan receipts, and provide deep insights to help you
+            save more every month.
           </p>
 
-          <div className="mt-8 flex gap-4">
-            <button className="bg-green-500 hover:bg-green-400 text-black px-6 py-3 rounded-xl font-medium">
-              Get Started Free
+          <div className="flex gap-4 mt-8">
+            <button className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl shadow-lg transition">
+              Start Free Trial →
             </button>
-            <button className="border border-white/20 px-6 py-3 rounded-xl text-gray-200 hover:bg-white/10">
+
+            <button className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 px-6 py-3 rounded-xl shadow transition">
               Watch Demo
             </button>
           </div>
+
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-6">
+            Joined by 10,000+ savers this month
+          </p>
         </div>
 
-        <div className="relative bg-white/5 rounded-3xl p-6 border border-white/10">
-          <div className="bg-black/60 rounded-2xl p-6">
-            <div className="h-56 rounded-xl bg-gradient-to-b from-gray-800 to-gray-900 flex items-center justify-center">
-              <span className="text-green-400 font-medium">
-                Scanning Receipt...
-              </span>
-            </div>
-            <button className="mt-4 w-full bg-green-500 text-black py-2 rounded-lg font-medium">
-              Upload Receipt
-            </button>
+        <div className="relative">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-2xl">
+            <div className="h-96 bg-gray-200 dark:bg-gray-700 rounded-2xl"></div>
+          </div>
+
+          <div className="absolute -bottom-6 -left-6 bg-white dark:bg-gray-800 px-6 py-4 rounded-2xl shadow-lg">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Potential Savings
+            </p>
+            <p className="font-bold text-lg">$420.50</p>
           </div>
         </div>
-      </section>
 
-      <section className="max-w-7xl mx-auto px-6 py-24">
-        <h2 className="text-4xl font-bold text-center mb-14">
-          Why <span className="text-green-400">SpendWise?</span>
+      </div>
+    </section>
+  );
+}
+
+/* ================= FEATURES ================= */
+
+function Features() {
+  return (
+    <section className="py-24 bg-white dark:bg-gray-900">
+      <div className="max-w-7xl mx-auto px-6 text-center">
+
+        <h2 className="text-3xl font-bold">
+          Powerful features for modern finance
         </h2>
 
-        <div className="grid md:grid-cols-4 gap-8">
-          <Feature
-            title="Instant Scan"
-            desc="Upload receipts and extract totals, dates, and merchants automatically."
-          />
-          <Feature
-            title="Smart Categories"
-            desc="Expenses are grouped into food, travel, shopping, and utilities."
-          />
-          <Feature
-            title="Monthly Insights"
-            desc="See spending trends and summaries that help you save more."
-          />
-          <Feature
-            title="Private & Secure"
-            desc="Your financial data stays encrypted and only visible to you."
-          />
-        </div>
-      </section>
+        <p className="text-gray-500 dark:text-gray-400 mt-4">
+          Everything you need powered by AI intelligence.
+        </p>
 
-      <section className="max-w-6xl mx-auto px-6 pb-24">
-        <div className="bg-gradient-to-r from-green-500/20 to-emerald-500/5 border border-white/10 rounded-3xl p-12 text-center">
-          <h3 className="text-3xl font-bold mb-4">
-            Ready to take control of your spending?
-          </h3>
-          <p className="text-gray-300 mb-8">
-            Start scanning receipts and managing your expenses in minutes.
-          </p>
-          <button className="bg-green-500 hover:bg-green-400 text-black px-8 py-3 rounded-xl font-medium">
-            Start Now
-          </button>
-        </div>
-      </section>
+        <div className="grid md:grid-cols-3 gap-10 mt-16">
 
-      <footer className="border-t border-white/10 py-6 text-center text-sm text-gray-400">
-        © 2026 SpendWise. Personal Expense Manager.
-      </footer>
-    </div>
-  )
+          <div className="p-8 bg-gray-50 dark:bg-gray-800 rounded-3xl shadow hover:shadow-xl transition-all duration-300">
+            <h3 className="font-semibold text-lg">Instant Scanning</h3>
+            <p className="text-gray-500 dark:text-gray-400 mt-4 leading-relaxed">
+              Snap a photo of your receipt and automatically extract merchants,
+              totals, and items.
+            </p>
+          </div>
+
+          <div className="p-8 bg-gray-50 dark:bg-gray-800 rounded-3xl shadow hover:shadow-xl transition-all duration-300">
+            <h3 className="font-semibold text-lg">AI Spending Insights</h3>
+            <p className="text-gray-500 dark:text-gray-400 mt-4 leading-relaxed">
+              Get personalized recommendations based on your real spending habits.
+            </p>
+          </div>
+
+          <div className="p-8 bg-gray-50 dark:bg-gray-800 rounded-3xl shadow hover:shadow-xl transition-all duration-300">
+            <h3 className="font-semibold text-lg">Smart Categorization</h3>
+            <p className="text-gray-500 dark:text-gray-400 mt-4 leading-relaxed">
+              Automatically organize expenses into clean, easy-to-understand categories.
+            </p>
+          </div>
+
+        </div>
+      </div>
+    </section>
+  );
 }
 
-function Feature({ title, desc }) {
+/* ================= STEPS ================= */
+
+function Steps() {
   return (
-    <div className="bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition">
-      <h4 className="font-semibold mb-2">{title}</h4>
-      <p className="text-sm text-gray-300">{desc}</p>
-    </div>
-  )
+    <section className="py-24 bg-gray-50 dark:bg-gray-800">
+      <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-16 items-center">
+
+        <div>
+          <h2 className="text-3xl font-bold">
+            Getting started is as easy as 1-2-3
+          </h2>
+
+          <div className="mt-10 space-y-8">
+
+            <Step number="1" title="Connect your accounts"
+              text="Securely link your bank accounts or manually upload daily transactions." />
+
+            <Step number="2" title="Scan your receipts"
+              text="Use our mobile app to scan paper receipts and match them instantly." />
+
+            <Step number="3" title="Review AI insights"
+              text="Check your dashboard weekly for smart suggestions to optimize spending." />
+
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-gray-900 p-6 rounded-3xl shadow-xl">
+          <div className="h-96 bg-gray-200 dark:bg-gray-700 rounded-2xl"></div>
+        </div>
+
+      </div>
+    </section>
+  );
 }
+
+function Step({ number, title, text }) {
+  return (
+    <div className="flex gap-4">
+      <div className="w-10 h-10 flex items-center justify-center bg-green-600 text-white rounded-full font-semibold">
+        {number}
+      </div>
+      <div>
+        <h4 className="font-semibold">{title}</h4>
+        <p className="text-gray-500 dark:text-gray-400 text-sm mt-2">
+          {text}
+        </p>
+      </div>
+    </div>
+  );
+}
+
