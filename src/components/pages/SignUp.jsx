@@ -19,7 +19,7 @@ export default function SignUp() {
   const [passwordError, setPasswordError] = useState("")
   const [confirmError, setConfirmError] = useState("")
   const [formError, setFormError] = useState("")
-  const [successMessage, setSuccessMessage] = useState("")
+  const [Message, setMessage] = useState("")
 
   const [password, setPassword] = useState("");
   const [strength, setStrength] = useState(0);
@@ -56,7 +56,7 @@ const strengthData = getStrengthData()
     setEmailError("")
     setPasswordError("")
     setConfirmError("")
-    setSuccessMessage("")
+    setMessage("")
 
     if (!name && !email && !password && !confirmPassword) {
       setFormError("All fields are required");
@@ -105,8 +105,31 @@ const strengthData = getStrengthData()
     }
 
     if (!isValid) return;
+const users = JSON.parse(localStorage.getItem("users")) || []
 
-    setSuccessMessage("Account created successfully 🎉")
+const existingUser = users.find(
+  (u) => u.email.toLowerCase() === email.toLowerCase()
+)
+
+if (existingUser) {
+  setMessage("User already exists with this email")
+  return
+}
+
+const newUser = {
+  name: name,
+  email: email,
+  password: password,
+}
+
+const updatedUsers = [...users, newUser]
+
+localStorage.setItem("users", JSON.stringify(updatedUsers))
+
+
+
+
+    setMessage("Account created successfully 🎉")
 
     setName("")
     setEmail("")
@@ -276,7 +299,7 @@ const strengthData = getStrengthData()
           </form>
 
           <p className="text-green-600 text-center mt-4 font-medium">
-            {successMessage}
+            {Message}
           </p>
 
           <p className="text-center mt-6 text-sm">
