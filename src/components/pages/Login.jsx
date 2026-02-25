@@ -1,9 +1,24 @@
 import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { useState } from "react";
+
 
 export default function Login() {
+  const [name, setName] = useState("")
+    const [email, setEmail] = useState("")
+    const [isSucess, setIsSucess] = useState(false)
+    const [nameErr, setNameErr] = useState("")
+    const [emailErr, setEmailErr] = useState("")
+    const [err, setErr] = useState("")
   const isLight = useSelector((state) => state.theme.isLight);
-
+  const handleSubmit =(ev )=> {
+    ev.preventDefault()
+     setIsSucess(false)
+        setEmailErr("")
+        setNameErr("")
+        setErr("")
+        // if(name.trim()===" " && email.trim()=== "" )
+  }
   return (
     <div className="min-h-screen flex items-center justify-center px-4 ">
       <div
@@ -24,12 +39,12 @@ export default function Login() {
           Login to continue managing your expenses
         </p>
 
-        {/* Form */}
         <form className="space-y-5">
           {/* Email */}
           <div>
             <label className="block text-sm mb-2">Email</label>
             <input
+            on
               type="email"
               placeholder="Enter your email"
               className={`w-full px-4 py-3 rounded-lg outline-none transition ${

@@ -1,106 +1,205 @@
 import { useState } from "react";
-import { Eye, EyeOff, Sun } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { Link } from "react-router-dom";
-import ThemeToggle from "../layout/ThemeToggle"
 import { useSelector } from "react-redux";
-import { FcGoogle } from "react-icons/fc";
 
 export default function SignUp() {
-    const isLight = useSelector((state) => state.theme.isLight);
+  const isLight = useSelector((state) => state.theme.isLight);
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
-  return (
-  
-      <main className="flex items-center justify-center px-4 py-16">
-            <div
-        className={`w-full max-w-md rounded-2xl p-8 backdrop-blur-xl border transition-all duration-300 ${
-          isLight
-            ? "bg-white shadow-xl border-gray-200"
-            : "bg-[#0b2a1a]/80 border-white/10 shadow-2xl"
-        }`}
-      >
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
-        {/* <div className="w-full max-w-md bg-green-950/40 border border-green-900/40 rounded-2xl p-8 shadow-xl backdrop-blur"> */}
-          <h1 className="text-3xl font-bold text-center mb-2">
-            Create an account
-          </h1>
-            <p
-          className={`text-center mb-8 ${
-            isLight ? "text-gray-500" : "text-gray-400"
+  const [nameError, setNameError] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [confirmError, setConfirmError] = useState("");
+  const [formError, setFormError] = useState("");
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    // Reset errors
+    setFormError("");
+    setNameError("");
+    setEmailError("");
+    setPasswordError("");
+    setConfirmError("");
+
+    let isValid = true;
+
+    // If all empty
+    if (!name && !email && !password && !confirmPassword) {
+      setFormError("All fields are required");
+    }
+
+    if (!name.trim()) {
+      setNameError("Name is required");
+      isValid = false;
+    }
+
+    if (!email.trim()) {
+      setEmailError("Email is required");
+      isValid = false;
+    }
+
+    if (!password) {
+      setPasswordError("Password is required");
+      isValid = false;
+    } else if (password.length < 8) {
+      setPasswordError("Password must be at least 8 characters");
+      isValid = false;
+    }
+
+    if (!confirmPassword) {
+      setConfirmError("Please confirm your password");
+      isValid = false;
+    } else if (password !== confirmPassword) {
+      setConfirmError("Passwords do not match");
+      isValid = false;
+    }
+
+    if (!isValid) return;
+
+    alert("Account created successfully 🎉");
+
+    setName("");
+    setEmail("");
+    setPassword("");
+    setConfirmPassword("");
+  };
+
+  return (
+    <main className="min-h-screen flex items-center justify-center px-6 py-10">
+      <div className="w-full max-w-6xl flex rounded-3xl overflow-hidden shadow-2xl">
+
+        {/* LEFT SIDE */}
+        <div className="hidden md:flex w-1/2 bg-green-600 items-center justify-center p-12 text-white">
+          <div className="text-center">
+            <h2 className="text-4xl font-bold mb-6">
+              Welcome to SpendWise
+            </h2>
+            <p className="text-lg opacity-90">
+              Track your expenses smarter. <br />
+              Save more. Live better.
+            </p>
+          </div>
+        </div>
+
+        {/* RIGHT SIDE */}
+        <div
+          className={`w-full md:w-1/2 p-10 transition-all duration-300 ${
+            isLight
+              ? "bg-white text-black"
+              : "bg-[#0b2a1a] text-white"
           }`}
         >
-            Start managing your expenses smarter today.
-        </p>
-        
+          <h1 className="text-3xl font-bold text-center mb-6">
+            Create an account
+          </h1>
 
-          <form className="space-y-5">
+          {/* 🔥 SAME AS YOUR CODE */}
+          <p className="text-red-600 text-center mb-4 font-medium">
+            {formError && formError}
+          </p>
+
+          <form className="space-y-5" onSubmit={handleSubmit}>
+            {/* Name */}
             <div>
               <label className="block text-sm mb-2">Full Name</label>
               <input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
                 type="text"
                 placeholder="John Doe"
-   className={`w-full px-4 py-3 rounded-lg outline-none transition ${
-                isLight
-                  ? "bg-gray-100 focus:ring-2 focus:ring-green-500"
-                  : "bg-white/5 border border-white/10 focus:border-green-400"
-              }`}              />
+                className={`w-full px-4 py-3 rounded-lg outline-none transition ${
+                  isLight
+                    ? "bg-gray-100 focus:ring-2 focus:ring-green-500"
+                    : "bg-white/5 border border-white/10 focus:border-green-400"
+                }`}
+              />
+              <p className="text-red-600 text-sm mt-1">
+                {nameError && nameError}
+              </p>
             </div>
 
+            {/* Email */}
             <div>
               <label className="block text-sm mb-2">Email Address</label>
               <input
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 type="email"
                 placeholder="name@company.com"
- className={`w-full px-4 py-3 rounded-lg outline-none transition ${
-                isLight
-                  ? "bg-gray-100 focus:ring-2 focus:ring-green-500"
-                  : "bg-white/5 border border-white/10 focus:border-green-400"
-              }`}              />
+                className={`w-full px-4 py-3 rounded-lg outline-none transition ${
+                  isLight
+                    ? "bg-gray-100 focus:ring-2 focus:ring-green-500"
+                    : "bg-white/5 border border-white/10 focus:border-green-400"
+                }`}
+              />
+              <p className="text-red-600 text-sm mt-1">
+                {emailError && emailError}
+              </p>
             </div>
 
+            {/* Password */}
             <div>
               <label className="block text-sm mb-2">Password</label>
-              <div className="relative mt-1">
+              <div className="relative">
                 <input
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   type={showPassword ? "text" : "password"}
-                  placeholder="Min. 8 characters"
- className={`w-full px-4 py-3 rounded-lg outline-none transition ${
-                isLight
-                  ? "bg-gray-100 focus:ring-2 focus:ring-green-500"
-                  : "bg-white/5 border border-white/10 focus:border-green-400"
-              }`}                />
+                  placeholder="Minimum 8 characters"
+                  className={`w-full px-4 py-3 rounded-lg outline-none transition ${
+                    isLight
+                      ? "bg-gray-100 focus:ring-2 focus:ring-green-500"
+                      : "bg-white/5 border border-white/10 focus:border-green-400"
+                  }`}
+                />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  
-                  className="absolute right-3 top-1/2 -translate-y-1/2 block text-sm mb-2"
+                  className="absolute right-3 top-1/2 -translate-y-1/2"
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
+              <p className="text-red-600 text-sm mt-1">
+                {passwordError && passwordError}
+              </p>
             </div>
 
+            {/* Confirm Password */}
             <div>
               <label className="block text-sm mb-2">Confirm Password</label>
-              <div className="relative mt-1">
+              <div className="relative">
                 <input
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
                   type={showConfirm ? "text" : "password"}
                   placeholder="Confirm password"
- className={`w-full px-4 py-3 rounded-lg outline-none transition ${
-                isLight
-                  ? "bg-gray-100 focus:ring-2 focus:ring-green-500"
-                  : "bg-white/5 border border-white/10 focus:border-green-400"
-              }`}                />
+                  className={`w-full px-4 py-3 rounded-lg outline-none transition ${
+                    isLight
+                      ? "bg-gray-100 focus:ring-2 focus:ring-green-500"
+                      : "bg-white/5 border border-white/10 focus:border-green-400"
+                  }`}
+                />
                 <button
                   type="button"
                   onClick={() => setShowConfirm(!showConfirm)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 "
+                  className="absolute right-3 top-1/2 -translate-y-1/2"
                 >
                   {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
+              <p className="text-red-600 text-sm mt-1">
+                {confirmError && confirmError}
+              </p>
             </div>
 
             <button className="w-full bg-green-500 hover:bg-green-400 text-black font-semibold py-3 rounded-lg transition">
@@ -108,31 +207,17 @@ export default function SignUp() {
             </button>
           </form>
 
-          <div className="flex items-center gap-3 my-6 text-green-700 text-sm">
-            <div className="flex-1 h-px bg-green-900" />
-            OR CONTINUE WITH
-            <div className="flex-1 h-px bg-green-900" />
-          </div>
-
-          <div className="flex gap-3">
-            <button className="flex-1 flex items-center justify-center gap-2 border border-green-900 rounded-lg py-2 hover:bg-green-900/40">
-  <FcGoogle size={22} />
-  Google
-            </button>
-            
-          </div>
-
-          <p className="text-center text-green-400 mt-6">
+          <p className="text-center mt-6 text-sm">
             Already have an account?{" "}
-            <Link to="/login"
-             className="text-green-500 font-semibold cursor-pointer hover:underline">
+            <Link
+              to="/login"
+              className="text-green-500 font-semibold hover:underline"
+            >
               Sign In
             </Link>
           </p>
-        {/* </div> */}
         </div>
-
-      </main>
-
-  )
+      </div>
+    </main>
+  );
 }
