@@ -1,26 +1,72 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { useState } from "react";
 
-
 export default function Login() {
-  const [name, setName] = useState("")
-    const [email, setEmail] = useState("")
-    const [isSucess, setIsSucess] = useState(false)
-    const [nameErr, setNameErr] = useState("")
-    const [emailErr, setEmailErr] = useState("")
-    const [err, setErr] = useState("")
   const isLight = useSelector((state) => state.theme.isLight);
-  const handleSubmit =(ev )=> {
-    ev.preventDefault()
-     setIsSucess(false)
-        setEmailErr("")
-        setNameErr("")
-        setErr("")
-        // if(name.trim()===" " && email.trim()=== "" )
-  }
+  const navigate = useNavigate();
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const [emailErr, setEmailErr] = useState("");
+  const [passwordErr, setPasswordErr] = useState("");
+  const [formErr, setFormErr] = useState("");
+  const [isSuccess, setIsSuccess] = useState(false);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    setEmailErr("");
+    setPasswordErr("");
+    setFormErr("");
+    setIsSuccess(false);
+
+    let isValid = true;
+
+    // Email validation
+    if (!email.trim()) {
+      setEmailErr("Email is required");
+      isValid = false;
+    } else if (!/^\S+@\S+\.\S+$/.test(email)) {
+      setEmailErr("Enter valid email address");
+      isValid = false;
+    }
+
+    // Password validation
+    if (!password) {
+      setPasswordErr("Password is required");
+      isValid = false;
+    }
+
+    if (!isValid) return;
+
+    // If using localStorage for authentication
+    const storedUser = JSON.parse(localStorage.getItem("user"));
+
+    if (!storedUser) {
+      setFormErr("No account found. Please signup.");
+      return;
+    }
+
+    if (
+      storedUser.email !== email ||
+      storedUser.password !== password
+    ) {
+      setFormErr("Invalid email or password");
+      return;
+    }
+
+    // Success
+    setIsSuccess(true);
+
+    setTimeout(() => {
+      navigate("/dashboard"); // change route if needed
+    }, 1500);
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 ">
+    <div className="min-h-screen flex items-center justify-center px-4">
       <div
         className={`w-full max-w-md rounded-2xl p-8 backdrop-blur-xl border transition-all duration-300 ${
           isLight
@@ -31,21 +77,22 @@ export default function Login() {
         <h2 className="text-3xl font-bold text-center mb-2">
           Welcome Back 👋
         </h2>
-        <p
-          className={`text-center mb-8 ${
-            isLight ? "text-gray-500" : "text-gray-400"
-          }`}
-        >
-          Login to continue managing your expenses
-        </p>
 
-        <form className="space-y-5">
+        <p className="text-red-500 text-center mb-3">{formErr}</p>
+        {isSuccess && (
+          <p className="text-green-500 text-center mb-3">
+            Login successful 🎉
+          </p>
+        )}
+
+        <form className="space-y-5" onSubmit={handleSubmit}>
           {/* Email */}
           <div>
             <label className="block text-sm mb-2">Email</label>
             <input
-            on
               type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter your email"
               className={`w-full px-4 py-3 rounded-lg outline-none transition ${
                 isLight
@@ -53,6 +100,7 @@ export default function Login() {
                   : "bg-white/5 border border-white/10 focus:border-green-400"
               }`}
             />
+            <p className="text-red-500 text-sm mt-1">{emailErr}</p>
           </div>
 
           {/* Password */}
@@ -60,6 +108,8 @@ export default function Login() {
             <label className="block text-sm mb-2">Password</label>
             <input
               type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter your password"
               className={`w-full px-4 py-3 rounded-lg outline-none transition ${
                 isLight
@@ -67,18 +117,7 @@ export default function Login() {
                   : "bg-white/5 border border-white/10 focus:border-green-400"
               }`}
             />
-          </div>
-
-          {/* Remember + Forgot */}
-          <div className="flex items-center justify-between text-sm">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" />
-              Remember me
-            </label>
-
-            <a href="#" className="text-green-500 hover:underline">
-              Forgot password?
-            </a>
+            <p className="text-red-500 text-sm mt-1">{passwordErr}</p>
           </div>
 
           {/* Button */}
