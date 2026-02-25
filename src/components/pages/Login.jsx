@@ -24,7 +24,6 @@ export default function Login() {
 
     let isValid = true;
 
-    // Email validation
     if (!email.trim()) {
       setEmailErr("Email is required");
       isValid = false;
@@ -33,7 +32,6 @@ export default function Login() {
       isValid = false;
     }
 
-    // Password validation
     if (!password) {
       setPasswordErr("Password is required");
       isValid = false;
@@ -41,27 +39,26 @@ export default function Login() {
 
     if (!isValid) return;
 
-    // If using localStorage for authentication
-    const storedUser = JSON.parse(localStorage.getItem("user"));
+      const users = JSON.parse(localStorage.getItem("users")) || []
 
-    if (!storedUser) {
-      setFormErr("No account found. Please signup.");
-      return;
-    }
+  const existingUser = users.find(
+    (user) =>
+      user.email.toLowerCase() === email.toLowerCase() &&
+      user.password === password
+  )
+  
+  if (!existingUser) {
+    setFormErr("Invalid email or password")
+    return
+  }
 
-    if (
-      storedUser.email !== email ||
-      storedUser.password !== password
-    ) {
-      setFormErr("Invalid email or password");
-      return;
-    }
+  localStorage.setItem("currentUser", JSON.stringify(existingUser))
 
     // Success
     setIsSuccess(true);
 
     setTimeout(() => {
-      navigate("/dashboard"); // change route if needed
+      navigate("/dashboard")
     }, 1500);
   };
 

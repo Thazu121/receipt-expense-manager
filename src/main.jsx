@@ -11,7 +11,7 @@ import AuthLayout from "./Layouts/AuthLayout";
 import Landing from "./components/pages/Landing";
 import Login from "./components/pages/Login";
 import SignUp from "./components/pages/SignUp";
-// import Dashboard from "./components/pages/Dashboard";
+import Dashboard from "./components/pages/Dashboard"
 
 import Report from "./components/pages/Report";
 import ScanReceipt from "./components/pages/ReceiptScanner";
@@ -29,21 +29,21 @@ const router = createBrowserRouter([
   },
 
   {
-    path: "/",
-    element: <AuthLayout />,
+     element: <AuthLayout />,
     children: [
-      { path: "login", element: <Login /> },
-      { path: "signup", element: <SignUp /> },
+      { path: "/login", element: <Login /> },
+      { path: "/signup", element: <SignUp /> },
     ],
   },
 
+  
+
   {
     path: "/dashboard",
-    element: <LandingLayout />,
+    element: <RootLayout />,
     children: [
-      { index: true, element: <Report /> }, 
-      // { path: "report", element: <Report /> },
-      { path: "scanner", element: <ScanReceipt /> }, 
+      { index: true, element: <Dashboard /> },
+      { path: "scanner", element: <ScanReceipt /> },
     ],
   },
 ]);

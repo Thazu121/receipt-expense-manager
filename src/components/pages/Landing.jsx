@@ -1,170 +1,252 @@
 import { useSelector } from "react-redux";
+import { ScanLine, BarChart3, Wallet } from "lucide-react";
 
 export default function Landing() {
-  const darkMode = useSelector((state) => state.theme.darkMode);
+  const isLight = useSelector((state) => state.theme.isLight);
 
   return (
-    <div className={darkMode ? "dark" : ""}>
-      <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-white transition">
-
-        <Hero />
-        <Features />
-        <Steps />
-
-      </div>
+    <div
+      className={`min-h-screen transition-all duration-500 ${
+        isLight
+          ? "bg-white text-gray-900"
+          : "bg-gradient-to-b from-[#071a10] via-[#0b2a1a] to-[#05140c] text-white"
+      }`}
+    >
+      <Hero isLight={isLight} />
+      <Features isLight={isLight} />
+      <Steps isLight={isLight} />
     </div>
   );
 }
 
-/* ================= HERO ================= */
 
-function Hero() {
+function Hero({ isLight }) {
   return (
-    <section className="relative bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-900 dark:to-gray-800 pt-24 pb-32">
-      <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-16 items-center">
-
+<section id="home" className="pt-24 pb-20 px-6">
+      <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
+        
         <div>
-          <span className="inline-block bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 text-xs font-semibold px-4 py-1 rounded-full">
+          <span
+            className={`inline-block text-xs font-semibold px-4 py-1 rounded-full ${
+              isLight
+                ? "bg-green-100 text-green-700"
+                : "bg-green-900/40 text-green-400"
+            }`}
+          >
             AI-POWERED RECEIPT SCANNING
           </span>
 
-          <h1 className="text-5xl font-bold mt-6 leading-tight">
-            Take control of <br />
-            your <span className="text-green-600">wealth</span> in seconds.
+          <h1
+            className={`text-4xl md:text-5xl font-bold mt-6 leading-tight ${
+              isLight ? "text-gray-900" : "text-white"
+            }`}
+          >
+            Scan Receipts. <br />
+            <span className={isLight ? "text-green-600" : "text-green-400"}>
+              Track Expenses.
+            </span>
+            <br />
+            Save Money.
           </h1>
 
-          <p className="mt-6 text-gray-600 dark:text-gray-400 max-w-lg leading-relaxed">
-            SpendWise uses advanced AI to track your expenses,
-            scan receipts, and provide deep insights to help you
-            save more every month.
+          <p
+            className={`mt-6 max-w-lg leading-relaxed ${
+              isLight ? "text-gray-600" : "text-white/70"
+            }`}
+          >
+            SpendWise uses advanced AI to scan receipts,
+            track expenses automatically, and generate
+            powerful financial insights in seconds.
           </p>
 
-          <div className="flex gap-4 mt-8">
-            <button className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl shadow-lg transition">
-              Start Free Trial →
-            </button>
-
-            <button className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 px-6 py-3 rounded-xl shadow transition">
-              Watch Demo
-            </button>
-          </div>
-
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-6">
-            Joined by 10,000+ savers this month
-          </p>
+          <button
+            className={`mt-8 px-8 py-3 rounded-xl shadow-lg transition ${
+              isLight
+                ? "bg-green-600 hover:bg-green-700 text-white"
+                : "bg-green-500 hover:bg-green-600 text-white"
+            }`}
+          >
+            Get Started
+          </button>
         </div>
 
-        <div className="relative">
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-2xl">
-            <div className="h-96 bg-gray-200 dark:bg-gray-700 rounded-2xl"></div>
-          </div>
-
-          <div className="absolute -bottom-6 -left-6 bg-white dark:bg-gray-800 px-6 py-4 rounded-2xl shadow-lg">
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Potential Savings
-            </p>
-            <p className="font-bold text-lg">$420.50</p>
-          </div>
+        <div
+          className={`p-6 rounded-3xl shadow-2xl ${
+            isLight
+              ? "bg-white border border-gray-200"
+              : "bg-[#0e2418] border border-green-900/40"
+          }`}
+        >
+          <img
+            src="https://images.unsplash.com/photo-1554224155-8d04cb21cd6c"
+            alt="Dashboard Preview"
+            className="rounded-2xl w-full"
+          />
         </div>
-
       </div>
     </section>
   );
 }
 
-/* ================= FEATURES ================= */
 
-function Features() {
+function Features({ isLight }) {
   return (
-    <section className="py-24 bg-white dark:bg-gray-900">
-      <div className="max-w-7xl mx-auto px-6 text-center">
-
-        <h2 className="text-3xl font-bold">
-          Powerful features for modern finance
+<section id="features" className="py-20 px-6">
+      <div className="max-w-7xl mx-auto text-center">
+        
+        <h2
+          className={`text-3xl font-bold ${
+            isLight ? "text-gray-900" : "text-white"
+          }`}
+        >
+          Powerful Features for Modern Finance
         </h2>
 
-        <p className="text-gray-500 dark:text-gray-400 mt-4">
-          Everything you need powered by AI intelligence.
+        <p
+          className={`mt-4 ${
+            isLight ? "text-gray-600" : "text-white/70"
+          }`}
+        >
+          Everything you need powered by intelligent automation.
         </p>
 
-        <div className="grid md:grid-cols-3 gap-10 mt-16">
+        <div className="grid md:grid-cols-3 gap-8 mt-16">
+          <FeatureCard
+            isLight={isLight}
+            icon={<ScanLine size={28} />}
+            title="Instant Receipt Scan"
+            text="Extract totals, merchants and line items instantly using OCR technology."
+          />
 
-          <div className="p-8 bg-gray-50 dark:bg-gray-800 rounded-3xl shadow hover:shadow-xl transition-all duration-300">
-            <h3 className="font-semibold text-lg">Instant Scanning</h3>
-            <p className="text-gray-500 dark:text-gray-400 mt-4 leading-relaxed">
-              Snap a photo of your receipt and automatically extract merchants,
-              totals, and items.
-            </p>
-          </div>
+          <FeatureCard
+            isLight={isLight}
+            icon={<BarChart3 size={28} />}
+            title="Smart Analytics"
+            text="Visual insights that help you track and optimize spending habits."
+          />
 
-          <div className="p-8 bg-gray-50 dark:bg-gray-800 rounded-3xl shadow hover:shadow-xl transition-all duration-300">
-            <h3 className="font-semibold text-lg">AI Spending Insights</h3>
-            <p className="text-gray-500 dark:text-gray-400 mt-4 leading-relaxed">
-              Get personalized recommendations based on your real spending habits.
-            </p>
-          </div>
-
-          <div className="p-8 bg-gray-50 dark:bg-gray-800 rounded-3xl shadow hover:shadow-xl transition-all duration-300">
-            <h3 className="font-semibold text-lg">Smart Categorization</h3>
-            <p className="text-gray-500 dark:text-gray-400 mt-4 leading-relaxed">
-              Automatically organize expenses into clean, easy-to-understand categories.
-            </p>
-          </div>
-
+          <FeatureCard
+            isLight={isLight}
+            icon={<Wallet size={28} />}
+            title="Expense Control"
+            text="Automatically categorize transactions and manage budgets easily."
+          />
         </div>
       </div>
     </section>
   );
 }
 
-/* ================= STEPS ================= */
-
-function Steps() {
+function FeatureCard({ icon, title, text, isLight }) {
   return (
-    <section className="py-24 bg-gray-50 dark:bg-gray-800">
-      <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-16 items-center">
+    <div
+      className={`p-8 rounded-3xl transition-all duration-300 hover:shadow-xl ${
+        isLight
+          ? "bg-gray-50 border border-gray-200"
+          : "bg-[#0e2418] border border-green-900/40"
+      }`}
+    >
+      <div
+        className={`mb-6 ${
+          isLight ? "text-green-600" : "text-green-400"
+        }`}
+      >
+        {icon}
+      </div>
 
+      <h3
+        className={`font-semibold text-lg ${
+          isLight ? "text-gray-900" : "text-white"
+        }`}
+      >
+        {title}
+      </h3>
+
+      <p
+        className={`mt-4 ${
+          isLight ? "text-gray-600" : "text-white/70"
+        }`}
+      >
+        {text}
+      </p>
+    </div>
+  );
+}
+
+
+function Steps({ isLight }) {
+  return (
+<section
+  id="steps"
+  className={`py-20 px-6 ${
+    isLight ? "bg-gray-50" : "bg-[#0a1f15]"
+  }`}
+>
+
+      <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
+        
         <div>
-          <h2 className="text-3xl font-bold">
-            Getting started is as easy as 1-2-3
+          <h2
+            className={`text-3xl font-bold ${
+              isLight ? "text-gray-900" : "text-white"
+            }`}
+          >
+            Getting Started is Simple
           </h2>
 
           <div className="mt-10 space-y-8">
-
-            <Step number="1" title="Connect your accounts"
-              text="Securely link your bank accounts or manually upload daily transactions." />
-
-            <Step number="2" title="Scan your receipts"
-              text="Use our mobile app to scan paper receipts and match them instantly." />
-
-            <Step number="3" title="Review AI insights"
-              text="Check your dashboard weekly for smart suggestions to optimize spending." />
-
+            <Step number="1" title="Upload Receipt" text="Take a photo or upload your receipt securely." isLight={isLight} />
+            <Step number="2" title="AI Extraction" text="Our AI reads and categorizes your transaction automatically." isLight={isLight} />
+            <Step number="3" title="Track & Save" text="View insights and reduce unnecessary expenses easily." isLight={isLight} />
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-900 p-6 rounded-3xl shadow-xl">
-          <div className="h-96 bg-gray-200 dark:bg-gray-700 rounded-2xl"></div>
+        <div
+          className={`p-6 rounded-3xl shadow-xl ${
+            isLight
+              ? "bg-white border border-gray-200"
+              : "bg-[#0e2418] border border-green-900/40"
+          }`}
+        >
+          <img
+            src="https://images.unsplash.com/photo-1556742031-c6961e8560b0"
+            alt="App Preview"
+            className="rounded-2xl w-full"
+          />
         </div>
-
       </div>
     </section>
   );
 }
 
-function Step({ number, title, text }) {
+function Step({ number, title, text, isLight }) {
   return (
     <div className="flex gap-4">
-      <div className="w-10 h-10 flex items-center justify-center bg-green-600 text-white rounded-full font-semibold">
+      <div
+        className={`w-10 h-10 flex items-center justify-center rounded-full font-semibold text-white ${
+          isLight ? "bg-green-600" : "bg-green-500"
+        }`}
+      >
         {number}
       </div>
+
       <div>
-        <h4 className="font-semibold">{title}</h4>
-        <p className="text-gray-500 dark:text-gray-400 text-sm mt-2">
+        <h4
+          className={`font-semibold ${
+            isLight ? "text-gray-900" : "text-white"
+          }`}
+        >
+          {title}
+        </h4>
+
+        <p
+          className={`text-sm mt-2 ${
+            isLight ? "text-gray-600" : "text-white/70"
+          }`}
+        >
           {text}
         </p>
       </div>
     </div>
   );
 }
-

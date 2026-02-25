@@ -1,93 +1,51 @@
-import {
-  LayoutDashboard,
-  CreditCard,
-  Wallet,
-  ScanLine,
-  BarChart3,
-  Settings,
-  HelpCircle,
-  X
-} from "lucide-react";
-import { useState } from "react";
+import { LayoutDashboard, CreditCard, ScanLine, BarChart3, Settings, Menu } from "lucide-react";
 
-export default function SideNavbar() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [active, setActive] = useState("Dashboard");
-
+export default function SideNavbar({ collapsed, setCollapsed }) {
   return (
-    <>
-      {/* SIDEBAR */}
-      <aside
-        className={`
-          fixed top-16 left-0 z-40
-          h-[calc(100vh-4rem)] w-64
-          bg-white border-r
-          px-4 py-6
-          transform transition-transform duration-300
-          ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
-          lg:translate-x-0 lg:static
-        `}
-      >
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="font-bold text-lg">Menu</h2>
-          <button
-            className="lg:hidden"
-            onClick={() => setSidebarOpen(false)}
-          >
-            <X size={18} />
-          </button>
-        </div>
+    <aside
+      className={`
+        h-[calc(100vh-80px)]
+        bg-[#0f1c22]
+        border-r border-[#1f2f36]
+        transition-all duration-300
+        ${collapsed ? "w-20" : "w-64"}
+        flex flex-col
+      `}
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between p-4">
 
-        <p className="text-xs text-slate-400 mb-3">MAIN MENU</p>
 
-        <NavItem icon={<LayoutDashboard size={18} />} label="Dashboard" active={active} setActive={setActive} />
-        <NavItem icon={<CreditCard size={18} />} label="Transactions" active={active} setActive={setActive} />
-        <NavItem icon={<Wallet size={18} />} label="Budgets" active={active} setActive={setActive} />
-        <NavItem icon={<ScanLine size={18} />} label="Receipt Scanner" active={active} setActive={setActive} />
-        <NavItem icon={<BarChart3 size={18} />} label="Reports" active={active} setActive={setActive} />
-
-        <p className="text-xs text-slate-400 mt-8 mb-3">PREFERENCE</p>
-
-        <NavItem icon={<Settings size={18} />} label="Settings" active={active} setActive={setActive} />
-        <NavItem icon={<HelpCircle size={18} />} label="Support" active={active} setActive={setActive} />
-      </aside>
-
-      {/* OVERLAY (mobile only) */}
-      {sidebarOpen && (
-        <div
-          onClick={() => setSidebarOpen(false)}
-          className="fixed inset-0 bg-black/40 z-30 lg:hidden"
-        />
-      )}
-
-      {/* MOBILE OPEN BUTTON */}
-      {!sidebarOpen && (
-        <button
-          onClick={() => setSidebarOpen(true)}
-          className="fixed top-20 left-4 z-30 p-2 rounded-lg shadow bg-white lg:hidden"
-        >
-          ☰
+        <button onClick={() => setCollapsed(!collapsed)}>
+          <Menu size={18} className="text-gray-400" />
         </button>
-      )}
-    </>
+      </div>
+
+      {/* Nav Items */}
+      <nav className="space-y-3 px-2">
+        <Item icon={<LayoutDashboard size={20} />} text="Dashboard" collapsed={collapsed} />
+        <Item icon={<CreditCard size={20} />} text="Transactions" collapsed={collapsed} />
+        <Item icon={<ScanLine size={20} />} text="Receipt Scanner" collapsed={collapsed} />
+        <Item icon={<BarChart3 size={20} />} text="Reports" collapsed={collapsed} />
+        <Item icon={<Settings size={20} />} text="Settings" collapsed={collapsed} />
+      </nav>
+    </aside>
   );
 }
 
-function NavItem({ icon, label, active, setActive }) {
-  const isActive = active === label;
-
+function Item({ icon, text, collapsed }) {
   return (
     <div
-      onClick={() => setActive(label)}
-      className={`flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer mb-1
-        ${
-          isActive
-            ? "bg-green-500 text-white"
-            : "text-slate-600 hover:bg-slate-100"
-        }`}
+      className={`
+        flex items-center
+        ${collapsed ? "justify-center" : "gap-3"}
+        p-3 rounded-lg
+        hover:bg-[#13242c]
+        cursor-pointer transition
+      `}
     >
       {icon}
-      <span className="text-sm">{label}</span>
+      {!collapsed && <span className="text-gray-300">{text}</span>}
     </div>
   );
 }

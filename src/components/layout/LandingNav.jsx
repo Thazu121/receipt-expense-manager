@@ -1,56 +1,82 @@
-import { Link } from "react-router-dom";
-import { Sun, Moon, Wallet } from "lucide-react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { toggleTheme } from "../../redux/features/themeSlice";
+import { Sun, Moon, Wallet } from "lucide-react";
+import { Link } from "react-router-dom";
 
-export default function LandingNavbar() {
-  const dispatch = useDispatch();
-  const isLight = useSelector((state) => state.theme.isLight);
+export default function LandingNav() {
+  const dispatch = useDispatch()
+    const isLight = useSelector((state) => state.theme.isLight);
 
   return (
-    <header className="sticky top-0 z-50 backdrop-blur-md bg-white/80 dark:bg-gray-950/80 border-b dark:border-gray-800">
-      <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-        
-        {/* Logo */}
-        <Link to="/" className="flex items-center gap-2 text-xl font-bold">
-          <Wallet size={22} />
-          <span className="text-green-500">Spend</span>
-          <span>Wise</span>
-        </Link>
+    <header
+      className="sticky top-0 z-50 backdrop-blur-md
+      bg-white/80 dark:bg-[#071a10]/80
+      border-b border-gray-200 dark:border-green-900/40"
+    >
+      <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
 
-        {/* Right */}
-        <div className="flex items-center gap-6">
+        <a href="#home" className="flex items-center gap-2 font-semibold text-lg">
+          <Wallet />
+          <span>SpendWise</span>
+        </a>
 
-          <a href="#features" className="hover:text-green-500 transition">
+        <nav className="hidden md:flex gap-8 text-gray-700 dark:text-white/70 font-medium">
+          <a
+            href="#home"
+            className="hover:text-green-600 dark:hover:text-green-400 transition"
+          >
+            Home
+          </a>
+
+          <a
+            href="#features"
+            className="hover:text-green-600 dark:hover:text-green-400 transition"
+          >
             Features
           </a>
 
-          <a href="#why" className="hover:text-green-500 transition">
-            Why SpendWise
+          <a
+            href="#steps"
+            className="hover:text-green-600 dark:hover:text-green-400 transition"
+          >
+            Steps
           </a>
+        </nav>
 
-          <Link
-            to="/login"
-            className="hover:text-green-500 transition"
-          >
-            Login
-          </Link>
-
-          <Link
-            to="/signup"
-            className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition"
-          >
-            Get Started
-          </Link>
-
-          <button
+        <div className="flex items-center gap-4">
+   <button
             onClick={() => dispatch(toggleTheme())}
-            className="p-2 rounded-full border dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+            className={`w-11 h-11 flex items-center justify-center rounded-full transition-all duration-500 border hover:scale-105 ${
+              isLight
+                ? "bg-white border-gray-300 hover:bg-gray-100"
+                : "bg-white/10 border-white/20 hover:bg-white/20 backdrop-blur-md shadow-[0_0_20px_rgba(34,197,94,0.4)]"
+            }`}
           >
-            {isLight ? <Moon size={18} /> : <Sun size={18} />}
+            {isLight ? (
+              <Moon size={20} className="text-gray-700" />
+            ) : (
+              <Sun size={20} className="text-yellow-400" />
+            )}
           </button>
+         <Link
+  to="/login"
+  className="hidden md:inline-block
+  bg-green-600 hover:bg-green-700
+  text-white px-5 py-2 rounded-lg transition"
+>
+  Login
+</Link>
+         <Link
+  to="/signup"
+  className="hidden md:inline-block
+  bg-green-600 hover:bg-green-700
+  text-white px-5 py-2 rounded-lg transition"
+>
+  SignUp
+</Link>
 
         </div>
+
       </div>
     </header>
   );

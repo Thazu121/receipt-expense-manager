@@ -19,7 +19,6 @@ export default function AuthNav() {
       
       <div className="flex items-center justify-between">
         
-        {/* Logo */}
         <Link to="/" className="flex items-center gap-2 text-xl font-semibold tracking-tight">
           <Wallet size={22} />
           <span className="text-green-400">Spend</span>
@@ -28,7 +27,6 @@ export default function AuthNav() {
           </span>
         </Link>
 
-        {/* Desktop Menu */}
         <div className="hidden md:flex items-center gap-6">
 
           <Link
@@ -66,7 +64,6 @@ export default function AuthNav() {
             </>
           )}
 
-          {/* Theme Toggle */}
           <button
             onClick={() => dispatch(toggleTheme())}
             className={`w-11 h-11 flex items-center justify-center rounded-full transition-all duration-500 border hover:scale-105 ${
@@ -83,7 +80,6 @@ export default function AuthNav() {
           </button>
         </div>
 
-        {/* Mobile Menu Button */}
         <button
           className="md:hidden"
           onClick={() => setIsOpen(!isOpen)}
