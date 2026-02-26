@@ -15,8 +15,8 @@ export default function SideNavbar() {
 
   const navItems = [
     { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
-    { name: "Reports", path: "/insight", icon: PieChart },
-    { name: "Settings", path: "/settings", icon: Settings },
+    { name: "Reports", path: "/dashboard/insight", icon: PieChart },
+    { name: "Settings", path: "/dashboard/setting", icon: Settings },
   ];
 
   return (

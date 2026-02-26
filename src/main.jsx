@@ -12,15 +12,13 @@ import Landing from "./components/pages/Landing";
 import Login from "./components/pages/Login";
 import SignUp from "./components/pages/SignUp";
 import Dashboard from "./components/pages/Dashboard"
-
 import Report from "./components/pages/Report";
 import ScanReceipt from "./components/pages/ReceiptScanner";
 
 import "./index.css";
 import InsightsPage from "./components/pages/Report";
 import ReceiptGallery from "./components/pages/ReceiptGallery";
-import { Settings } from "lucide-react";
-
+import Settings from "./components/pages/setting";
 const router = createBrowserRouter([
   {
       path: "/",
@@ -50,7 +48,7 @@ const router = createBrowserRouter([
       { path: "insight", element: <InsightsPage /> },
         { path: "gallery", element: <ReceiptGallery /> },
                 { path: "report", element: <Report /> },
-                                { path: "setting", element: <Settings /> },
+        { path: "setting", element: <Settings /> },
 
 
 
