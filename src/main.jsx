@@ -17,6 +17,9 @@ import Report from "./components/pages/Report";
 import ScanReceipt from "./components/pages/ReceiptScanner";
 
 import "./index.css";
+import InsightsPage from "./components/pages/Report";
+import ReceiptGallery from "./components/pages/ReceiptGallery";
+import { Settings } from "lucide-react";
 
 const router = createBrowserRouter([
   {
@@ -44,6 +47,14 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <Dashboard /> },
       { path: "scanner", element: <ScanReceipt /> },
+      { path: "insight", element: <InsightsPage /> },
+        { path: "gallery", element: <ReceiptGallery /> },
+                { path: "report", element: <Report /> },
+                                { path: "setting", element: <Settings /> },
+
+
+
+
     ],
   },
 ]);

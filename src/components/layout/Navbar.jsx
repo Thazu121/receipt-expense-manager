@@ -17,9 +17,8 @@ export default function Navbar() {
   const [open, setOpen] = useState(false);
   const navItems = [
 { label: "Scan Receipt", path: "/dashboard/scanner" },
-    { label: "Expenses", path: "/expenses" },
-    { label: "Receipts", path: "/receipts" },
-    { label: "Reports", path: "/reports" },
+    { label: "Expenses", path: "/dashboard/expense" },
+    { label: "Gallery", path: "/dashboard/gallery" },
   ];
 
   return (
