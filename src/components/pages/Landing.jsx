@@ -1,5 +1,6 @@
 import { useSelector } from "react-redux";
 import { ScanLine, BarChart3, Wallet } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function Landing() {
   const isLight = useSelector((state) => state.theme.isLight);
@@ -58,8 +59,9 @@ function Hero({ isLight }) {
             track expenses automatically, and generate
             powerful financial insights in seconds.
           </p>
-
+<Link to={"signup"}>
           <button
+      
             className={`mt-8 px-8 py-3 rounded-xl shadow-lg transition ${
               isLight
                 ? "bg-green-600 hover:bg-green-700 text-white"
@@ -68,6 +70,7 @@ function Hero({ isLight }) {
           >
             Get Started
           </button>
+          </Link>
         </div>
 
         <div

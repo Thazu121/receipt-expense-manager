@@ -1,27 +1,26 @@
-export default function StatCard({ title, value, icon, accent = "emerald" }) {
-  const accentStyles = {
-    emerald: "bg-emerald-500/10 text-emerald-400",
-    blue: "bg-blue-500/10 text-blue-400",
-    purple: "bg-purple-500/10 text-purple-400",
-    orange: "bg-orange-500/10 text-orange-400",
-  };
-
+export default function StatCard({ title, value }) {
   return (
-    <div className="bg-[#13242c] border border-[#1f2f36] rounded-xl p-6 hover:border-[#2a3d45] transition-all duration-300">
-      
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <p className="text-gray-400 text-sm">{title}</p>
+    <div
+      className="
+        bg-white dark:bg-[#0F1B22]
+        border border-gray-100 dark:border-white/5
+        shadow-sm hover:shadow-md
+        rounded-2xl
+        p-4 sm:p-6
+        transition-all duration-300
+        hover:-translate-y-1
+      "
+    >
+      <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+        {title}
+      </p>
 
-        {icon && (
-          <div className={`p-2 rounded-lg ${accentStyles[accent]}`}>
-            {icon}
-          </div>
-        )}
-      </div>
-
-      {/* Value */}
-      <h2 className="text-2xl font-semibold text-white mt-4">
+      <h2 className="
+        text-xl sm:text-2xl lg:text-3xl
+        font-semibold
+        mt-2 sm:mt-3
+        text-gray-900 dark:text-white
+      ">
         {value}
       </h2>
     </div>
