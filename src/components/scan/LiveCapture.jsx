@@ -1,59 +1,86 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Camera, ScanLine } from "lucide-react";
 import ScanStatus from "./ScanStatus";
 import { useDispatch } from "react-redux";
 import { setScannedReceipt } from "../../redux/features/receiptSlice";
-import { scanReceiptLoader } from "../../loaders/ScanLoader";
+import { ScanReceiptOCR } from "../scan/ScanReceiptOCR";
 
 export default function LiveCapture() {
   const [isScanning, setIsScanning] = useState(false);
   const [scanComplete, setScanComplete] = useState(false);
   const [capturedImage, setCapturedImage] = useState(null);
+  const [error, setError] = useState("");
 
+  const fileInputRef = useRef(null);
   const dispatch = useDispatch();
-const handleFileUpload = async (e) => {
-  const file = e.target.files[0];
 
-  if (!file) {
-    console.log("No file selected");
-    return;
-  }
+  /* -------------------------------
+     Clean object URL memory
+  --------------------------------*/
+  useEffect(() => {
+    return () => {
+      if (capturedImage) {
+        URL.revokeObjectURL(capturedImage);
+      }
+    };
+  }, [capturedImage]);
 
-  console.log("REAL FILE:", file); // Must log File object
+  /* -------------------------------
+     Handle File Upload
+  --------------------------------*/
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
 
-  const imageUrl = URL.createObjectURL(file);
-  setCapturedImage(imageUrl);
+    setError("");
+    setScanComplete(false);
 
-  setIsScanning(true);
-  setScanComplete(false);
+    if (!file) return;
 
-  try {
-    // ✅ PASS THE REAL FILE
-    const data = await scanReceiptLoader(file);
-
-    console.log("OCR RESULT:", data);
-
-    if (data.success) {
-      dispatch(
-        setScannedReceipt({
-          id: Date.now(),
-          store: data.store || "",
-          amount: data.amount || "",
-          date: "",
-          category: "",
-          notes: "",
-        })
-      );
+    // Validate image type
+    if (!file.type.startsWith("image/")) {
+      setError("Please upload a valid image file.");
+      return;
     }
 
-  } catch (error) {
-    console.error("SCAN ERROR:", error);
-  }
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setError("Image must be smaller than 5MB.");
+      return;
+    }
 
-  setIsScanning(false);
-  setScanComplete(true);
-};
+    // Create preview
+    const imageUrl = URL.createObjectURL(file);
+    setCapturedImage(imageUrl);
 
+    setIsScanning(true);
+
+    try {
+      const result = await ScanReceiptOCR(file);
+
+      if (result?.success && result?.data) {
+        dispatch(
+          setScannedReceipt({
+            id: Date.now(),
+            ...result.data,
+          })
+        );
+
+        setScanComplete(true);
+      } else {
+        setError(result?.message || "Failed to extract receipt data.");
+      }
+    } catch (err) {
+      console.error(err);
+      setError("Something went wrong during scanning.");
+    }
+
+    setIsScanning(false);
+
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
 
   return (
     <div
@@ -76,9 +103,11 @@ const handleFileUpload = async (e) => {
 
       {/* Preview Section */}
       <div className="flex-1 flex flex-col">
+
         <div
           className="
-            relative h-[480px] rounded-xl overflow-hidden
+            relative h-[60vh] max-h-[600px]
+            rounded-xl overflow-hidden
             bg-gradient-to-br from-slate-200 to-slate-300
             dark:from-[#0f2c22]
             dark:to-[#123c2f]
@@ -88,8 +117,8 @@ const handleFileUpload = async (e) => {
           {capturedImage ? (
             <img
               src={capturedImage}
-              alt="Uploaded"
-              className="absolute inset-0 w-full h-full object-cover"
+              alt="Uploaded Receipt"
+              className="absolute inset-0 w-full h-full object-contain bg-black"
             />
           ) : (
             <span className="text-sm text-gray-500 dark:text-gray-400">
@@ -97,40 +126,35 @@ const handleFileUpload = async (e) => {
             </span>
           )}
 
+          {/* Scanning Animation */}
           {isScanning && (
             <>
               <ScanLine
                 size={40}
                 className="absolute text-emerald-500 animate-pulse"
               />
-              <div
-                className="
-                  absolute top-0 left-0 w-full h-1
-                  bg-emerald-500
-                  animate-[scan_2s_linear_forwards]
-                "
-              />
-              <style>
-                {`
-                @keyframes scan {
-                  0% { top: 0% }
-                  100% { top: 100% }
-                }
-              `}
-              </style>
+              <div className="absolute top-0 left-0 w-full h-1 bg-emerald-500 animate-scan" />
             </>
           )}
 
-          {scanComplete && !isScanning && (
+          {/* Scan Complete Overlay */}
+          {scanComplete && !isScanning && !error && (
             <div className="absolute inset-0 flex items-center justify-center bg-black/40">
-              <span className="text-emerald-400 font-semibold">
+              <span className="text-emerald-400 font-semibold text-lg">
                 ✓ Scan Complete
               </span>
             </div>
           )}
         </div>
 
-        {/* Status */}
+        {/* Error Message */}
+        {error && (
+          <div className="mt-4 text-sm text-red-500 text-center">
+            {error}
+          </div>
+        )}
+
+        {/* Status Component */}
         <div className="mt-6">
           <ScanStatus
             isScanning={isScanning}
@@ -141,22 +165,42 @@ const handleFileUpload = async (e) => {
 
       {/* Upload Button */}
       <label
-        className="
-          mt-6 block w-full text-center py-2.5 rounded-lg
-          bg-emerald-600 hover:bg-emerald-700
-          dark:bg-green-500 dark:hover:bg-green-600
+        className={`
+          mt-6 block w-full text-center py-3 rounded-xl
           text-white font-medium cursor-pointer
           transition-all duration-300
-        "
+          ${
+            isScanning
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-emerald-600 hover:bg-emerald-700 dark:bg-green-500 dark:hover:bg-green-600"
+          }
+        `}
       >
-        Select Receipt Image
+        {isScanning ? "Scanning..." : "Select Receipt Image"}
+
         <input
+          ref={fileInputRef}
           type="file"
           accept="image/*"
           onChange={handleFileUpload}
+          disabled={isScanning}
           className="hidden"
         />
       </label>
+
+      {/* Custom Animation */}
+      <style>
+        {`
+          @keyframes scan {
+            0% { top: 0%; }
+            100% { top: 100%; }
+          }
+
+          .animate-scan {
+            animation: scan 2s linear infinite;
+          }
+        `}
+      </style>
     </div>
   );
 }

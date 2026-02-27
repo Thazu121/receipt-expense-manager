@@ -3,7 +3,6 @@ import ReactDOM from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { Provider } from "react-redux";
 import { store } from "./redux/store";
-import { scanReceiptLoader } from "./loaders/ScanLoader";
 
 import LandingLayout from "./Layouts/landLayout";
 import RootLayout from "./Layouts/RootLayout";
@@ -45,7 +44,7 @@ const router = createBrowserRouter([
     element: <RootLayout />,
     children: [
       { index: true, element: <Dashboard /> },
-      { path: "scanner", element: <ScanReceipt /> ,loader:scanReceiptLoader,hydrateFallbackElement:<p>Loading...</p>},
+      { path: "scanner", element: <ScanReceipt /> },
       { path: "insight", element: <InsightsPage /> },
         { path: "gallery", element: <ReceiptGallery /> },
                 { path: "report", element: <Report /> },

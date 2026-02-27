@@ -1,78 +1,51 @@
+import { useSelector } from "react-redux";
+
 export default function SpendingChart() {
-  return (
-    <div
-      className="
-        w-full
-        rounded-2xl
-        p-5 sm:p-6 lg:p-8
-        bg-white dark:bg-[#0F1B22]
-        border border-gray-200 dark:border-white/5
-        shadow-sm hover:shadow-md
-        transition-all duration-300
-      "
-    >
-      {/* ================= HEADER ================= */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-        
-        {/* Title Section */}
-        <div>
-          <h2 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900 dark:text-white">
-            Spending Trends
-          </h2>
-          <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Daily average: $112.50
-          </p>
-        </div>
+const receipts = useSelector(
+  (state) => state.receipt.receipts
+);
 
-        {/* Filter Dropdown */}
-        <select
-          className="
-            w-full md:w-auto
-            text-xs sm:text-sm
-            px-3 sm:px-4 py-2
-            rounded-lg outline-none
-            bg-gray-100 dark:bg-[#0B1418]
-            text-gray-700 dark:text-gray-300
-            border border-gray-200 dark:border-white/5
-            focus:ring-2 focus:ring-emerald-500/40
-            focus:border-emerald-500
-            transition-all duration-300
-          "
-        >
-          <option>Last 7 months</option>
-          <option>Last 30 days</option>
-          <option>Last year</option>
-        </select>
+
+  if (receipts.length === 0) {
+    return (
+      <div className="p-6 bg-white dark:bg-[#0F1B22] rounded-2xl">
+        <h2 className="text-lg font-semibold">Spending Trends</h2>
+        <p className="text-gray-500 mt-3">No chart data</p>
       </div>
+    );
+  }
 
-      {/* ================= CHART AREA ================= */}
-      <div
-        className="
-          w-full
-          h-56 sm:h-64 md:h-72 lg:h-80 xl:h-96
-          rounded-xl
-          flex items-center justify-center
-          relative overflow-hidden
-          bg-gray-50
-          dark:bg-gradient-to-b dark:from-[#0F1C22] dark:to-[#0B1418]
-          border border-gray-200 dark:border-white/5
-          transition-all duration-300
-        "
-      >
-        {/* Subtle Grid Pattern */}
-        <div
-          className="
-            absolute inset-0 opacity-10
-            bg-[radial-gradient(circle_at_center,_#94a3b8_1px,_transparent_1px)]
-            dark:bg-[radial-gradient(circle_at_center,_#1e2a32_1px,_transparent_1px)]
-            [background-size:20px_20px]
-          "
-        />
+  const monthly = {};
+  receipts.forEach((r) => {
+    const amount = parseFloat(r.amount) || 0;
+    const month = new Date(r.date).toLocaleString("default", {
+      month: "short",
+    });
 
-        {/* Placeholder */}
-        <p className="text-gray-500 text-xs sm:text-sm z-10 text-center px-4">
-          Chart visualization will render here
-        </p>
+    monthly[month] = (monthly[month] || 0) + amount;
+  });
+
+  const data = Object.keys(monthly).map((key) => ({
+    month: key,
+    amount: monthly[key],
+  }));
+
+  const max = Math.max(...data.map((d) => d.amount));
+
+  return (
+    <div className="p-6 bg-white dark:bg-[#0F1B22] rounded-2xl">
+      <h2 className="text-lg font-semibold mb-6">Spending Trends</h2>
+
+      <div className="flex items-end gap-4 h-48">
+        {data.map((item, i) => (
+          <div key={i} className="flex flex-col items-center">
+            <div
+              className="w-8 bg-emerald-500 rounded-t-md transition-all duration-700"
+              style={{ height: `${(item.amount / max) * 100}%` }}
+            />
+            <span className="text-xs mt-2">{item.month}</span>
+          </div>
+        ))}
       </div>
     </div>
   );

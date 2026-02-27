@@ -1,65 +1,65 @@
-import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 
 export default function CategoriesCard() {
-  const [animate, setAnimate] = useState(false);
+  const receipts = useSelector(
+    (state) => state.receipt.receipts
+  );
 
-  const categories = [
-    { name: "Food & Dining", percent: 42, color: "bg-emerald-500" },
-    { name: "Transport", percent: 24, color: "bg-blue-500" },
-    { name: "Shopping", percent: 18, color: "bg-purple-500" },
-    { name: "Entertainment", percent: 16, color: "bg-orange-500" },
-  ];
+  if (!receipts.length) {
+    return (
+      <div className="p-6 bg-white dark:bg-[#0F1B22] rounded-2xl">
+        <h2 className="text-lg font-semibold">
+          Top Categories
+        </h2>
+        <p className="text-gray-500 mt-3">
+          No data yet
+        </p>
+      </div>
+    );
+  }
 
-  // Animate on mount
-  useEffect(() => {
-    setAnimate(true);
-  }, []);
+  const totals = {};
+  let grandTotal = 0;
+
+  receipts.forEach((item) => {
+    const amount = Number(item.amount) || 0;
+    grandTotal += amount;
+
+    const category = item.category || "Other";
+    totals[category] =
+      (totals[category] || 0) + amount;
+  });
+
+  const categories = Object.keys(totals).map(
+    (key) => ({
+      name: key,
+      percent: grandTotal
+        ? Math.round(
+            (totals[key] / grandTotal) * 100
+          )
+        : 0,
+    })
+  );
 
   return (
-    <div
-      className="
-        w-full
-        bg-white dark:bg-[#0F1B22]
-        border border-gray-200 dark:border-white/5
-        shadow-sm hover:shadow-md
-        rounded-2xl
-        p-5 sm:p-6 lg:p-8
-        transition-all duration-300
-      "
-    >
-      {/* Title */}
-      <h2 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900 dark:text-white mb-6">
+    <div className="p-6 bg-white dark:bg-[#0F1B22] rounded-2xl">
+      <h2 className="text-lg font-semibold mb-6">
         Top Categories
       </h2>
 
-      {/* Categories */}
-      <div className="space-y-5 sm:space-y-6 lg:space-y-7">
+      <div className="space-y-5">
         {categories.map((cat, i) => (
-          <div key={i} className="group">
-            
-            {/* Title + Percent */}
-            <div className="flex justify-between items-center text-xs sm:text-sm lg:text-base mb-2">
-              <span className="text-gray-700 dark:text-gray-300">
-                {cat.name}
-              </span>
-              <span className="text-gray-500 dark:text-gray-400">
-                {cat.percent}%
-              </span>
+          <div key={i}>
+            <div className="flex justify-between mb-2 text-sm">
+              <span>{cat.name}</span>
+              <span>{cat.percent}%</span>
             </div>
 
-            {/* Progress Bar Background */}
-            <div className="w-full h-2 sm:h-2.5 lg:h-3 bg-gray-100 dark:bg-white/5 rounded-full overflow-hidden">
-              
-              {/* Animated Progress */}
+            <div className="h-2 bg-gray-100 rounded-full">
               <div
-                className={`
-                  rounded-full ${cat.color}
-                  transition-all duration-700 ease-out
-                  group-hover:opacity-90
-                `}
+                className="h-2 bg-emerald-500 rounded-full transition-all duration-700"
                 style={{
-                  width: animate ? `${cat.percent}%` : "0%",
-                  height: "100%",
+                  width: `${cat.percent}%`,
                 }}
               />
             </div>

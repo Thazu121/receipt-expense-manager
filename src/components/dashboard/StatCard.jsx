@@ -1,4 +1,27 @@
-export default function StatCard({ title, value, icon: Icon }) {
+export default function StatCard({
+  title = "Untitled",
+  value = 0,
+  icon: Icon,
+  isCurrency = false,
+  isLoading = false,
+}) {
+  // Safe number conversion
+  const safeValue =
+    typeof value === "number"
+      ? value
+      : Number(value) || 0;
+
+  // Format currency if needed
+  const formattedValue = isCurrency
+    ? `$${safeValue.toFixed(2)}`
+    : safeValue;
+
+  // Color logic
+  const valueColor =
+    safeValue < 0
+      ? "text-red-500"
+      : "text-gray-900 dark:text-white";
+
   return (
     <div
       className="
@@ -29,15 +52,15 @@ export default function StatCard({ title, value, icon: Icon }) {
 
       {/* Value */}
       <h2
-        className="
+        className={`
           text-xl sm:text-2xl lg:text-3xl
           font-semibold
           mt-3
-          text-gray-900 dark:text-white
           break-words
-        "
+          ${valueColor}
+        `}
       >
-        {value}
+        {isLoading ? "Loading..." : formattedValue}
       </h2>
     </div>
   );
