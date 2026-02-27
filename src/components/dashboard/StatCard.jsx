@@ -5,18 +5,20 @@ export default function StatCard({
   isCurrency = false,
   isLoading = false,
 }) {
-  // Safe number conversion
   const safeValue =
     typeof value === "number"
       ? value
       : Number(value) || 0;
 
-  // Format currency if needed
+  // 🇮🇳 Better currency formatting
   const formattedValue = isCurrency
-    ? `$${safeValue.toFixed(2)}`
+    ? new Intl.NumberFormat("en-IN", {
+        style: "currency",
+        currency: "INR",
+        maximumFractionDigits: 2,
+      }).format(safeValue)
     : safeValue;
 
-  // Color logic
   const valueColor =
     safeValue < 0
       ? "text-red-500"
@@ -28,23 +30,23 @@ export default function StatCard({
         w-full
         bg-white dark:bg-[#0F1B22]
         border border-gray-200 dark:border-white/5
-        shadow-sm hover:shadow-md
+        shadow-sm hover:shadow-lg
         rounded-2xl
-        p-5 sm:p-6 lg:p-7
+        p-4 sm:p-6
         transition-all duration-300
         hover:-translate-y-1
         flex flex-col justify-between
-        min-h-[120px]
+        min-h-[110px] sm:min-h-[130px]
       "
     >
       {/* Top Row */}
       <div className="flex items-center justify-between">
-        <p className="text-xs sm:text-sm lg:text-base text-gray-500 dark:text-gray-400">
+        <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
           {title}
         </p>
 
         {Icon && (
-          <div className="p-2 rounded-lg bg-gray-100 dark:bg-white/5">
+          <div className="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-500/10">
             <Icon size={18} className="text-emerald-500" />
           </div>
         )}
@@ -53,14 +55,21 @@ export default function StatCard({
       {/* Value */}
       <h2
         className={`
-          text-xl sm:text-2xl lg:text-3xl
+          text-lg sm:text-2xl lg:text-3xl
           font-semibold
           mt-3
           break-words
+          transition-all duration-300
           ${valueColor}
         `}
       >
-        {isLoading ? "Loading..." : formattedValue}
+        {isLoading ? (
+          <span className="animate-pulse text-gray-400">
+            Loading...
+          </span>
+        ) : (
+          formattedValue
+        )}
       </h2>
     </div>
   );

@@ -1,5 +1,5 @@
 import { useSelector } from "react-redux";
-import Header from "../dashboard/Header"
+import Header from "../dashboard/Header";
 import StatCard from "../dashboard/StatCard";
 import SpendingChart from "../dashboard/SpendingChart";
 import CategoriesCard from "../dashboard/CategoriesCard";
@@ -8,7 +8,7 @@ import { useMemo } from "react";
 
 export default function Dashboard() {
   const receipts = useSelector(
-    (state) => state.receipt?.receipt || []
+    (state) => state.receipt?.receipts || []
   );
 
   if (!Array.isArray(receipts)) {
@@ -19,7 +19,6 @@ export default function Dashboard() {
     );
   }
 
-  // ✅ Calculations (Memoized for performance)
   const {
     totalBalance,
     monthlySpend,
@@ -52,7 +51,7 @@ export default function Dashboard() {
     return {
       totalBalance: total,
       monthlySpend: monthly,
-      totalSavings: total * 0.2, // Example savings logic
+      totalSavings: total * 0.2,
       pendingReceipts: pending,
     };
   }, [receipts]);
@@ -60,49 +59,50 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0B1120] transition-colors duration-300">
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10">
 
         {/* ✅ Header */}
-        <Header />
+        <div className="mb-6 sm:mb-8">
+          <Header />
+        </div>
 
         {/* ✅ Stats Section */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mb-10">
-
-          <StatCard
-            title="Total Balance"
-            value={totalBalance}
-            isCurrency
-          />
-
-          <StatCard
-            title="Monthly Spend"
-            value={monthlySpend}
-            isCurrency
-          />
-
-          <StatCard
-            title="Savings Goal"
-            value={totalSavings}
-            isCurrency
-          />
-
-          <StatCard
-            title="Pending Receipts"
-            value={pendingReceipts}
-          />
-
+        <div className="
+          grid 
+          grid-cols-1 
+          sm:grid-cols-2 
+          lg:grid-cols-2 
+          xl:grid-cols-4 
+          gap-4 sm:gap-6 
+          mb-8 sm:mb-10
+        ">
+          <StatCard title="Total Balance" value={totalBalance} isCurrency />
+          <StatCard title="Monthly Spend" value={monthlySpend} isCurrency />
+          <StatCard title="Savings Goal" value={totalSavings} isCurrency />
+          <StatCard title="Pending Receipts" value={pendingReceipts} />
         </div>
 
         {/* ✅ Charts + Categories */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
-          <div className="lg:col-span-2">
+        <div className="
+          grid 
+          grid-cols-1 
+          lg:grid-cols-3 
+          gap-6 
+          mb-8 sm:mb-10
+        ">
+          <div className="lg:col-span-2 w-full">
             <SpendingChart receipts={receipts} />
           </div>
 
-          <CategoriesCard receipts={receipts} />
+          <div className="w-full">
+            <CategoriesCard receipts={receipts} />
+          </div>
         </div>
 
-        <TransactionsTable receipts={receipts} />
+        {/* ✅ Transactions Table (Scrollable on mobile) */}
+        <div className="w-full overflow-x-auto">
+          <TransactionsTable receipts={receipts} />
+        </div>
 
       </div>
     </div>

@@ -5,6 +5,8 @@ import {
   PieChart,
   Settings,
   Menu,
+  Scan,
+  Images,
   X
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
@@ -17,11 +19,12 @@ export default function SideNavbar() {
     { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
     { name: "Reports", path: "/dashboard/insight", icon: PieChart },
     { name: "Settings", path: "/dashboard/setting", icon: Settings },
+    {name:"Scan Receipt",path:"/dashboard/scanner",icon:Scan},
+    {name:"Gallery",path:"/dashboard/gallery",icon:Images}
   ];
 
   return (
     <>
-      {/* ================= MOBILE TOP BAR ================= */}
       <div className="lg:hidden flex items-center justify-between p-4 bg-white dark:bg-[#0F172A] border-b dark:border-gray-800">
         <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
           ExpenseTracker
@@ -31,7 +34,6 @@ export default function SideNavbar() {
         </button>
       </div>
 
-      {/* ================= MOBILE SIDEBAR ================= */}
       <div
         className={`fixed inset-0 z-50 lg:hidden transition-transform duration-300 ${
           mobileOpen ? "translate-x-0" : "-translate-x-full"

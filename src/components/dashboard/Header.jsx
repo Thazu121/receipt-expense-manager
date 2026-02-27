@@ -5,9 +5,10 @@ import { useSelector } from "react-redux";
 export default function Header() {
   const navigate = useNavigate();
 
-  const receipts = useSelector(
-    (state) => state.receipt?.receipt || []
-  );
+ const receipts = useSelector(
+  (state) => state.receipt.receipt
+);
+
 
   const handleExport = () => {
     if (!receipts.length) {

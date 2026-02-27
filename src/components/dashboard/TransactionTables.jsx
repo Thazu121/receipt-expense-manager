@@ -2,12 +2,12 @@ import { useSelector } from "react-redux";
 
 export default function TransactionsTable() {
   const receipts = useSelector(
-    (state) => state.receipt.receipts
+    (state) => state.receipt?.receipts || []
   );
 
   if (!receipts.length) {
     return (
-      <div className="p-6 bg-white dark:bg-[#0F1B22] rounded-2xl">
+      <div className="p-6 bg-white dark:bg-[#0F1B22] rounded-2xl shadow-sm">
         <h2 className="text-lg font-semibold mb-4">
           Recent Transactions
         </h2>
@@ -18,54 +18,99 @@ export default function TransactionsTable() {
     );
   }
 
+  // Sort latest first
+  const sortedReceipts = [...receipts].sort(
+    (a, b) => new Date(b.date) - new Date(a.date)
+  );
+
   return (
-    <div className="rounded-2xl p-6 bg-white dark:bg-[#0F1B22] border border-gray-200 dark:border-white/5 shadow-sm">
-      <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
+    <div className="rounded-2xl p-4 sm:p-6 bg-white dark:bg-[#0F1B22] border border-gray-200 dark:border-white/5 shadow-sm">
+      <h2 className="text-base sm:text-lg font-semibold mb-4 text-gray-900 dark:text-white">
         Recent Transactions
       </h2>
 
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm min-w-[600px]">
+      {/* ✅ Desktop Table */}
+      <div className="hidden md:block overflow-x-auto">
+        <table className="w-full text-sm">
           <thead>
             <tr className="border-b dark:border-white/5 text-gray-500">
-              <th className="text-left py-3">
-                Merchant
-              </th>
-              <th className="text-left">
-                Category
-              </th>
-              <th className="text-left">
-                Date
-              </th>
-              <th className="text-right">
-                Amount
-              </th>
+              <th className="text-left py-3">Merchant</th>
+              <th className="text-left">Category</th>
+              <th className="text-left">Date</th>
+              <th className="text-right">Amount</th>
             </tr>
           </thead>
 
           <tbody>
-            {receipts.map((r, index) => (
-              <tr
-                key={r.id || index}
-                className="border-b dark:border-white/5 hover:bg-gray-50 dark:hover:bg-white/5 transition"
-              >
-                <td className="py-4">
-                  {r.store || "Unknown"}
-                </td>
-                <td>
-                  {r.category || "Other"}
-                </td>
-                <td>{r.date || "-"}</td>
-                <td className="text-right text-red-500 font-medium">
-                  -$
-                  {Number(r.amount || 0).toFixed(
-                    2
-                  )}
-                </td>
-              </tr>
-            ))}
+            {sortedReceipts.map((r, index) => {
+              const amount = Number(r.amount) || 0;
+              const isNegative = amount < 0;
+
+              return (
+                <tr
+                  key={r.id || index}
+                  className="border-b dark:border-white/5 hover:bg-gray-50 dark:hover:bg-white/5 transition"
+                >
+                  <td className="py-4">
+                    {r.store || "Unknown"}
+                  </td>
+                  <td>{r.category || "Other"}</td>
+                  <td>{r.date || "-"}</td>
+                  <td
+                    className={`text-right font-medium ${
+                      isNegative
+                        ? "text-red-500"
+                        : "text-emerald-500"
+                    }`}
+                  >
+                    {new Intl.NumberFormat("en-IN", {
+                      style: "currency",
+                      currency: "INR",
+                    }).format(amount)}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
+      </div>
+
+      {/* ✅ Mobile Card Layout */}
+      <div className="space-y-4 md:hidden">
+        {sortedReceipts.map((r, index) => {
+          const amount = Number(r.amount) || 0;
+          const isNegative = amount < 0;
+
+          return (
+            <div
+              key={r.id || index}
+              className="p-4 rounded-xl border border-gray-200 dark:border-white/5"
+            >
+              <div className="flex justify-between mb-2">
+                <p className="font-medium">
+                  {r.store || "Unknown"}
+                </p>
+                <p
+                  className={`font-semibold ${
+                    isNegative
+                      ? "text-red-500"
+                      : "text-emerald-500"
+                  }`}
+                >
+                  {new Intl.NumberFormat("en-IN", {
+                    style: "currency",
+                    currency: "INR",
+                  }).format(amount)}
+                </p>
+              </div>
+
+              <div className="text-xs text-gray-500 flex justify-between">
+                <span>{r.category || "Other"}</span>
+                <span>{r.date || "-"}</span>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

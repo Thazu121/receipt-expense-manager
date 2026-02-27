@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Camera, ScanLine } from "lucide-react";
 import ScanStatus from "./ScanStatus";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { setScannedReceipt } from "../../redux/features/receiptSlice";
 import { ScanReceiptOCR } from "../scan/ScanReceiptOCR";
 
@@ -14,9 +14,13 @@ export default function LiveCapture() {
   const fileInputRef = useRef(null);
   const dispatch = useDispatch();
 
-  /* -------------------------------
-     Clean object URL memory
-  --------------------------------*/
+  const scanned = useSelector(
+    (state) => state.receipt.scannedReceipt
+  );
+
+  /* -----------------------------
+     Cleanup Object URL
+  ------------------------------ */
   useEffect(() => {
     return () => {
       if (capturedImage) {
@@ -25,9 +29,25 @@ export default function LiveCapture() {
     };
   }, [capturedImage]);
 
-  /* -------------------------------
-     Handle File Upload
-  --------------------------------*/
+  /* -----------------------------
+     Reset When Receipt Cleared
+  ------------------------------ */
+  useEffect(() => {
+    if (!scanned) {
+      setCapturedImage(null);
+      setScanComplete(false);
+      setIsScanning(false);
+      setError("");
+
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  }, [scanned]);
+
+  /* -----------------------------
+     Handle Upload
+  ------------------------------ */
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
 
@@ -36,35 +56,38 @@ export default function LiveCapture() {
 
     if (!file) return;
 
-    // Validate image type
     if (!file.type.startsWith("image/")) {
       setError("Please upload a valid image file.");
       return;
     }
 
-    // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       setError("Image must be smaller than 5MB.");
       return;
     }
 
-    // Create preview
     const imageUrl = URL.createObjectURL(file);
     setCapturedImage(imageUrl);
-
     setIsScanning(true);
 
     try {
       const result = await ScanReceiptOCR(file);
 
       if (result?.success && result?.data) {
-        dispatch(
-          setScannedReceipt({
-            id: Date.now(),
-            ...result.data,
-          })
-        );
+        const base64Image = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.readAsDataURL(file);
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = reject;
+        });
 
+        const scannedReceipt = {
+          ...result.data,
+          amount: Number(result.data.amount),
+          image: base64Image,
+        };
+
+        dispatch(setScannedReceipt(scannedReceipt));
         setScanComplete(true);
       } else {
         setError(result?.message || "Failed to extract receipt data.");
@@ -76,44 +99,24 @@ export default function LiveCapture() {
 
     setIsScanning(false);
 
-    // Reset file input
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
   };
 
   return (
-    <div
-      className="
-        h-full flex flex-col
-        rounded-2xl p-6
-        bg-white/70 backdrop-blur-md
-        border border-emerald-100
-        shadow-xl
-        dark:bg-white/5
-        dark:border-emerald-900
-        transition-all duration-500
-      "
-    >
+    <div className="h-full flex flex-col rounded-2xl p-6 bg-white/70 backdrop-blur-md border border-emerald-100 shadow-xl dark:bg-white/5 dark:border-emerald-900 transition-all duration-500">
+
       {/* Header */}
       <div className="flex items-center gap-2 mb-6">
         <Camera className="text-emerald-600 dark:text-green-400" size={20} />
         <h2 className="font-semibold text-lg">Upload Receipt</h2>
       </div>
 
-      {/* Preview Section */}
+      {/* Preview Area */}
       <div className="flex-1 flex flex-col">
+        <div className="relative h-[60vh] max-h-[600px] rounded-xl overflow-hidden bg-gradient-to-br from-slate-200 to-slate-300 dark:from-[#0f2c22] dark:to-[#123c2f] flex items-center justify-center">
 
-        <div
-          className="
-            relative h-[60vh] max-h-[600px]
-            rounded-xl overflow-hidden
-            bg-gradient-to-br from-slate-200 to-slate-300
-            dark:from-[#0f2c22]
-            dark:to-[#123c2f]
-            flex items-center justify-center
-          "
-        >
           {capturedImage ? (
             <img
               src={capturedImage}
@@ -126,18 +129,18 @@ export default function LiveCapture() {
             </span>
           )}
 
-          {/* Scanning Animation */}
+          {/* 🔥 Scanning Animation */}
           {isScanning && (
             <>
               <ScanLine
                 size={40}
-                className="absolute text-emerald-500 animate-pulse"
+                className="absolute text-emerald-500 animate-pulse z-20"
               />
-              <div className="absolute top-0 left-0 w-full h-1 bg-emerald-500 animate-scan" />
+
+              <div className="absolute left-0 w-full h-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent animate-scan z-20" />
             </>
           )}
 
-          {/* Scan Complete Overlay */}
           {scanComplete && !isScanning && !error && (
             <div className="absolute inset-0 flex items-center justify-center bg-black/40">
               <span className="text-emerald-400 font-semibold text-lg">
@@ -147,34 +150,24 @@ export default function LiveCapture() {
           )}
         </div>
 
-        {/* Error Message */}
         {error && (
           <div className="mt-4 text-sm text-red-500 text-center">
             {error}
           </div>
         )}
 
-        {/* Status Component */}
         <div className="mt-6">
-          <ScanStatus
-            isScanning={isScanning}
-            scanComplete={scanComplete}
-          />
+          <ScanStatus isScanning={isScanning} scanComplete={scanComplete} />
         </div>
       </div>
 
       {/* Upload Button */}
       <label
-        className={`
-          mt-6 block w-full text-center py-3 rounded-xl
-          text-white font-medium cursor-pointer
-          transition-all duration-300
-          ${
-            isScanning
-              ? "bg-gray-400 cursor-not-allowed"
-              : "bg-emerald-600 hover:bg-emerald-700 dark:bg-green-500 dark:hover:bg-green-600"
-          }
-        `}
+        className={`mt-6 block w-full text-center py-3 rounded-xl text-white font-medium cursor-pointer transition-all duration-300 ${
+          isScanning
+            ? "bg-gray-400 cursor-not-allowed"
+            : "bg-emerald-600 hover:bg-emerald-700 dark:bg-green-500 dark:hover:bg-green-600"
+        }`}
       >
         {isScanning ? "Scanning..." : "Select Receipt Image"}
 
@@ -187,20 +180,6 @@ export default function LiveCapture() {
           className="hidden"
         />
       </label>
-
-      {/* Custom Animation */}
-      <style>
-        {`
-          @keyframes scan {
-            0% { top: 0%; }
-            100% { top: 100%; }
-          }
-
-          .animate-scan {
-            animation: scan 2s linear infinite;
-          }
-        `}
-      </style>
     </div>
   );
 }

@@ -38,16 +38,9 @@ export default function ExtractedDetails() {
   };
 
   /* -----------------------------
-     Detect Currency
+     Use Stored Currency (SAFE)
   ------------------------------ */
-  const detectCurrency = (value) => {
-    if (!value) return "";
-    if (value.includes("₹") || value.includes("Rs")) return "₹";
-    if (value.includes("$")) return "$";
-    return "";
-  };
-
-  const currencySymbol = detectCurrency(scanned?.amount);
+  const currencySymbol = scanned?.currency || "";
 
   /* -----------------------------
      Handle Save
@@ -60,8 +53,8 @@ export default function ExtractedDetails() {
       return;
     }
 
-    if (!scanned.amount || scanned.amount.trim() === "") {
-      setError("Total amount is required.");
+    if (!scanned.amount || Number(scanned.amount) <= 0) {
+      setError("Valid total amount is required.");
       return;
     }
 
@@ -69,6 +62,7 @@ export default function ExtractedDetails() {
       addReceipt({
         id: Date.now(),
         ...scanned,
+        amount: Number(scanned.amount), // ensure number
       })
     );
 
@@ -172,6 +166,8 @@ export default function ExtractedDetails() {
             )}
 
             <input
+              type="number"
+              step="0.01"
               value={scanned?.amount || ""}
               onChange={(e) =>
                 handleChange("amount", e.target.value)

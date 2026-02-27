@@ -1,9 +1,15 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
-import { useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { useState, useEffect } from "react";
+import { login } from "../../redux/features/authSlice"
 
 export default function Login() {
   const isLight = useSelector((state) => state.theme.isLight);
+  const isAuthenticated = useSelector(
+    (state) => state.auth.isAuthenticated
+  );
+
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
@@ -13,6 +19,13 @@ export default function Login() {
   const [passwordErr, setPasswordErr] = useState("");
   const [formErr, setFormErr] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
+
+  // 🔒 Auto redirect if already logged in
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -39,27 +52,27 @@ export default function Login() {
 
     if (!isValid) return;
 
-      const users = JSON.parse(localStorage.getItem("users")) || []
+    const users = JSON.parse(localStorage.getItem("users")) || [];
 
-  const existingUser = users.find(
-    (user) =>
-      user.email.toLowerCase() === email.toLowerCase() &&
-      user.password === password
-  )
-  
-  if (!existingUser) {
-    setFormErr("Invalid email or password")
-    return
-  }
+    const existingUser = users.find(
+      (user) =>
+        user.email.toLowerCase() === email.toLowerCase() &&
+        user.password === password
+    );
 
-  localStorage.setItem("currentUser", JSON.stringify(existingUser))
+    if (!existingUser) {
+      setFormErr("Invalid email or password");
+      return;
+    }
 
-    // Success
+    // 🔐 Update Redux + localStorage
+    dispatch(login(existingUser));
+
     setIsSuccess(true);
 
     setTimeout(() => {
-      navigate("/dashboard")
-    }, 1500);
+      navigate("/dashboard", { replace: true });
+    }, 1200);
   };
 
   return (
@@ -75,7 +88,10 @@ export default function Login() {
           Welcome Back 👋
         </h2>
 
-        <p className="text-red-500 text-center mb-3">{formErr}</p>
+        {formErr && (
+          <p className="text-red-500 text-center mb-3">{formErr}</p>
+        )}
+
         {isSuccess && (
           <p className="text-green-500 text-center mb-3">
             Login successful 🎉
@@ -97,7 +113,9 @@ export default function Login() {
                   : "bg-white/5 border border-white/10 focus:border-green-400"
               }`}
             />
-            <p className="text-red-500 text-sm mt-1">{emailErr}</p>
+            {emailErr && (
+              <p className="text-red-500 text-sm mt-1">{emailErr}</p>
+            )}
           </div>
 
           {/* Password */}
@@ -114,7 +132,9 @@ export default function Login() {
                   : "bg-white/5 border border-white/10 focus:border-green-400"
               }`}
             />
-            <p className="text-red-500 text-sm mt-1">{passwordErr}</p>
+            {passwordErr && (
+              <p className="text-red-500 text-sm mt-1">{passwordErr}</p>
+            )}
           </div>
 
           {/* Button */}
@@ -126,7 +146,6 @@ export default function Login() {
           </button>
         </form>
 
-        {/* Signup Link */}
         <p
           className={`text-center mt-6 text-sm ${
             isLight ? "text-gray-500" : "text-gray-400"

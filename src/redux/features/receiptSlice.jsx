@@ -1,8 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-/* -----------------------------
-   Safe Load from localStorage
-------------------------------*/
+
 const loadReceipts = () => {
   try {
     const data = localStorage.getItem("receipts");
@@ -39,16 +37,20 @@ const receiptSlice = createSlice({
     },
 
    
-    addReceipt: (state, action) => {
-      const newReceipt = {
-        ...action.payload,
-        amount: Number(action.payload.amount),
-        currency: action.payload.currency || "$",
-      };
+addReceipt: (state, action) => {
+  const exists = state.receipts.some(
+    (r) =>
+      r.store.toLowerCase() === action.payload.store.toLowerCase() &&
+      r.date === action.payload.date &&
+      r.amount === action.payload.amount
+  );
 
-      state.receipts.unshift(newReceipt); 
-      saveReceipts(state.receipts);
-    },
+  if (!exists) {
+    state.receipts.push(action.payload);
+    localStorage.setItem("receipts", JSON.stringify(state.receipts));
+  }
+},
+
 
    
     deleteReceipt: (state, action) => {
