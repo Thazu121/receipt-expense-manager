@@ -1,189 +1,200 @@
-import { RotateCcw } from "lucide-react";
+import {useDispatch,useSelector} from "react-redux"
+import { addReceipt,clearScannedReceipt,setScannedReceipt } from "../../redux/features/receiptSlice";
+
 
 export default function ExtractedDetails() {
+ 
+  const dispatch =useDispatch()
+  const scanned=useSelector((state)=>state.receipt.ScannedReceipt)
+  if(!scanned){
+    return(
+      <div>
+        <p>
+          No receipt Scanned Yet.
+        </p>
+      </div>
+    )
+  }
+  const handleChange=(field,value)=>{
+    dispatch(
+      setScannedReceipt({
+        ...scanned,
+        [field]:value
+      })
+    )
+  }
+  const handleSave=()=>{
+    dispatch(
+      addReceipt({
+        id:Date.now(),
+        ...scanned
+      })
+    )
+    dispatch(clearScannedReceipt())
+  }
+
   return (
-    <section className="space-y-6">
-
+    <div
+      className="
+        h-full flex flex-col
+        rounded-2xl p-6
+        bg-white/70 backdrop-blur-md
+        border border-emerald-100
+        shadow-xl
+        dark:bg-white/5
+        dark:border-emerald-900
+        transition-all duration-500
+      "
+    >
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
-          Extracted Details
-        </h2>
+      <div className="mb-6 flex justify-between items-start">
+        <div>
+          <h2 className="text-xl font-semibold">
+            Extracted Details
+          </h2>
+          <p className="text-sm text-gray-500 dark:text-green-400">
+            Review and edit the scanned information
+          </p>
+        </div>
 
-        <span
-          className="
-            text-xs font-semibold tracking-wide
-            px-3 py-1 rounded-full
-            bg-emerald-100 text-emerald-700
-            border border-emerald-200
-            
-            dark:bg-emerald-500/10
-            dark:text-emerald-400
-            dark:border-emerald-500/30
-          "
-        >
+        <span className="text-xs bg-emerald-100 text-emerald-700 dark:bg-green-900 dark:text-green-400 px-3 py-1 rounded-full">
           98% CONFIDENCE
         </span>
       </div>
 
-      {/* Card */}
-      <div
-        className="
-          rounded-2xl p-6 space-y-6 transition-all duration-500
-          
-          bg-white/90 backdrop-blur-xl
-          border border-emerald-100
-          shadow-md
-          
-          dark:bg-[#0c1f19]/70
-          dark:border-emerald-900/60
-          dark:shadow-none
-        "
-      >
+      {/* Form Section */}
+      <div className="flex-1 flex flex-col space-y-5">
 
         {/* Merchant */}
         <div>
-          <label className="text-xs text-gray-500 dark:text-slate-400 mb-1 block">
-            Merchant
+          <label className="text-xs text-gray-500 dark:text-gray-400">
+            MERCHANT NAME
           </label>
           <input
-            defaultValue="Blue Bottle Coffee"
+            value={scanned.store}
+            onChange={(e) => handleChange("store",e.target.value)}
             className="
-              w-full rounded-xl px-4 py-2.5 transition
-              bg-white border border-gray-200 text-gray-700
-              focus:outline-none focus:ring-2 focus:ring-emerald-400
-              
-              dark:bg-[#122b1e]
-              dark:border-emerald-900
-              dark:text-white
-              dark:focus:ring-emerald-500
+              w-full mt-1 p-3 rounded-xl
+              bg-transparent
+              border border-emerald-200
+              dark:border-emerald-800
+              focus:outline-none
+              focus:ring-2 focus:ring-emerald-500
+              transition
             "
           />
         </div>
 
-        {/* Date & Category */}
+        {/* Date + Category */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="text-xs text-gray-500 dark:text-slate-400 mb-1 block">
-              Date
+            <label className="text-xs text-gray-500 dark:text-gray-400">
+              DATE
             </label>
             <input
-              type="date"
+              value={scanned.date}
+              onChange={(e) => handleChange("date",e.target.value)}
               className="
-                w-full rounded-xl px-4 py-2.5 transition
-                bg-white border border-gray-200 text-gray-700
-                focus:outline-none focus:ring-2 focus:ring-emerald-400
-
-                dark:bg-[#122b1e]
-                dark:border-emerald-900
-                dark:text-white
-                dark:focus:ring-emerald-500
+                w-full mt-1 p-3 rounded-xl
+                bg-transparent
+                border border-emerald-200
+                dark:border-emerald-800
+                focus:outline-none
+                focus:ring-2 focus:ring-emerald-500
               "
             />
           </div>
 
           <div>
-            <label className="text-xs text-gray-500 dark:text-slate-400 mb-1 block">
-              Category
+            <label className="text-xs text-gray-500 dark:text-gray-400">
+              CATEGORY
             </label>
-            <select
+            <input
+              value={scanned.category}
+              onChange={(e) => handleChange(e.target.value)}
               className="
-                w-full rounded-xl px-4 py-2.5 transition
-                bg-white border border-gray-200 text-gray-700
-                focus:outline-none focus:ring-2 focus:ring-emerald-400
-
-                dark:bg-[#122b1e]
-                dark:border-emerald-900
-                dark:text-white
-                dark:focus:ring-emerald-500
+                w-full mt-1 p-3 rounded-xl
+                bg-transparent
+                border border-emerald-200
+                dark:border-emerald-800
+                focus:outline-none
+                focus:ring-2 focus:ring-emerald-500
               "
-            >
-              <option>Food & Drinks</option>
-              <option>Transport</option>
-              <option>Shopping</option>
-              <option>Subscriptions</option>
-            </select>
+            />
           </div>
         </div>
 
-        {/* Amount Section */}
-        <div className="pt-4 border-t border-emerald-100 dark:border-emerald-900/60">
-          <p className="text-sm text-gray-500 dark:text-slate-400">
-            Total Amount
-          </p>
-
-          <div
-            className="
-              text-4xl font-bold mt-1
-              text-emerald-600
-              drop-shadow-[0_0_6px_rgba(16,185,129,0.4)]
-              
-              dark:text-emerald-400
-              dark:drop-shadow-[0_0_8px_rgba(16,185,129,0.6)]
-            "
-          >
-            $12.45
-          </div>
-        </div>
-
-        {/* Notes */}
+        {/* Amount */}
         <div>
-          <label className="text-xs text-gray-500 dark:text-slate-400 mb-1 block">
-            Notes
+          <label className="text-xs text-gray-500 dark:text-gray-400">
+            TOTAL AMOUNT
           </label>
-          <textarea
-            placeholder="Add additional details..."
+          <input
+            value={scanned.amount}
+            onChange={(e) => handleChange("amount",e.target.value)}
             className="
-              w-full rounded-xl px-4 py-2.5 transition
-              bg-white border border-gray-200 text-gray-700
-              focus:outline-none focus:ring-2 focus:ring-emerald-400
-
-              dark:bg-[#122b1e]
-              dark:border-emerald-900
-              dark:text-white
-              dark:focus:ring-emerald-500
+              w-full mt-1 p-3 rounded-xl
+              bg-transparent
+              border border-emerald-200
+              dark:border-emerald-800
+              text-emerald-600 dark:text-green-400
+              text-lg font-semibold
+              focus:outline-none
+              focus:ring-2 focus:ring-emerald-500
             "
           />
         </div>
 
-        {/* Buttons */}
-        <div className="flex gap-3 pt-2">
-
-          <button
+        {/* Notes */}
+        <div className="flex-1 flex flex-col">
+          <label className="text-xs text-gray-500 dark:text-gray-400">
+            NOTES (OPTIONAL)
+          </label>
+          <textarea
+            value={scanned.notes}
+            onChange={(e) => handleChange("notes",e.target.value)}
+            rows={3}
             className="
-              flex-1 py-3 rounded-xl font-semibold transition-all duration-300
-              
-              bg-emerald-600 text-white
-              hover:bg-emerald-500
-              hover:shadow-lg hover:shadow-emerald-500/30
-              active:scale-[0.98]
-
-              dark:bg-emerald-500
-              dark:text-black
-              dark:hover:bg-emerald-400
-            "
-          >
-            Save Expense
-          </button>
-
-          <button
-            className="
-              flex items-center gap-2 px-5 rounded-xl transition
-              border border-gray-300 text-gray-700
-              hover:bg-gray-100
-              
+              w-full mt-1 p-3 rounded-xl
+              bg-transparent
+              border border-emerald-200
               dark:border-emerald-800
-              dark:text-emerald-400
-              dark:hover:bg-emerald-900/30
+              resize-none
+              focus:outline-none
+              focus:ring-2 focus:ring-emerald-500
             "
-          >
-            <RotateCcw size={16} />
-            Retake
-          </button>
-
+          />
         </div>
-
       </div>
-    </section>
+
+      {/* Bottom Buttons */}
+      <div className="pt-6 flex gap-4">
+        <button
+        onClick={handleSave}
+          className="
+            flex-1 py-3 rounded-xl font-semibold
+            bg-emerald-600 hover:bg-emerald-700
+            text-white
+            transition duration-300
+          "
+        >
+          SAVE EXPENSE
+        </button>
+
+        <button
+        onClick={()=>dispatch(clearScannedReceipt())}
+          className="
+            flex-1 py-3 rounded-xl
+            border border-emerald-300
+            dark:border-emerald-800
+            hover:bg-emerald-100
+            dark:hover:bg-emerald-900/40
+            transition duration-300
+          "
+        >
+          RETAKE
+        </button>
+      </div>
+    </div>
   );
 }

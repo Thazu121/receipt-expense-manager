@@ -5,9 +5,14 @@ import StatCard from "../dashboard/StatCard";
 import SpendingChart from "../dashboard/SpendingChart";
 import CategoriesCard from "../dashboard/CategoriesCard";
 import TransactionsTable from "../dashboard/TransactionTables";
+import { useSelector } from "react-redux";
+
 
 export default function Dashboard() {
   const navigate = useNavigate();
+const receipts = useSelector(
+  state => state.receipt.receipts
+);
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0B1120] transition-colors duration-300">

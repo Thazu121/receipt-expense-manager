@@ -1,10 +1,13 @@
 import { Check } from "lucide-react";
 
-export default function ScanStatus({ isScanning, scanComplete }) {
-  const StatusItem = ({ label, processing }) => {
+export default function ScanStatus({
+  isScanning,
+  scanComplete
+}) {
+  const StatusItem = ({ label, active, done }) => {
     return (
       <span className="flex items-center gap-2">
-        {scanComplete ? (
+        {done ? (
           <Check
             size={14}
             className="text-emerald-500 dark:text-green-400"
@@ -13,17 +16,17 @@ export default function ScanStatus({ isScanning, scanComplete }) {
           <span
             className={`
               h-2.5 w-2.5 rounded-full
-              bg-emerald-500 dark:bg-green-400
-              ${isScanning ? "animate-pulse" : ""}
+              ${active
+                ? "bg-emerald-500 dark:bg-green-400 animate-pulse"
+                : "bg-gray-300 dark:bg-emerald-900"
+              }
               dark:shadow-[0_0_6px_rgba(34,197,94,0.7)]
             `}
           />
         )}
 
         <span className="transition-all duration-300">
-          {processing && isScanning
-            ? "Processing..."
-            : label}
+          {active ? "Processing..." : label}
         </span>
       </span>
     );
@@ -39,9 +42,26 @@ export default function ScanStatus({ isScanning, scanComplete }) {
         pt-2
       "
     >
-      <StatusItem label="Auto-focus" />
-      <StatusItem label="OCR Ready" processing />
-      <StatusItem label="Edge Detection" />
+      {/* Step 1 */}
+      <StatusItem
+        label="Auto-focus"
+        active={isScanning && !scanComplete}
+        done={scanComplete}
+      />
+
+      {/* Step 2 */}
+      <StatusItem
+        label="OCR Reading"
+        active={isScanning}
+        done={scanComplete}
+      />
+
+      {/* Step 3 */}
+      <StatusItem
+        label="Edge Detection"
+        active={false}
+        done={scanComplete}
+      />
     </div>
   );
 }
