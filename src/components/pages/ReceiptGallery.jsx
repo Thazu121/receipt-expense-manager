@@ -1,5 +1,5 @@
 import { useSelector } from "react-redux";
-import { useState, useMemo, useEffect } from "react";
+import { useMemo } from "react";
 import ReceiptCard from "../receipt/ReceiptCard";
 import ReceiptFilters from "../receipt/ReceiptFilters";
 import ReceiptPagination from "../receipt/ReceiptPagination";
@@ -8,16 +8,17 @@ import { Plus } from "lucide-react";
 export default function ReceiptGallery() {
   const receipts = useSelector((state) => state.receipt.receipts);
 
-  // 🔹 Filter States
-  const [search, setSearch] = useState("");
-  const [dateFilter, setDateFilter] = useState("all");
-  const [category, setCategory] = useState("all");
+  const {
+    search,
+    dateFilter,
+    category,
+    currentPage,
+    receiptsPerPage,
+  } = useSelector((state) => state.gallery);
 
-  // 🔹 Pagination
-  const [currentPage, setCurrentPage] = useState(1);
-  const receiptsPerPage = 6;
-
-  // ✅ Apply All Filters
+  /* ===============================
+     FILTER LOGIC
+  ================================ */
   const filteredReceipts = useMemo(() => {
     let data = [...receipts];
 
@@ -33,7 +34,7 @@ export default function ReceiptGallery() {
       data = data.filter((r) => r.category === category);
     }
 
-    // 📅 Date filter
+    // 📅 Date
     if (dateFilter !== "all") {
       const days = parseInt(dateFilter);
       const now = new Date();
@@ -52,14 +53,12 @@ export default function ReceiptGallery() {
     return data;
   }, [receipts, search, category, dateFilter]);
 
-  // 🔥 Reset page when filters change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [search, category, dateFilter]);
-
-  // ✅ Pagination logic
+  /* ===============================
+     PAGINATION
+  ================================ */
   const indexOfLast = currentPage * receiptsPerPage;
   const indexOfFirst = indexOfLast - receiptsPerPage;
+
   const currentReceipts = filteredReceipts.slice(
     indexOfFirst,
     indexOfLast
@@ -85,14 +84,7 @@ export default function ReceiptGallery() {
       </div>
 
       {/* Filters */}
-      <ReceiptFilters
-        search={search}
-        setSearch={setSearch}
-        dateFilter={dateFilter}
-        setDateFilter={setDateFilter}
-        category={category}
-        setCategory={setCategory}
-      />
+      <ReceiptFilters />
 
       {/* Grid */}
       <div className="grid gap-6 mt-8 sm:grid-cols-2 lg:grid-cols-3">
@@ -100,25 +92,20 @@ export default function ReceiptGallery() {
           <p>No receipts found.</p>
         ) : (
           currentReceipts.map((item) => (
-            <ReceiptCard
-              key={item.id}
-              receipt={item}
-            />
+            <ReceiptCard key={item.id} receipt={item} />
           ))
         )}
 
-        {/* Add Card */}
-        <div className="border-2 border-dashed rounded-2xl flex items-center justify-center h-[350px]">
-          <Plus />
-        </div>
+        {/* ✅ Add card only if page not full */}
+        {currentReceipts.length < receiptsPerPage && (
+          <div className="border-2 border-dashed rounded-2xl flex items-center justify-center h-[350px] cursor-pointer hover:bg-green-900/30 transition">
+            <Plus />
+          </div>
+        )}
       </div>
 
       {/* Pagination */}
-      <ReceiptPagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        setCurrentPage={setCurrentPage}
-      />
+      <ReceiptPagination totalPages={totalPages} />
     </div>
   );
 }

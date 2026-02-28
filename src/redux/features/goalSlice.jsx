@@ -1,26 +1,54 @@
 import { createSlice } from "@reduxjs/toolkit";
+
+/* ==========================
+   Load from localStorage
+========================== */
+const loadGoals = () => {
+  const data = localStorage.getItem("goals");
+  return data ? JSON.parse(data) : [];
+};
+
 const goalSlice = createSlice({
-    name:"goal",
-      initialState: {   goals: []
-},
-reducers:{
+  name: "goal",
+
+  initialState: {
+    goals: loadGoals(),
+  },
+
+  reducers: {
     addGoal: (state, action) => {
-  state.goals.push(action.payload)
-},
+      state.goals.push({
+        ...action.payload,
+        savedAmount: action.payload.savedAmount || 0,
+      });
 
-addSavings: (state, action) => {
-  const { id, amount } = action.payload
+      localStorage.setItem(
+        "goals",
+        JSON.stringify(state.goals)
+      );
+    },
 
-  const goal = state.goals.find(g => g.id === id)
+    addSavings: (state, action) => {
+      const { id, amount } = action.payload;
 
-  if (goal) {
-    goal.savedAmount += Number(amount)
-  }
-}
+      const goal = state.goals.find(
+        (g) => g.id === id
+      );
 
+      if (goal) {
+        goal.savedAmount =
+          (goal.savedAmount || 0) + Number(amount);
 
-}
+        localStorage.setItem(
+          "goals",
+          JSON.stringify(state.goals)
+        );
+      }
+    },
+  },
+});
 
-})
-export const {addGoal,addSavings } = goalSlice.actions
-export default goalSlice.reducer
+export const { addGoal, addSavings } =
+  goalSlice.actions;
+
+export default goalSlice.reducer;

@@ -1,36 +1,70 @@
 import Tesseract from "tesseract.js";
 
 // -----------------------------------
-// 🔥 CATEGORY DETECTION FUNCTION
+// 🧠 SMART CATEGORY DETECTION (Score Based)
 // -----------------------------------
 const detectCategory = (text) => {
   const lower = text.toLowerCase();
 
-  if (/uber|ola|petrol|fuel|bus|train|metro/i.test(lower)) {
-    return "Transport";
+  const categories = {
+    Transport: [
+      "uber", "ola", "petrol", "fuel", "bus", "train", "metro"
+    ],
+    Food: [
+      "restaurant", "cafe", "hotel", "coffee",
+      "pizza", "burger", "bakery", "swiggy", "zomato"
+    ],
+    Grocery: [
+      "supermarket", "grocery", "vegetable", "fruits",
+      "rice", "milk", "bread", "dairy", "hypermarket",
+      "lulu", "reliance fresh", "d mart", "provision"
+    ],
+    Shopping: [
+      "amazon", "flipkart", "mall",
+      "clothing", "fashion", "store"
+    ],
+    Health: [
+      "hospital", "pharmacy", "medical",
+      "clinic", "lab", "apollo"
+    ],
+    Bills: [
+      "electricity", "water bill",
+      "internet", "wifi", "recharge",
+      "broadband", "bill payment"
+    ],
+    Entertainment: [
+      "movie", "cinema", "theatre",
+      "netflix", "amazon prime"
+    ]
+  };
+
+  let scores = {};
+  Object.keys(categories).forEach((cat) => {
+    scores[cat] = 0;
+  });
+
+  // Count keyword matches
+  for (const category in categories) {
+    categories[category].forEach((keyword) => {
+      if (lower.includes(keyword)) {
+        scores[category]++;
+      }
+    });
   }
 
-  if (/restaurant|cafe|hotel|food|coffee|bakery|pizza|burger/i.test(lower)) {
-    return "Food";
+  console.log("CATEGORY SCORES:", scores);
+
+  let bestCategory = "General";
+  let highestScore = 0;
+
+  for (const category in scores) {
+    if (scores[category] > highestScore) {
+      highestScore = scores[category];
+      bestCategory = category;
+    }
   }
 
-  if (/amazon|flipkart|shopping|mall|store|mart/i.test(lower)) {
-    return "Shopping";
-  }
-
-  if (/hospital|pharmacy|medical|clinic|lab/i.test(lower)) {
-    return "Health";
-  }
-
-  if (/electricity|water bill|internet|wifi|recharge|broadband/i.test(lower)) {
-    return "Bills";
-  }
-
-  if (/movie|cinema|theatre|netflix|amazon prime/i.test(lower)) {
-    return "Entertainment";
-  }
-
-  return "General";
+  return highestScore > 0 ? bestCategory : "General";
 };
 
 // -----------------------------------
@@ -46,7 +80,7 @@ export const ScanReceiptOCR = async (file, setProgress) => {
       },
     });
 
-    const text = result.data.text || "";
+    const text = result?.data?.text || "";
     console.log("RAW OCR TEXT:", text);
 
     // -----------------------------------
@@ -57,7 +91,7 @@ export const ScanReceiptOCR = async (file, setProgress) => {
       .map((l) => l.trim())
       .filter(Boolean);
 
-    let store = lines.length > 0 ? lines[0] : "Unknown Store";
+    let store = lines[0] || "Unknown Store";
 
     if (
       store.toLowerCase().includes("tax") ||
@@ -74,18 +108,13 @@ export const ScanReceiptOCR = async (file, setProgress) => {
       /\b(\d{2}[\/\-]\d{2}[\/\-]\d{2,4}|\d{4}[\/\-]\d{2}[\/\-]\d{2})\b/
     );
 
-    let date = "";
+    let date = new Date().toISOString().split("T")[0];
 
     if (dateMatch) {
       const parsedDate = new Date(dateMatch[0]);
-
       if (!isNaN(parsedDate) && parsedDate.getFullYear() >= 2022) {
         date = parsedDate.toISOString().split("T")[0];
-      } else {
-        date = new Date().toISOString().split("T")[0];
       }
-    } else {
-      date = new Date().toISOString().split("T")[0];
     }
 
     // -----------------------------------
@@ -95,10 +124,10 @@ export const ScanReceiptOCR = async (file, setProgress) => {
 
     if (text.includes("₹") || /rs\.?/i.test(text)) {
       currency = "₹";
-    } else if (text.includes("$")) {
-      currency = "$";
     } else if (text.includes("€")) {
       currency = "€";
+    } else if (text.includes("$")) {
+      currency = "$";
     }
 
     // -----------------------------------
@@ -115,12 +144,12 @@ export const ScanReceiptOCR = async (file, setProgress) => {
     } else {
       const amounts = text.match(/[\d,.]+\.\d{1,2}/g);
 
-      if (amounts && amounts.length > 0) {
+      if (amounts?.length) {
         const numericValues = amounts
           .map((a) => parseFloat(a.replace(/,/g, "")))
           .filter((n) => n > 1);
 
-        if (numericValues.length > 0) {
+        if (numericValues.length) {
           amount = Math.max(...numericValues);
         }
       }
@@ -138,14 +167,14 @@ export const ScanReceiptOCR = async (file, setProgress) => {
     console.log("EXTRACTED AMOUNT:", amount);
 
     // -----------------------------------
-    // 5️⃣ 🔥 AUTO CATEGORY DETECTION
+    // 5️⃣ Smart Category Detection
     // -----------------------------------
     const category = detectCategory(text);
 
     console.log("DETECTED CATEGORY:", category);
 
     // -----------------------------------
-    // ✅ RETURN CLEAN DATA
+    // ✅ Final Return
     // -----------------------------------
     return {
       success: true,

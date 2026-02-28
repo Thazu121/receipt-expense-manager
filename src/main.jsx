@@ -8,6 +8,8 @@ import RootLayout from "./Layouts/RootLayout";
 import AuthLayout from "./Layouts/AuthLayout";
 import './index.css'
 import ProtectedRoute from "./components/ProtectRoute";
+import ExpensePage from "./components/pages/Expense";
+import AddExpense from "./components/pages/AddExpense";
 
 
 import Landing from "./components/pages/Landing";
@@ -53,7 +55,9 @@ const router = createBrowserRouter([
     { path: "gallery", element: <ReceiptGallery /> },
     { path: "report", element: <Report /> },
     { path: "setting", element: <Settings /> },
-        // { path: "expense", element: <Expense /> },
+        { path: "expense", element: <ExpensePage /> },
+        {path:"add-expense" ,element:<AddExpense /> }
+
 
   ],
 },

@@ -1,23 +1,35 @@
-export default function ReceiptPagination({
-  currentPage,
-  setCurrentPage,
-  totalPages,
-}) {
+import { useSelector, useDispatch } from "react-redux";
+import { setCurrentPage } from "../../redux/features/gallerySlice";
+import { useMemo } from "react";
+
+export default function ReceiptPagination() {
+  const dispatch = useDispatch();
+
+  const receipts = useSelector((state) => state.receipt.receipts);
+  const { currentPage, receiptsPerPage } = useSelector(
+    (state) => state.gallery
+  );
+
+  // Calculate total pages
+  const totalPages = useMemo(() => {
+    return Math.ceil(receipts.length / receiptsPerPage);
+  }, [receipts.length, receiptsPerPage]);
+
   if (totalPages <= 1) return null;
 
   const handlePrev = () => {
     if (currentPage > 1) {
-      setCurrentPage((prev) => prev - 1);
+      dispatch(setCurrentPage(currentPage - 1));
     }
   };
 
   const handleNext = () => {
     if (currentPage < totalPages) {
-      setCurrentPage((prev) => prev + 1);
+      dispatch(setCurrentPage(currentPage + 1));
     }
   };
 
-  // 🔥 Show only 5 page numbers around current page
+  // Show only 5 page numbers around current
   const getVisiblePages = () => {
     const delta = 2;
     const pages = [];
@@ -45,12 +57,10 @@ export default function ReceiptPagination({
         className={`
           px-4 py-2 rounded-lg transition
           ${currentPage === 1 ? "opacity-40 cursor-not-allowed" : ""}
-          
           bg-white/80 backdrop-blur-md
           border border-emerald-200
           text-gray-700
           hover:bg-emerald-100
-          
           dark:bg-green-900 
           dark:border-green-800
           dark:text-green-300
@@ -64,10 +74,9 @@ export default function ReceiptPagination({
       {visiblePages.map((page) => (
         <button
           key={page}
-          onClick={() => setCurrentPage(page)}
+          onClick={() => dispatch(setCurrentPage(page))}
           className={`
             px-4 py-2 rounded-lg font-medium transition
-            
             ${
               currentPage === page
                 ? "bg-emerald-500 text-white dark:bg-green-500 dark:text-black"
@@ -76,7 +85,6 @@ export default function ReceiptPagination({
                   border border-emerald-200
                   text-gray-700
                   hover:bg-emerald-100
-                  
                   dark:bg-green-900 
                   dark:border-green-800
                   dark:text-green-300
@@ -96,12 +104,10 @@ export default function ReceiptPagination({
         className={`
           px-4 py-2 rounded-lg transition
           ${currentPage === totalPages ? "opacity-40 cursor-not-allowed" : ""}
-          
           bg-white/80 backdrop-blur-md
           border border-emerald-200
           text-gray-700
           hover:bg-emerald-100
-          
           dark:bg-green-900 
           dark:border-green-800
           dark:text-green-300

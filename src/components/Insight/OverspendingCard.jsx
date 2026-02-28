@@ -1,10 +1,8 @@
-import { AlertTriangle } from "lucide-react";
 import { useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useMemo } from "react";
 
 export default function OverspendingCard() {
   const receipts = useSelector((state) => state.receipt.receipts);
-  const navigate = useNavigate();
 
   const now = new Date();
   const currentMonth = now.getMonth();
@@ -14,168 +12,119 @@ export default function OverspendingCard() {
   const lastMonth = lastMonthDate.getMonth();
   const lastMonthYear = lastMonthDate.getFullYear();
 
-  /* ===============================
-     GROUP BY CATEGORY
-  =============================== */
-  const groupByCategory = (data) => {
-    return data.reduce((acc, r) => {
-      const cat = r.category || "Other";
-      acc[cat] = (acc[cat] || 0) + Number(r.amount || 0);
-      return acc;
-    }, {});
-  };
-
-  /* ===============================
-     FILTER MONTH DATA
-  =============================== */
-  const currentMonthReceipts = receipts.filter((r) => {
-    const d = new Date(r.date);
-    return (
-      d.getMonth() === currentMonth &&
-      d.getFullYear() === currentYear
-    );
-  });
-
-  const lastMonthReceipts = receipts.filter((r) => {
-    const d = new Date(r.date);
-    return (
-      d.getMonth() === lastMonth &&
-      d.getFullYear() === lastMonthYear
-    );
-  });
-
-  const currentCategoryTotals = groupByCategory(currentMonthReceipts);
-  const lastCategoryTotals = groupByCategory(lastMonthReceipts);
-
-  /* ===============================
-     FIND TOP INCREASE CATEGORY
-  =============================== */
-  let topCategory = null;
-  let highestIncrease = 0;
-  let topAmount = 0;
-
-  for (const cat in currentCategoryTotals) {
-    const current = currentCategoryTotals[cat];
-    const last = lastCategoryTotals[cat] || 0;
-
-    let change = 0;
-
-    if (last === 0 && current > 0) {
-      change = 100;
-    } else if (last > 0) {
-      change = ((current - last) / last) * 100;
+  const { alertCategory, maxIncrease } = useMemo(() => {
+    if (!receipts || receipts.length === 0) {
+      return { alertCategory: null, maxIncrease: 0 };
     }
 
-    if (change > highestIncrease) {
-      highestIncrease = change;
-      topCategory = cat;
-      topAmount = current;
-    }
-  }
+    const currentMap = {};
+    const lastMap = {};
 
-  const showOverspending = topCategory && highestIncrease > 10;
+    receipts.forEach((r) => {
+      if (!r.date) return;
 
-  if (!showOverspending) return null;
+      const d = new Date(r.date);
+      if (isNaN(d)) return;
 
-  const percentage = highestIncrease.toFixed(1);
-  const isSevere = highestIncrease > 25;
+      const category = r.category || "Other";
+      const amount = Math.abs(Number(r.amount || 0));
 
-  /* ===============================
-     INTERNAL HANDLERS (NO PROPS)
-  =============================== */
-  const handleAdjust = () => {
-    navigate("/goals"); // or budget page
-  };
+      // Current Month
+      if (
+        d.getMonth() === currentMonth &&
+        d.getFullYear() === currentYear
+      ) {
+        currentMap[category] =
+          (currentMap[category] || 0) + amount;
+      }
 
-  const handleView = () => {
-    navigate("/transactions");
-  };
+      // Last Month
+      if (
+        d.getMonth() === lastMonth &&
+        d.getFullYear() === lastMonthYear
+      ) {
+        lastMap[category] =
+          (lastMap[category] || 0) + amount;
+      }
+    });
+
+    let alertCat = null;
+    let highestIncrease = 0;
+
+    Object.keys(currentMap).forEach((cat) => {
+      const current = currentMap[cat] || 0;
+      const last = lastMap[cat] || 0;
+
+      if (last <= 0) return;
+
+      const increasePercent =
+        ((current - last) / last) * 100;
+
+      // Ignore very small differences (< ₹100 change)
+      if (current - last < 100) return;
+
+      if (increasePercent > highestIncrease) {
+        highestIncrease = increasePercent;
+        alertCat = cat;
+      }
+    });
+
+    return {
+      alertCategory: alertCat,
+      maxIncrease: highestIncrease,
+    };
+  }, [receipts, currentMonth, currentYear, lastMonth, lastMonthYear]);
+
+  const isAlert = maxIncrease > 10; // 10% threshold
 
   return (
     <div
-      className="
-        lg:col-span-2
-        p-5 sm:p-6 rounded-2xl transition-all duration-300
-        shadow-sm hover:shadow-lg
-        
-        bg-white/80 backdrop-blur-md
-        border border-red-200
-        
-        dark:bg-[#2a1111]/60
-        dark:border-red-900
-      "
+      className={`
+        p-5 rounded-2xl transition-all duration-300
+        ${
+          isAlert
+            ? `
+              bg-red-50 border border-red-200
+              dark:bg-red-900/20 dark:border-red-700
+            `
+            : `
+              bg-white/80 border border-emerald-100
+              dark:bg-[#0f2e24]/60 dark:border-green-800
+            `
+        }
+      `}
     >
-      <div className="flex items-start sm:items-center gap-3 mb-4">
-        <div
-          className={`
-            relative w-10 h-10 flex items-center justify-center rounded-lg
-            bg-red-100 text-red-600
-            dark:bg-red-900/40 dark:text-red-400
-            ${isSevere ? "animate-pulse" : ""}
-          `}
-        >
-          <AlertTriangle size={20} />
-        </div>
+      <h3 className="font-semibold mb-4">
+        Overspending Alert
+      </h3>
 
-        <div>
-          <h3 className="font-semibold text-base sm:text-lg">
-            Overspending Alert: {topCategory}
-          </h3>
+      {!receipts || receipts.length === 0 ? (
+        <p className="text-sm text-gray-500">
+          No receipt data available.
+        </p>
+      ) : alertCategory && isAlert ? (
+        <>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Spending increased in:
+          </p>
 
-          {isSevere && (
-            <p className="text-xs text-red-500 mt-1">
-              High spending risk detected
-            </p>
-          )}
-        </div>
-      </div>
+          <p className="text-lg font-bold mt-2">
+            {alertCategory}
+          </p>
 
-      <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 leading-relaxed">
-        You've spent{" "}
-        <span className="font-semibold text-gray-900 dark:text-white">
-          ${topAmount.toLocaleString()}
-        </span>
-        , which is{" "}
-        <span className="text-red-600 dark:text-red-400 font-semibold">
-          {percentage}% higher
-        </span>{" "}
-        than last month.
-      </p>
+          <p className="text-red-600 dark:text-red-400 mt-1 font-semibold">
+            +{maxIncrease.toFixed(1)}% vs last month
+          </p>
 
-      <div className="mt-6 flex flex-col sm:flex-row gap-3 sm:gap-4">
-        <button
-          onClick={handleAdjust}
-          className="
-            w-full sm:w-auto
-            px-4 py-2.5 rounded-lg transition-all duration-300
-            text-sm font-medium
-            bg-red-500 hover:bg-red-600
-            active:scale-[0.98]
-            text-white
-          "
-        >
-          Adjust Budget
-        </button>
-
-        <button
-          onClick={handleView}
-          className="
-            w-full sm:w-auto
-            px-4 py-2.5 rounded-lg transition-all duration-300
-            text-sm font-medium
-            bg-white/70 backdrop-blur-md
-            border border-gray-300
-            text-gray-700
-            hover:bg-gray-100
-            dark:bg-white/5
-            dark:border-white/20
-            dark:text-white
-            dark:hover:bg-white/10
-          "
-        >
-          View Transactions
-        </button>
-      </div>
+          <p className="text-xs mt-3 text-gray-500 dark:text-gray-400">
+            Consider reducing this category to stay on track.
+          </p>
+        </>
+      ) : (
+        <p className="text-sm text-gray-500">
+          No unusual spending increases detected.
+        </p>
+      )}
     </div>
   );
 }

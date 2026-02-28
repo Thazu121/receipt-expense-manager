@@ -1,61 +1,79 @@
 import { useState, useMemo } from "react";
+import { useSelector } from "react-redux";
 
 export default function TrendBreakdown() {
   const [active, setActive] = useState("Daily");
+  const receipts = useSelector((state) => state.receipt.receipts);
 
-  const datasets = {
-    Daily: [120, 180, 150, 220, 260, 190, 210],
-    Weekly: [820, 950, 780, 1100, 1240, 980, 1050],
-    Monthly: [4200, 5100, 4800, 6200, 7000, 5400, 5900],
-  };
+  const chartData = useMemo(() => {
+    const map = {};
 
-  const data = datasets[active];
+    receipts.forEach((r) => {
+      if (!r.date) return;
 
-  const maxValue = Math.max(...data);
+      const amount = Math.abs(Number(r.amount || 0));
+      const date = new Date(r.date);
+      if (isNaN(date)) return;
 
-  const total = data.reduce((acc, val) => acc + val, 0);
+      let key;
+      let sortKey;
 
-  const average = Math.round(total / data.length);
+      if (active === "Daily") {
+        key = date.toLocaleDateString();
+        sortKey = date.getTime();
+      } 
+      else if (active === "Weekly") {
+        const weekStart = new Date(date);
+        weekStart.setDate(date.getDate() - date.getDay());
+        key = weekStart.toLocaleDateString();
+        sortKey = weekStart.getTime();
+      } 
+      else {
+        key = `${date.getFullYear()}-${date.getMonth() + 1}`;
+        sortKey = new Date(date.getFullYear(), date.getMonth(), 1).getTime();
+      }
+
+      if (!map[key]) {
+        map[key] = { total: 0, sortKey };
+      }
+
+      map[key].total += amount;
+    });
+
+    // Convert to sorted array
+    const sorted = Object.entries(map)
+      .map(([label, value]) => ({
+        label,
+        total: value.total,
+        sortKey: value.sortKey,
+      }))
+      .sort((a, b) => a.sortKey - b.sortKey)
+      .slice(-7); // last 7 periods
+
+    return sorted;
+  }, [receipts, active]);
+
+  const maxValue = Math.max(...chartData.map((d) => d.total), 1);
 
   return (
-    <div
-      className="
-        p-5 sm:p-6 rounded-2xl transition-all duration-300
-        shadow-sm hover:shadow-lg
-        
-        bg-white/80 backdrop-blur-md
-        border border-emerald-100
-        
-        dark:bg-[#0f2e24]/60
-        dark:border-green-800
-      "
-    >
+    <div className="p-5 sm:p-6 rounded-2xl shadow-sm bg-white/80 border border-emerald-100 dark:bg-[#0f2e24]/60 dark:border-green-800 transition-all duration-300">
+      
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
-        <div>
-          <h3 className="font-semibold text-base sm:text-lg">
-            Trend Breakdown
-          </h3>
-          <p className="text-xs text-gray-500 dark:text-gray-400">
-            Avg: ${average}
-          </p>
-        </div>
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-5">
+        <h3 className="font-semibold text-base sm:text-lg">
+          Trend Breakdown
+        </h3>
 
-        {/* Toggle */}
-        <div className="flex rounded-lg p-1 bg-emerald-100 dark:bg-white/10">
+        <div className="flex bg-emerald-100 dark:bg-white/10 rounded-lg p-1 w-fit">
           {["Daily", "Weekly", "Monthly"].map((item) => (
             <button
               key={item}
               onClick={() => setActive(item)}
-              className={`
-                px-3 sm:px-4 py-1 rounded-md text-xs sm:text-sm
-                transition-all duration-300
-                ${
-                  active === item
-                    ? "bg-emerald-500 text-white shadow"
-                    : "text-gray-600 dark:text-gray-300"
-                }
-              `}
+              className={`px-3 py-1 text-xs sm:text-sm rounded-md transition ${
+                active === item
+                  ? "bg-emerald-500 text-white"
+                  : "text-gray-600 dark:text-gray-300"
+              }`}
             >
               {item}
             </button>
@@ -63,39 +81,27 @@ export default function TrendBreakdown() {
         </div>
       </div>
 
-      {/* Bars */}
-      <div className="flex items-end justify-between h-48 gap-2 sm:gap-4">
-        {data.map((value, index) => {
-          const heightPercent = (value / maxValue) * 100;
-
-          return (
+      {/* Chart */}
+      <div className="flex items-end h-40 sm:h-48 gap-2">
+        {chartData.map((item, index) => (
+          <div key={index} className="flex-1 flex flex-col items-center">
+            
+            {/* Bar */}
             <div
-              key={index}
-              className="flex flex-col items-center w-full"
-            >
-              <div
-                className={`
-                  w-full rounded-t-xl transition-all duration-500
-                  ${
-                    value === maxValue
-                      ? "bg-gradient-to-t from-emerald-400 to-emerald-600 dark:from-green-400 dark:to-green-600"
-                      : "bg-emerald-200 dark:bg-white/20"
-                  }
-                `}
-                style={{ height: `${heightPercent}%` }}
-              />
+              className="w-full bg-emerald-400 rounded-t-lg transition-all duration-500"
+              style={{
+                height: `${(item.total / maxValue) * 100}%`,
+              }}
+            />
 
-              <span className="text-[10px] sm:text-xs mt-2 text-gray-500 dark:text-gray-400">
-                {index + 1}
-              </span>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Footer Insight */}
-      <div className="mt-6 pt-4 border-t border-emerald-100 dark:border-white/10 text-xs sm:text-sm text-gray-600 dark:text-gray-300">
-        Highest {active}: <span className="font-semibold">${maxValue}</span>
+            {/* Label */}
+            <span className="text-[10px] sm:text-xs mt-2 text-gray-500 dark:text-gray-400 truncate w-full text-center">
+              {active === "Monthly"
+                ? item.label.split("-")[1]
+                : item.label}
+            </span>
+          </div>
+        ))}
       </div>
     </div>
   );

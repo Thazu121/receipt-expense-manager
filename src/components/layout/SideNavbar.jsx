@@ -7,9 +7,11 @@ import {
   Menu,
   Scan,
   Images,
+  BanknoteArrowDown,
   X
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
+import ExpensePage from "../pages/Expense";
 
 export default function SideNavbar() {
   const [collapsed, setCollapsed] = useState(true);
@@ -20,7 +22,9 @@ export default function SideNavbar() {
     { name: "Reports", path: "/dashboard/insight", icon: PieChart },
     { name: "Settings", path: "/dashboard/setting", icon: Settings },
     {name:"Scan Receipt",path:"/dashboard/scanner",icon:Scan},
-    {name:"Gallery",path:"/dashboard/gallery",icon:Images}
+    {name:"Gallery",path:"/dashboard/gallery",icon:Images},
+        {name:"Expense",path:"/dashboard/expense",icon:BanknoteArrowDown}
+
   ];
 
   return (

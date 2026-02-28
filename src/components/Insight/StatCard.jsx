@@ -1,21 +1,14 @@
-import { ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { useSelector } from "react-redux";
 
-export default function StatCard() {
+export default function StatCard({ type }) {
   const receipts = useSelector((state) => state.receipt.receipts);
 
   const now = new Date();
   const currentMonth = now.getMonth();
   const currentYear = now.getFullYear();
 
-  const lastMonthDate = new Date(currentYear, currentMonth - 1, 1);
-  const lastMonth = lastMonthDate.getMonth();
-  const lastMonthYear = lastMonthDate.getFullYear();
-
-  /* ===============================
-     FILTER MONTH DATA
-  =============================== */
   const currentMonthReceipts = receipts.filter((r) => {
+    if (!r.date) return false;
     const d = new Date(r.date);
     return (
       d.getMonth() === currentMonth &&
@@ -23,83 +16,85 @@ export default function StatCard() {
     );
   });
 
-  const lastMonthReceipts = receipts.filter((r) => {
-    const d = new Date(r.date);
-    return (
-      d.getMonth() === lastMonth &&
-      d.getFullYear() === lastMonthYear
-    );
-  });
-
-  const currentTotal = currentMonthReceipts.reduce(
+  const currentMonthTotal = currentMonthReceipts.reduce(
     (sum, r) => sum + Number(r.amount || 0),
     0
   );
 
-  const lastTotal = lastMonthReceipts.reduce(
-    (sum, r) => sum + Number(r.amount || 0),
-    0
-  );
+  const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+  const lastMonthYear =
+    currentMonth === 0 ? currentYear - 1 : currentYear;
 
-  /* ===============================
-     TREND CALCULATION
-  =============================== */
-  let trend = 0;
+  const lastMonthTotal = receipts
+    .filter((r) => {
+      if (!r.date) return false;
+      const d = new Date(r.date);
+      return (
+        d.getMonth() === lastMonth &&
+        d.getFullYear() === lastMonthYear
+      );
+    })
+    .reduce((sum, r) => sum + Number(r.amount || 0), 0);
 
-  if (lastTotal > 0) {
-    trend = ((currentTotal - lastTotal) / lastTotal) * 100;
+  const trendPercent =
+    lastMonthTotal > 0
+      ? ((currentMonthTotal - lastMonthTotal) /
+          lastMonthTotal) *
+        100
+      : 0;
+
+  const recurringCount = receipts.filter(
+    (r) => r.isRecurring
+  ).length;
+
+  const monthlyBudget = 2000;
+  const safeToSpend =
+    monthlyBudget - currentMonthTotal > 0
+      ? monthlyBudget - currentMonthTotal
+      : 0;
+
+  const potentialSavings = currentMonthTotal * 0.1;
+
+  let title = "";
+  let value = "";
+
+  switch (type) {
+    case "monthly":
+      title = "Monthly Spend";
+      value = `$${currentMonthTotal.toFixed(2)}`;
+      break;
+
+    case "safe":
+      title = "Safe to Spend";
+      value = `$${safeToSpend.toFixed(2)}`;
+      break;
+
+    case "savings":
+      title = "Potential Savings";
+      value = `$${potentialSavings.toFixed(0)}`;
+      break;
+
+    case "subscription":
+      title = "Subscription Audit";
+      value = `${recurringCount} Active`;
+      break;
+
+    default:
+      break;
   }
 
-  const isPositive = trend > 0;
-  const percentage = Math.abs(trend).toFixed(1);
-
   return (
-    <div
-      className="
-        relative p-5 sm:p-6 rounded-2xl transition-all duration-300
-        hover:-translate-y-1 hover:shadow-lg
-        
-        bg-white/80 backdrop-blur-md
-        border border-emerald-100
-        
-        dark:bg-[#0f2e24]/60
-        dark:border-green-800
-      "
-    >
-      {/* Title */}
-      <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-        Monthly Spend
+    <div className="p-6 rounded-2xl bg-white/80 dark:bg-[#0f2e24]/60 border border-emerald-100 dark:border-green-800">
+      <h3 className="text-sm text-gray-500 dark:text-gray-400">
+        {title}
+      </h3>
+      <p className="mt-4 text-2xl font-bold">
+        {value}
       </p>
-
-      {/* Value */}
-      <h2
-        className="
-          text-xl sm:text-2xl md:text-3xl font-bold mt-2 transition-colors
-          text-gray-900 dark:text-white
-        "
-      >
-        ${currentTotal.toFixed(2)}
-      </h2>
-
-      {/* Trend */}
-      {lastTotal > 0 && (
-        <div
-          className={`
-            mt-3 flex items-center gap-1 text-xs sm:text-sm font-medium
-            ${
-              isPositive
-                ? "text-emerald-600 dark:text-green-400"
-                : "text-red-600 dark:text-red-400"
-            }
-          `}
-        >
-          {isPositive ? (
-            <ArrowUpRight size={14} />
-          ) : (
-            <ArrowDownRight size={14} />
-          )}
-          {percentage}% vs last month
-        </div>
+      {type === "monthly" && (
+        <p className="text-xs mt-2 opacity-70">
+          {trendPercent.toFixed(1)}% vs last month
+        </p>
       )}
     </div>
   );
