@@ -5,24 +5,23 @@ import { useSelector } from "react-redux";
 export default function Header() {
   const navigate = useNavigate();
 
- const receipts = useSelector(
-  (state) => state.receipt.receipt
-);
-
+  const receipts = useSelector(
+    (state) => state.receipt.receipts
+  )
 
   const handleExport = () => {
-    if (!receipts.length) {
-      alert("No expenses to export.");
-      return;
+    if (!receipts || receipts.length === 0) {
+      alert("No expenses to export.")
+      return
     }
 
     try {
       const headers = ["Store", "Category", "Date", "Amount"];
 
       const rows = receipts.map((r) => [
-        r.store || "",
-        r.category || "",
-        r.date || "",
+        `"${r.store || ""}"`,
+        `"${r.category || ""}"`,
+        `"${r.date || ""}"`,
         r.amount || 0,
       ]);
 
@@ -33,24 +32,27 @@ export default function Header() {
 
       const blob = new Blob([csv], {
         type: "text/csv;charset=utf-8;",
-      });
+      })
 
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
 
-      link.href = url;
-      link.download = "expenses.csv";
-      link.click();
+      link.href = url
+      link.download = "expenses.csv"
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+
+      URL.revokeObjectURL(url)
     } catch (error) {
-      console.error("Export failed:", error);
-      alert("Something went wrong while exporting.");
+      console.error("Export failed:", error)
+      alert("Something went wrong while exporting.")
     }
-  };
+  }
 
   return (
     <header className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-10">
-
-      {/* Left */}
+      
       <div>
         <h1 className="text-2xl sm:text-3xl font-semibold text-gray-900 dark:text-white">
           User Dashboard
@@ -60,7 +62,6 @@ export default function Header() {
         </p>
       </div>
 
-      {/* Right Buttons */}
       <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
 
         <button
@@ -82,7 +83,7 @@ export default function Header() {
         </button>
 
         <button
-          onClick={() => navigate("/add-expense")}
+          onClick={() => navigate("/expense")}
           className="
             w-full sm:w-auto
             flex items-center justify-center gap-2

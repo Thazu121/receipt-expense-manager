@@ -2,12 +2,10 @@ import { useSelector } from "react-redux";
 import { useMemo } from "react";
 
 export default function SpendingChart() {
-  const receipts = useSelector(
-    (state) => state.receipt?.receipts || []
-  );
+  const receipts = useSelector((state) => state.receipt.receipts);
 
   const data = useMemo(() => {
-    if (!receipts.length) return [];
+    if (!receipts || !receipts.length) return [];
 
     const monthly = {};
 
@@ -15,17 +13,24 @@ export default function SpendingChart() {
       if (!r.date) return;
 
       const date = new Date(r.date);
-      const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
+      if (isNaN(date)) return;
 
-      monthly[monthKey] =
-        (monthly[monthKey] || 0) +
-        (Number(r.amount) || 0);
+      const monthTimestamp = new Date(
+        date.getFullYear(),
+        date.getMonth(),
+        1
+      ).getTime();
+
+      const amount = Math.abs(Number(r.amount) || 0);
+
+      monthly[monthTimestamp] =
+        (monthly[monthTimestamp] || 0) + amount;
     });
 
     return Object.entries(monthly)
-      .sort((a, b) => new Date(a[0]) - new Date(b[0])) // ✅ sort by date
-      .map(([key, amount]) => {
-        const date = new Date(key);
+      .sort((a, b) => Number(a[0]) - Number(b[0]))
+      .map(([timestamp, amount]) => {
+        const date = new Date(Number(timestamp));
         return {
           month: date.toLocaleString("default", {
             month: "short",
@@ -56,25 +61,56 @@ export default function SpendingChart() {
         Spending Trends
       </h2>
 
-      <div className="flex items-end justify-between gap-3 sm:gap-4 h-40 sm:h-56 overflow-x-auto">
-        {data.map((item, i) => (
-          <div
-            key={i}
-            className="flex flex-col items-center min-w-[40px]"
-          >
+      <div className="flex items-end gap-4 h-48 sm:h-60 overflow-x-auto pb-2">
+        {data.map((item, i) => {
+          const isHighest = item.amount === max;
+          const height = max
+            ? (item.amount / max) * 180
+            : 0;
+
+          return (
             <div
-              className="w-6 sm:w-8 bg-emerald-500 rounded-t-md transition-all duration-700"
-              style={{
-                height: `${
-                  max ? (item.amount / max) * 100 : 0
-                }%`,
-              }}
-            />
-            <span className="text-[10px] sm:text-xs mt-2">
-              {item.month}
-            </span>
-          </div>
-        ))}
+              key={i}
+              className="flex flex-col items-center min-w-[55px] group"
+            >
+              {/* Background Track */}
+              <div className="h-44 sm:h-56 w-6 sm:w-8 bg-gray-100 dark:bg-white/10 rounded-full flex items-end overflow-hidden">
+                
+                {/* Actual Bar */}
+                <div
+                  className={`
+                    w-full rounded-full transition-all duration-700
+                    bg-gradient-to-t
+                    ${
+                      isHighest
+                        ? "from-red-600 via-red-500 to-red-400 shadow-lg scale-105"
+                        : "from-emerald-600 via-emerald-500 to-emerald-400"
+                    }
+                  `}
+                  style={{
+                    height: `${height}px`,
+                  }}
+                />
+              </div>
+
+              {/* Month */}
+              <span className="text-[10px] sm:text-xs mt-2 text-gray-600 dark:text-gray-400">
+                {item.month}
+              </span>
+
+              {/* Amount */}
+              <span
+                className={`text-[9px] sm:text-[10px] mt-1 ${
+                  isHighest
+                    ? "text-red-500 font-semibold"
+                    : "text-gray-400"
+                }`}
+              >
+                ₹{item.amount.toFixed(0)}
+              </span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

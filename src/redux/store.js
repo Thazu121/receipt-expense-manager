@@ -3,6 +3,7 @@ import themeReducer from "./features/themeSlice"
 import receiptReducer from "./features/receiptSlice"
 import authReducer from "./features/authSlice"
 import userReducer from "./features/userSlice"
+import goalReducer from "./features/goalSlice"
 
 export const store = configureStore({
   reducer: {
@@ -10,6 +11,7 @@ export const store = configureStore({
     receipt:receiptReducer,
         auth: authReducer,
         user:userReducer,
+        goal:goalReducer
         
 
   }
