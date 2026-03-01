@@ -1,13 +1,80 @@
 import { useState, useMemo } from "react";
 import { useSelector } from "react-redux";
+import { formatCurrency } from "../../utils/formatCurrency.js";
+
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  CartesianGrid,
+  Area,
+} from "recharts";
 
 export default function TrendBreakdown() {
   const [active, setActive] = useState("Daily");
+
   const receipts = useSelector((state) => state.receipt.receipts);
+  const currency = useSelector((state) => state.settings.currency);
+
+  /* =========================================
+     SMART 7-SLOT TIME ENGINE (NO MORE 1 DOT)
+  ========================================== */
 
   const chartData = useMemo(() => {
-    const map = {};
+    if (!receipts.length) return [];
 
+    const map = {};
+    const now = new Date();
+    const slots = 7;
+
+    // Create 7 time slots
+    for (let i = slots - 1; i >= 0; i--) {
+      let date;
+      let key;
+      let sortKey;
+
+      if (active === "Daily") {
+        date = new Date();
+        date.setDate(now.getDate() - i);
+
+        const day = String(date.getDate()).padStart(2, "0");
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const year = date.getFullYear();
+
+        key = `${day}/${month}/${year}`;
+        sortKey = date.getTime();
+      }
+
+      else if (active === "Weekly") {
+        date = new Date();
+        date.setDate(now.getDate() - now.getDay() - i * 7);
+
+        const day = String(date.getDate()).padStart(2, "0");
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const year = date.getFullYear();
+
+        key = `Week of ${day}/${month}/${year}`;
+        sortKey = date.getTime();
+      }
+
+      else {
+        date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+
+        const monthName = date.toLocaleString("default", {
+          month: "short",
+        });
+
+        key = `${monthName} ${date.getFullYear()}`;
+        sortKey = date.getTime();
+      }
+
+      map[key] = { total: 0, sortKey };
+    }
+
+    // Add receipt data
     receipts.forEach((r) => {
       if (!r.date) return;
 
@@ -16,48 +83,53 @@ export default function TrendBreakdown() {
       if (isNaN(date)) return;
 
       let key;
-      let sortKey;
 
       if (active === "Daily") {
-        key = date.toLocaleDateString();
-        sortKey = date.getTime();
-      } 
+        const day = String(date.getDate()).padStart(2, "0");
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const year = date.getFullYear();
+        key = `${day}/${month}/${year}`;
+      }
+
       else if (active === "Weekly") {
-        const weekStart = new Date(date);
-        weekStart.setDate(date.getDate() - date.getDay());
-        key = weekStart.toLocaleDateString();
-        sortKey = weekStart.getTime();
-      } 
+        const weekStart = new Date(
+          date.getFullYear(),
+          date.getMonth(),
+          date.getDate() - date.getDay()
+        );
+
+        const day = String(weekStart.getDate()).padStart(2, "0");
+        const month = String(weekStart.getMonth() + 1).padStart(2, "0");
+        const year = weekStart.getFullYear();
+
+        key = `Week of ${day}/${month}/${year}`;
+      }
+
       else {
-        key = `${date.getFullYear()}-${date.getMonth() + 1}`;
-        sortKey = new Date(date.getFullYear(), date.getMonth(), 1).getTime();
+        const monthName = date.toLocaleString("default", {
+          month: "short",
+        });
+
+        key = `${monthName} ${date.getFullYear()}`;
       }
 
-      if (!map[key]) {
-        map[key] = { total: 0, sortKey };
+      if (map[key]) {
+        map[key].total += amount;
       }
-
-      map[key].total += amount;
     });
 
-    // Convert to sorted array
-    const sorted = Object.entries(map)
+    return Object.entries(map)
       .map(([label, value]) => ({
         label,
         total: value.total,
         sortKey: value.sortKey,
       }))
-      .sort((a, b) => a.sortKey - b.sortKey)
-      .slice(-7); // last 7 periods
-
-    return sorted;
+      .sort((a, b) => a.sortKey - b.sortKey);
   }, [receipts, active]);
-
-  const maxValue = Math.max(...chartData.map((d) => d.total), 1);
 
   return (
     <div className="p-5 sm:p-6 rounded-2xl shadow-sm bg-white/80 border border-emerald-100 dark:bg-[#0f2e24]/60 dark:border-green-800 transition-all duration-300">
-      
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-5">
         <h3 className="font-semibold text-base sm:text-lg">
@@ -81,27 +153,127 @@ export default function TrendBreakdown() {
         </div>
       </div>
 
-      {/* Chart */}
-      <div className="flex items-end h-40 sm:h-48 gap-2">
-        {chartData.map((item, index) => (
-          <div key={index} className="flex-1 flex flex-col items-center">
-            
-            {/* Bar */}
-            <div
-              className="w-full bg-emerald-400 rounded-t-lg transition-all duration-500"
-              style={{
-                height: `${(item.total / maxValue) * 100}%`,
-              }}
-            />
+      {chartData.length === 0 ? (
+        <div className="text-center py-10 text-gray-400 text-sm">
+          No data available
+        </div>
+      ) : (
+        <>
+          {/* Chart */}
+          <div className="w-full min-h-[260px] sm:min-h-[300px]">
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={chartData}>
+                <defs>
+                  <linearGradient id="colorSpend" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.4} />
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
 
-            {/* Label */}
-            <span className="text-[10px] sm:text-xs mt-2 text-gray-500 dark:text-gray-400 truncate w-full text-center">
-              {active === "Monthly"
-                ? item.label.split("-")[1]
-                : item.label}
-            </span>
+                <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} />
+
+                <XAxis
+                  dataKey="label"
+                  tick={{ fontSize: 12 }}
+                  interval="preserveStartEnd"
+                />
+
+                <YAxis
+                  tickFormatter={(value) =>
+                    formatCurrency(value, currency)
+                  }
+                  width={80}
+                />
+
+                <Tooltip
+                  formatter={(value) =>
+                    formatCurrency(value, currency)
+                  }
+                />
+
+                <Area
+                  type="monotone"
+                  dataKey="total"
+                  stroke="none"
+                  fill="url(#colorSpend)"
+                />
+
+                <Line
+                  type="monotone"
+                  dataKey="total"
+                  stroke="#10b981"
+                  strokeWidth={3}
+                  dot={{ r: 4 }}
+                  activeDot={{ r: 6 }}
+                  isAnimationActive
+                  animationDuration={800}
+                />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
-        ))}
+
+          <TrendInsights chartData={chartData} currency={currency} />
+        </>
+      )}
+    </div>
+  );
+}
+
+/* =========================================
+   AI INSIGHT ENGINE
+========================================= */
+
+function TrendInsights({ chartData, currency }) {
+  if (chartData.length < 2) return null;
+
+  const last = chartData[chartData.length - 1].total;
+  const previous = chartData[chartData.length - 2].total;
+
+  const change = ((last - previous) / (previous || 1)) * 100;
+  const isIncrease = change > 0;
+
+  const totalLast7 = chartData.reduce((sum, d) => sum + d.total, 0);
+
+  let insightText = "";
+
+  if (isIncrease && change > 15) {
+    insightText =
+      "Your spending is increasing significantly compared to the previous period. Review recent large expenses to prevent overspending.";
+  } else if (!isIncrease && Math.abs(change) > 10) {
+    insightText =
+      "Excellent progress! Your spending has decreased noticeably. Keep maintaining disciplined financial habits.";
+  } else {
+    insightText =
+      "Your spending trend remains stable. Continue monitoring recurring transactions for optimization opportunities.";
+  }
+
+  return (
+    <div className="mt-6 space-y-3">
+
+      <div className="flex justify-between items-center text-sm">
+        <span className="text-gray-500">Change vs Previous</span>
+        <span
+          className={`font-semibold ${
+            isIncrease ? "text-red-500" : "text-green-500"
+          }`}
+        >
+          {isIncrease ? "+" : ""}
+          {change.toFixed(1)}%
+        </span>
+      </div>
+
+      <div className="flex justify-between items-center text-sm">
+        <span className="text-gray-500">Total (Last 7)</span>
+        <span className="font-semibold">
+          {formatCurrency(totalLast7, currency)}
+        </span>
+      </div>
+
+      <div className="bg-emerald-50 dark:bg-green-900/30 border border-emerald-100 dark:border-green-800 p-4 rounded-xl text-sm text-gray-700 dark:text-gray-300">
+        <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+          AI Insight:
+        </span>{" "}
+        {insightText}
       </div>
     </div>
   );

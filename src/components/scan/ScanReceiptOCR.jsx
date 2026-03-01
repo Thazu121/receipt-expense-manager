@@ -1,58 +1,84 @@
 import Tesseract from "tesseract.js";
 
-// -----------------------------------
-// 🧠 SMART CATEGORY DETECTION (Score Based)
-// -----------------------------------
+/* =========================================
+   🧠 SMART CATEGORY DETECTION (Weighted)
+========================================= */
 const detectCategory = (text) => {
   const lower = text.toLowerCase();
 
   const categories = {
-    Transport: [
-      "uber", "ola", "petrol", "fuel", "bus", "train", "metro"
-    ],
-    Food: [
-      "restaurant", "cafe", "hotel", "coffee",
-      "pizza", "burger", "bakery", "swiggy", "zomato"
-    ],
-    Grocery: [
-      "supermarket", "grocery", "vegetable", "fruits",
-      "rice", "milk", "bread", "dairy", "hypermarket",
-      "lulu", "reliance fresh", "d mart", "provision"
-    ],
-    Shopping: [
-      "amazon", "flipkart", "mall",
-      "clothing", "fashion", "store"
-    ],
-    Health: [
-      "hospital", "pharmacy", "medical",
-      "clinic", "lab", "apollo"
-    ],
-    Bills: [
-      "electricity", "water bill",
-      "internet", "wifi", "recharge",
-      "broadband", "bill payment"
-    ],
-    Entertainment: [
-      "movie", "cinema", "theatre",
-      "netflix", "amazon prime"
-    ]
+    Transport: {
+      keywords: ["uber", "ola", "petrol", "fuel", "bus", "train", "metro"],
+      weight: 2,
+    },
+    Food: {
+      keywords: [
+        "restaurant",
+        "cafe",
+        "hotel",
+        "coffee",
+        "pizza",
+        "burger",
+        "swiggy",
+        "zomato",
+      ],
+      weight: 2,
+    },
+    Grocery: {
+      keywords: [
+        "supermarket",
+        "grocery",
+        "vegetable",
+        "fruits",
+        "rice",
+        "milk",
+        "bread",
+        "d mart",
+        "lulu",
+        "reliance",
+      ],
+      weight: 3,
+    },
+    Shopping: {
+      keywords: ["amazon", "flipkart", "mall", "clothing", "fashion"],
+      weight: 2,
+    },
+    Health: {
+      keywords: ["hospital", "pharmacy", "medical", "clinic", "apollo"],
+      weight: 3,
+    },
+    Bills: {
+      keywords: [
+        "electricity",
+        "water bill",
+        "internet",
+        "wifi",
+        "recharge",
+        "broadband",
+      ],
+      weight: 3,
+    },
+    Entertainment: {
+      keywords: ["movie", "cinema", "theatre", "netflix", "prime"],
+      weight: 2,
+    },
   };
 
-  let scores = {};
+  const scores = {};
+
   Object.keys(categories).forEach((cat) => {
     scores[cat] = 0;
   });
 
-  // Count keyword matches
   for (const category in categories) {
-    categories[category].forEach((keyword) => {
+    const { keywords, weight } = categories[category];
+
+    keywords.forEach((keyword) => {
       if (lower.includes(keyword)) {
-        scores[category]++;
+        scores[category] += weight;
       }
     });
   }
-
-  console.log("CATEGORY SCORES:", scores);
 
   let bestCategory = "General";
   let highestScore = 0;
@@ -67,9 +93,21 @@ const detectCategory = (text) => {
   return highestScore > 0 ? bestCategory : "General";
 };
 
-// -----------------------------------
-// 🚀 MAIN OCR FUNCTION
-// -----------------------------------
+/* =========================================
+   🔍 DUPLICATE RECEIPT DETECTION
+========================================= */
+export const isDuplicateReceipt = (newReceipt, existingReceipts) => {
+  return existingReceipts.some(
+    (r) =>
+      r.store === newReceipt.store &&
+      r.date === newReceipt.date &&
+      Number(r.amount) === Number(newReceipt.amount)
+  );
+};
+
+/* =========================================
+   🚀 MAIN OCR FUNCTION
+========================================= */
 export const ScanReceiptOCR = async (file, setProgress) => {
   try {
     const result = await Tesseract.recognize(file, "eng", {
@@ -81,29 +119,37 @@ export const ScanReceiptOCR = async (file, setProgress) => {
     });
 
     const text = result?.data?.text || "";
-    console.log("RAW OCR TEXT:", text);
+    if (!text) {
+      return { success: false, message: "No text detected." };
+    }
 
-    // -----------------------------------
-    // 1️⃣ Extract Store Name
-    // -----------------------------------
     const lines = text
       .split("\n")
       .map((l) => l.trim())
       .filter(Boolean);
 
-    let store = lines[0] || "Unknown Store";
+    /* =========================================
+       1️⃣ STORE NAME EXTRACTION
+    ========================================= */
+    const cleanLines = lines.filter((line) => {
+      const lower = line.toLowerCase();
 
-    if (
-      store.toLowerCase().includes("tax") ||
-      store.toLowerCase().includes("invoice") ||
-      store.toLowerCase().includes("receipt")
-    ) {
-      store = lines[1] || "Unknown Store";
-    }
+      return (
+        line.length > 2 &&
+        !lower.includes("tax") &&
+        !lower.includes("invoice") &&
+        !lower.includes("receipt") &&
+        !lower.includes("gst") &&
+        !/\d{5,}/.test(line)
+      );
+    });
 
-    // -----------------------------------
-    // 2️⃣ Extract Date
-    // -----------------------------------
+    let store = cleanLines[0] || "Unknown Store";
+    store = store.replace(/[^a-zA-Z0-9 &.-]/g, "").trim();
+
+    /* =========================================
+       2️⃣ DATE EXTRACTION
+    ========================================= */
     const dateMatch = text.match(
       /\b(\d{2}[\/\-]\d{2}[\/\-]\d{2,4}|\d{4}[\/\-]\d{2}[\/\-]\d{2})\b/
     );
@@ -117,23 +163,23 @@ export const ScanReceiptOCR = async (file, setProgress) => {
       }
     }
 
-    // -----------------------------------
-    // 3️⃣ Detect Currency
-    // -----------------------------------
-    let currency = "$";
+    /* =========================================
+       3️⃣ CURRENCY DETECTION (CODE BASED)
+    ========================================= */
+    let currency = "USD";
 
     if (text.includes("₹") || /rs\.?/i.test(text)) {
-      currency = "₹";
+      currency = "INR";
     } else if (text.includes("€")) {
-      currency = "€";
+      currency = "EUR";
     } else if (text.includes("$")) {
-      currency = "$";
+      currency = "USD";
     }
 
-    // -----------------------------------
-    // 4️⃣ Extract Amount
-    // -----------------------------------
-    let amount = "";
+    /* =========================================
+       4️⃣ AMOUNT EXTRACTION
+    ========================================= */
+    let amount = null;
 
     const totalMatch = text.match(
       /(total|grand total|amount due)[^\d]*([\d,.]+\.\d{1,2})/i
@@ -142,12 +188,12 @@ export const ScanReceiptOCR = async (file, setProgress) => {
     if (totalMatch) {
       amount = parseFloat(totalMatch[2].replace(/,/g, ""));
     } else {
-      const amounts = text.match(/[\d,.]+\.\d{1,2}/g);
+      const amounts = text.match(/\d+[.,]?\d{0,2}/g);
 
       if (amounts?.length) {
         const numericValues = amounts
           .map((a) => parseFloat(a.replace(/,/g, "")))
-          .filter((n) => n > 1);
+          .filter((n) => n > 10);
 
         if (numericValues.length) {
           amount = Math.max(...numericValues);
@@ -162,26 +208,20 @@ export const ScanReceiptOCR = async (file, setProgress) => {
       };
     }
 
-    amount = amount.toFixed(2);
-
-    console.log("EXTRACTED AMOUNT:", amount);
-
-    // -----------------------------------
-    // 5️⃣ Smart Category Detection
-    // -----------------------------------
+    /* =========================================
+       5️⃣ CATEGORY DETECTION
+    ========================================= */
     const category = detectCategory(text);
 
-    console.log("DETECTED CATEGORY:", category);
-
-    // -----------------------------------
-    // ✅ Final Return
-    // -----------------------------------
+    /* =========================================
+       ✅ FINAL RETURN
+    ========================================= */
     return {
       success: true,
       data: {
         store,
         date,
-        amount,
+        amount: Number(amount.toFixed(2)),
         currency,
         category,
         notes: "",

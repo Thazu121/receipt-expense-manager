@@ -83,7 +83,7 @@ export default function Header() {
         </button>
 
         <button
-          onClick={() => navigate("/expense")}
+          onClick={() => navigate("/dashboard/add-expense")}
           className="
             w-full sm:w-auto
             flex items-center justify-center gap-2

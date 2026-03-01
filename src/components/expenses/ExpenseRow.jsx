@@ -12,7 +12,6 @@ export default function ExpenseRow({ receipt }) {
           : "border-b border-white/5 hover:bg-white/5"
       }`}
     >
-      {/* Desktop Layout */}
       <div className="hidden md:grid md:grid-cols-4 gap-4 items-center">
         <div className="font-semibold">{receipt.merchant}</div>
 
@@ -45,7 +44,6 @@ export default function ExpenseRow({ receipt }) {
         </div>
       </div>
 
-      {/* Mobile Layout */}
       <div className="md:hidden space-y-2">
         <div className="flex justify-between items-center">
           <span className="font-semibold">
