@@ -20,7 +20,6 @@ import ScanReceipt from "./components/pages/ReceiptScanner";
 import InsightsPage from "./components/pages/Report";
 import ReceiptGallery from "./components/pages/ReceiptGallery";
 import Settings from "./components/pages/setting";
-import TransactionsPage from "./components/pages/Transaction";
 
 const router = createBrowserRouter([
   {
@@ -57,7 +56,6 @@ const router = createBrowserRouter([
       { path: "settings", element: <Settings /> },
       { path: "expense", element: <ExpensePage /> },
       { path: "add-expense", element: <AddExpense /> },
-      {path:"transaction",element:<TransactionsPage />}
 
 
 

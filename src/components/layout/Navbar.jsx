@@ -66,7 +66,7 @@ export default function Navbar() {
           Dashboard
         </Link>
 
-        <Link to="/dashboard/transaction" className={linkStyle("transaction")}>
+        <Link to="/dashboard/expense" className={linkStyle("expense")}>
           Expense
         </Link>
 

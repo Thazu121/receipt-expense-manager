@@ -25,7 +25,12 @@ export default function Dashboard() {
     totalSavings,
     pendingReceipts,
   } = useMemo(() => {
-    const total = receipts.reduce(
+    // ✅ Only count verified receipts for totals
+    const verifiedReceipts = receipts.filter(
+      (r) => r.status?.toLowerCase() === "verified"
+    );
+
+    const total = verifiedReceipts.reduce(
       (sum, r) => sum + Number(r.amount || 0),
       0
     );
@@ -33,7 +38,7 @@ export default function Dashboard() {
     const currentMonth = new Date().getMonth();
     const currentYear = new Date().getFullYear();
 
-    const monthly = receipts
+    const monthly = verifiedReceipts
       .filter((r) => {
         if (!r.date) return false;
         const d = new Date(r.date);
@@ -42,10 +47,14 @@ export default function Dashboard() {
           d.getFullYear() === currentYear
         );
       })
-      .reduce((sum, r) => sum + Number(r.amount || 0), 0);
+      .reduce(
+        (sum, r) => sum + Number(r.amount || 0),
+        0
+      );
 
+    // ✅ FIXED: Case insensitive pending check
     const pending = receipts.filter(
-      (r) => r.status === "pending"
+      (r) => r.status?.toLowerCase() === "pending"
     ).length;
 
     return {
@@ -61,12 +70,12 @@ export default function Dashboard() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10">
 
-        {/* ✅ Header */}
+        {/* Header */}
         <div className="mb-6 sm:mb-8">
           <Header />
         </div>
 
-        {/* ✅ Stats Section */}
+        {/* Stats Section */}
         <div className="
           grid 
           grid-cols-1 
@@ -76,13 +85,31 @@ export default function Dashboard() {
           gap-4 sm:gap-6 
           mb-8 sm:mb-10
         ">
-          <StatCard title="Total Balance" value={totalBalance} isCurrency />
-          <StatCard title="Monthly Spend" value={monthlySpend} isCurrency />
-          <StatCard title="Savings Goal" value={totalSavings} isCurrency />
-          <StatCard title="Pending Receipts" value={pendingReceipts} />
+          <StatCard
+            title="Total Balance"
+            value={totalBalance}
+            isCurrency
+          />
+
+          <StatCard
+            title="Monthly Spend"
+            value={monthlySpend}
+            isCurrency
+          />
+
+          <StatCard
+            title="Savings Goal"
+            value={totalSavings}
+            isCurrency
+          />
+
+          <StatCard
+            title="Pending Receipts"
+            value={pendingReceipts}
+          />
         </div>
 
-        {/* ✅ Charts + Categories */}
+        {/* Charts + Categories */}
         <div className="
           grid 
           grid-cols-1 
@@ -99,7 +126,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* ✅ Transactions Table (Scrollable on mobile) */}
+        {/* Transactions Table */}
         <div className="w-full overflow-x-auto">
           <TransactionsTable receipts={receipts} />
         </div>

@@ -4,15 +4,20 @@ import { Pencil, Trash2 } from "lucide-react";
 import {
   deleteReceipt,
   updateReceipt,
+  toggleStatus,
 } from "../../redux/features/receiptSlice";
 import { formatCurrency } from "../../utils/formatCurrency";
 
 export default function ExpenseTable({ search = "" }) {
-  const receipts = useSelector((state) => state.receipt.receipts);
+  const receipts = useSelector(
+    (state) => state.receipt.receipts
+  );
   const dispatch = useDispatch();
   const [editing, setEditing] = useState(null);
 
-  // 🔍 Filter + Sort
+  /* ===============================
+     FILTER + SORT
+  =============================== */
   const filteredReceipts = receipts
     .filter((r) =>
       r.store?.toLowerCase().includes(search.toLowerCase())
@@ -25,47 +30,65 @@ export default function ExpenseTable({ search = "" }) {
     }
   };
 
-const handleSave = () => {
-  const { id, ...rest } = editing;
+  const handleSave = () => {
+    const { id, ...rest } = editing;
 
-  dispatch(
-    updateReceipt({
-      id: id,
-      updatedData: rest,
-    })
-  );
+    dispatch(
+      updateReceipt({
+        id,
+        updatedData: {
+          ...rest,
+          amount: Number(rest.amount),
+        },
+      })
+    );
 
-  setEditing(null);
-};
+    setEditing(null);
+  };
 
+  const statusStyle = (status) => {
+    switch (status) {
+      case "Verified":
+        return "bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400";
+      case "Rejected":
+        return "bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-400";
+      default:
+        return "bg-yellow-100 text-yellow-600 dark:bg-yellow-500/20 dark:text-yellow-400";
+    }
+  };
 
   return (
     <>
       <div className="rounded-2xl bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 overflow-hidden">
-        {/* Header */}
-        <div className="hidden md:grid grid-cols-5 px-6 py-4 text-sm font-semibold border-b border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-400">
+        
+        {/* HEADER */}
+        <div className="hidden md:grid grid-cols-6 px-6 py-4 text-sm font-semibold border-b border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-400">
           <span>Merchant</span>
           <span>Date</span>
           <span>Category</span>
+          <span>Status</span>
           <span className="text-right">Amount</span>
           <span className="text-center">Actions</span>
         </div>
 
-        {/* Rows */}
+        {/* EMPTY */}
         {filteredReceipts.length === 0 && (
           <div className="p-10 text-center text-gray-500">
             No expenses found
           </div>
         )}
 
+        {/* ROWS */}
         {filteredReceipts.map((r) => (
           <div
             key={r.id}
             className="px-4 md:px-6 py-4 border-b border-gray-200 dark:border-white/5 hover:bg-gray-50 dark:hover:bg-white/5 transition"
           >
-            {/* Desktop */}
-            <div className="hidden md:grid grid-cols-5 items-center">
-              <span className="font-medium">{r.store}</span>
+            {/* DESKTOP */}
+            <div className="hidden md:grid grid-cols-6 items-center">
+              <span className="font-medium">
+                {r.store}
+              </span>
 
               <span className="text-gray-500 dark:text-gray-400">
                 {r.date
@@ -73,8 +96,20 @@ const handleSave = () => {
                   : "-"}
               </span>
 
-              <span className="px-3 py-1 text-xs rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 w-fit">
+              <span className="px-3 py-1 text-xs rounded-full bg-indigo-100 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-400 w-fit">
                 {r.category}
+              </span>
+
+              {/* STATUS BADGE */}
+              <span
+                onClick={() =>
+                  dispatch(toggleStatus(r.id))
+                }
+                className={`cursor-pointer px-3 py-1 text-xs rounded-full w-fit transition ${statusStyle(
+                  r.status
+                )}`}
+              >
+                {r.status || "Pending"}
               </span>
 
               <span className="text-right font-semibold text-emerald-600 dark:text-emerald-400">
@@ -90,7 +125,9 @@ const handleSave = () => {
                 </button>
 
                 <button
-                  onClick={() => handleDelete(r.id)}
+                  onClick={() =>
+                    handleDelete(r.id)
+                  }
                   className="text-red-500 hover:scale-110 transition"
                 >
                   <Trash2 size={18} />
@@ -98,7 +135,7 @@ const handleSave = () => {
               </div>
             </div>
 
-            {/* Mobile */}
+            {/* MOBILE */}
             <div className="md:hidden space-y-2">
               <div className="flex justify-between">
                 <span className="font-semibold">
@@ -113,7 +150,17 @@ const handleSave = () => {
                 {r.date
                   ? new Date(r.date).toLocaleDateString()
                   : "-"}{" "}
-                • {r.category}
+                • {r.category} •{" "}
+                <span
+                  onClick={() =>
+                    dispatch(toggleStatus(r.id))
+                  }
+                  className={`cursor-pointer ${statusStyle(
+                    r.status
+                  )} px-2 py-1 rounded`}
+                >
+                  {r.status || "Pending"}
+                </span>
               </div>
 
               <div className="flex gap-4 pt-2">
@@ -125,7 +172,9 @@ const handleSave = () => {
                 </button>
 
                 <button
-                  onClick={() => handleDelete(r.id)}
+                  onClick={() =>
+                    handleDelete(r.id)
+                  }
                   className="text-red-500"
                 >
                   Delete
@@ -144,61 +193,83 @@ const handleSave = () => {
               Edit Transaction
             </h3>
 
-            {/* Merchant */}
             <input
               type="text"
               value={editing.store || ""}
               onChange={(e) =>
-                setEditing({ ...editing, store: e.target.value })
+                setEditing({
+                  ...editing,
+                  store: e.target.value,
+                })
               }
               placeholder="Merchant"
-              className="w-full mb-3 p-2 rounded-lg bg-white dark:bg-gray-800 text-black dark:text-white border border-gray-300 dark:border-gray-600"
+              className="w-full mb-3 p-2 rounded-lg border"
             />
 
-            {/* Amount */}
             <input
               type="number"
               value={editing.amount || ""}
               onChange={(e) =>
-                setEditing({ ...editing, amount: e.target.value })
+                setEditing({
+                  ...editing,
+                  amount: e.target.value,
+                })
               }
               placeholder="Amount"
-              className="w-full mb-3 p-2 rounded-lg bg-white dark:bg-gray-800 text-black dark:text-white border border-gray-300 dark:border-gray-600"
+              className="w-full mb-3 p-2 rounded-lg border"
             />
 
-            {/* Date */}
             <input
               type="date"
               value={editing.date || ""}
               onChange={(e) =>
-                setEditing({ ...editing, date: e.target.value })
+                setEditing({
+                  ...editing,
+                  date: e.target.value,
+                })
               }
-              className="w-full mb-3 p-2 rounded-lg bg-white dark:bg-gray-800 text-black dark:text-white border border-gray-300 dark:border-gray-600"
+              className="w-full mb-3 p-2 rounded-lg border"
             />
 
-            {/* Category */}
             <input
               type="text"
               value={editing.category || ""}
               onChange={(e) =>
-                setEditing({ ...editing, category: e.target.value })
+                setEditing({
+                  ...editing,
+                  category: e.target.value,
+                })
               }
               placeholder="Category"
-              className="w-full mb-4 p-2 rounded-lg bg-white dark:bg-gray-800 text-black dark:text-white border border-gray-300 dark:border-gray-600"
+              className="w-full mb-3 p-2 rounded-lg border"
             />
 
-            {/* Buttons */}
+            <select
+              value={editing.status || "Pending"}
+              onChange={(e) =>
+                setEditing({
+                  ...editing,
+                  status: e.target.value,
+                })
+              }
+              className="w-full mb-4 p-2 rounded-lg border"
+            >
+              <option value="Pending">Pending</option>
+              <option value="Verified">Verified</option>
+              <option value="Rejected">Rejected</option>
+            </select>
+
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setEditing(null)}
-                className="px-4 py-2 bg-gray-300 dark:bg-gray-700 rounded-lg"
+                className="px-4 py-2 bg-gray-300 rounded-lg"
               >
                 Cancel
               </button>
 
               <button
                 onClick={handleSave}
-                className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg transition"
+                className="px-4 py-2 bg-emerald-500 text-white rounded-lg"
               >
                 Save
               </button>

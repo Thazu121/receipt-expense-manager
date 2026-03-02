@@ -1,141 +1,58 @@
-import { useDispatch, useSelector } from "react-redux";
-import { deleteReceipt } from "../../redux/features/receiptSlice";
-import { setCurrentPage } from "../../redux/features/gallerySlice";
-import { Trash2 } from "lucide-react";
+import { useDispatch } from "react-redux";
+import {
+  deleteReceipt,
+  toggleStatus,
+} from "../../redux/features/receiptSlice";
 
 export default function ReceiptCard({ receipt }) {
   const dispatch = useDispatch();
 
-  const { currentPage, receiptsPerPage } = useSelector(
-    (state) => state.gallery
-  );
+  const { id, store, amount, date, image, status } =
+    receipt;
 
-  const totalReceipts = useSelector(
-    (state) => state.receipt.receipts.length
-  );
-
-  if (!receipt) return null;
-
-  const {
-    id,
-    store = "Unknown Store",
-    amount = 0,
-    date = "No Date",
-    category = "General",
-    image,
-  } = receipt;
-
-  /* ---------------- Currency Detect ---------------- */
-  const detectCurrency = (value) => {
-    if (typeof value === "string") {
-      if (value.includes("$")) return "$";
-      if (value.includes("€")) return "€";
-      if (value.includes("₹") || value.toLowerCase().includes("rs"))
-        return "₹";
-    }
-    return "₹"; // default India
-  };
-
-  const currency = detectCurrency(amount);
-
-  /* ---------------- Parse Amount ---------------- */
-  const parseAmount = (value) => {
-    if (typeof value === "number") return value;
-
-    if (typeof value === "string") {
-      return Number(
-        value
-          .replace(/[₹$€]/g, "")
-          .replace(/rs/gi, "")
-          .replace(/,/g, "")
-          .trim()
-      ) || 0;
-    }
-
-    return 0;
-  };
-
-  const numericAmount = parseAmount(amount);
-
-  const formattedAmount = numericAmount.toLocaleString("en-IN", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-
-  /* ---------------- Handle Delete ---------------- */
-  const handleDelete = () => {
-    dispatch(deleteReceipt(id));
-
-    // Prevent empty page after delete
-    const newTotal = totalReceipts - 1;
-    const newTotalPages = Math.ceil(newTotal / receiptsPerPage);
-
-    if (currentPage > newTotalPages) {
-      dispatch(setCurrentPage(newTotalPages || 1));
-    }
-  };
+  const statusColor =
+    status === "Verified"
+      ? "bg-green-500"
+      : status === "Rejected"
+      ? "bg-red-500"
+      : "bg-yellow-500";
 
   return (
-    <div
-      className="
-        bg-green-950/40 backdrop-blur-md
-        border border-green-800
-        rounded-2xl overflow-hidden
-        hover:scale-[1.02] transition-all duration-300
-        flex flex-col relative shadow-lg
-      "
-    >
-      {/* Delete Button */}
-      <button
-        onClick={handleDelete}
-        className="
-          absolute top-3 right-3 z-10
-          bg-black/40 hover:bg-red-600
-          p-2 rounded-full transition
-        "
-      >
-        <Trash2 size={16} />
-      </button>
-
-      {/* Image */}
-      {image ? (
+    <div className="bg-gray-900 text-white rounded-2xl shadow-lg overflow-hidden hover:scale-105 transition duration-300">
+      {image && (
         <img
           src={image}
-          alt={store}
-          className="h-48 sm:h-56 w-full object-cover"
+          alt="Receipt"
+          className="h-48 w-full object-cover"
         />
-      ) : (
-        <div className="h-48 sm:h-56 w-full bg-green-900 flex items-center justify-center text-green-400 text-sm">
-          No Image
-        </div>
       )}
 
-      {/* Content */}
-      <div className="p-4 sm:p-5 flex flex-col flex-1">
-        <div className="flex justify-between items-start gap-2">
-          <h3 className="font-semibold text-sm sm:text-base truncate">
-            {store}
-          </h3>
+      <div className="p-4 space-y-2">
+        <h2 className="font-semibold text-lg">
+          {store}
+        </h2>
 
-          <span className="text-green-400 font-semibold text-sm sm:text-base whitespace-nowrap">
-            {currency} {formattedAmount}
-          </span>
-        </div>
-
-        <p className="text-xs sm:text-sm text-green-300 mt-2">
+        <p className="text-sm text-gray-400">
           {date}
         </p>
 
-        <span
-          className="
-            inline-block mt-3 text-xs
-            bg-green-800 text-green-300
-            px-3 py-1 rounded-full
-            w-fit
-          "
+        <p className="font-bold text-xl">
+          ₹ {amount}
+        </p>
+
+        <div
+          onClick={() => dispatch(toggleStatus(id))}
+          className={`text-xs px-3 py-1 rounded-full inline-block cursor-pointer ${statusColor}`}
         >
-          {category}
-        </span>
+          {status}
+        </div>
+
+        <button
+          onClick={() => dispatch(deleteReceipt(id))}
+          className="w-full mt-3 bg-red-600 hover:bg-red-700 py-2 rounded-lg"
+        >
+          Delete
+        </button>
       </div>
     </div>
   );

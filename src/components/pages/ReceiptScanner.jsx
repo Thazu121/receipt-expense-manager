@@ -1,38 +1,38 @@
-import { useSelector } from "react-redux";
-import LiveCapture from "../scan/LiveCapture";
-import ExtractedDetails from "../scan/ExtractedDetails";
+// ScanPage.js
+import { useDispatch, useSelector } from "react-redux";
+import { resetScan } from "../../redux/features/scanSlice";
+import ExtractedDetailsCard from "../scan/ExtractedDetailsCard";
+import ScanTabs from "../scan/ScanTab";
+import ScanCameraCard from "../scan/ScanCameraCard";
+import FileUploadCard from "../scan/FileUploadCard";
+import { useEffect } from "react";
 
-export default function ScanReceipt() {
-  const isLight = useSelector((state) => state.theme.isLight);
+export default function ScanPage() {
+  const dispatch = useDispatch();
+  const { mode } = useSelector((state) => state.scan);
+  const { receipts } = useSelector((state) => state.receipt);
+
+  // Reset the scan when the page is loaded or a scan is completed
+  useEffect(() => {
+    return () => {
+      dispatch(resetScan());
+    };
+  }, [dispatch]);
 
   return (
-    <div className={isLight ? "" : "dark"}>
-      <div
-        className="
-        min-h-screen transition-all duration-500
-        bg-gradient-to-br 
-        from-emerald-50 
-        via-slate-50 
-        to-green-100
-        text-gray-800
-        dark:bg-gradient-to-br 
-        dark:from-[#071a14] 
-        dark:via-[#0b1f14] 
-        dark:to-[#0d2f23]
-        dark:text-white
-      "
-      >
-        <main className="max-w-[1400px] mx-auto px-6 py-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
-            <div className="min-h-[680px]">
-              <LiveCapture />
-            </div>
+    <div className="min-h-screen bg-gradient-to-br from-[#071b11] via-[#0b2a1b] to-[#071b11] text-white p-4 md:p-6">
+      <ScanTabs />
 
-            <div className="min-h-[680px]">
-              <ExtractedDetails />
-            </div>
-          </div>
-        </main>
+      <div className="grid lg:grid-cols-2 gap-8 mt-8">
+        {/* Left Side */}
+        {mode === "camera" ? (
+          <ScanCameraCard />
+        ) : (
+          <FileUploadCard />
+        )}
+
+        {/* Right Side */}
+        <ExtractedDetailsCard />
       </div>
     </div>
   );
