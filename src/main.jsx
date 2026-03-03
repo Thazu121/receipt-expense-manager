@@ -3,7 +3,7 @@ import ReactDOM from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { Provider } from "react-redux";
 import { store } from "./redux/store";
-import LandingLayout from "./Layouts/landLayout";
+import LandingLayout from "./Layouts/LandLayout";
 import RootLayout from "./Layouts/RootLayout";
 import AuthLayout from "./Layouts/AuthLayout";
 import './index.css'
