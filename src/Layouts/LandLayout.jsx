@@ -1,6 +1,6 @@
 import { useSelector } from "react-redux";
 import LandingNavbar from "../components/layout/LandingNav"
-import Footer from "../components/layout/footer";
+import Footer from "../components/layout/Footer"
 import { Outlet } from "react-router-dom";
 
 
