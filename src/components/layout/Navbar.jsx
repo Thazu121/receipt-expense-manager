@@ -6,61 +6,56 @@ import { logout } from "../../redux/features/authSlice";
 import { useState, useRef, useEffect } from "react";
 
 export default function Navbar() {
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const location = useLocation();
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
+  const location = useLocation()
 
-  const isLight = useSelector((state) => state.theme.isLight);
-  const profileImage = useSelector((state) => state.user.profileImage);
-  const username = useSelector((state) => state.auth.user?.name);
+  const isLight = useSelector((state) => state.theme.isLight)
+  const profileImage = useSelector((state) => state.user.profileImage)
+  const username = useSelector((state) => state.auth.user?.name)
 
-  const [profileOpen, setProfileOpen] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const profileRef = useRef();
+  const [profileOpen, setProfileOpen] = useState(false)
+  const [mobileOpen, setMobileOpen] = useState(false)
+  const profileRef = useRef()
 
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (profileRef.current && !profileRef.current.contains(e.target)) {
-        setProfileOpen(false);
+        setProfileOpen(false)
       }
     };
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside)
     return () =>
       document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const handleLogout = () => {
     dispatch(logout());
-    navigate("/login");
-  };
+    navigate("/login")
+  }
 
   const linkStyle = (path) =>
-    `text-sm font-medium transition ${
-      location.pathname.includes(path)
-        ? "text-emerald-500"
-        : isLight
+    `text-sm font-medium transition ${location.pathname.includes(path)
+      ? "text-emerald-500"
+      : isLight
         ? "text-gray-700 hover:text-emerald-600"
         : "text-gray-300 hover:text-emerald-400"
-    }`;
+    }`
 
   return (
     <header
-      className={`relative px-6 h-16 flex items-center justify-between border-b transition ${
-        isLight
+      className={`relative px-6 h-16 flex items-center justify-between border-b transition ${isLight
           ? "bg-white border-gray-200"
           : "bg-[#0f172a] border-gray-800"
-      }`}
-    >
-      {/* Logo */}
-      <h1
-        className={`text-lg font-semibold ${
-          isLight ? "text-gray-800" : "text-white"
         }`}
+    >
+      <h1
+        className={`text-lg font-semibold ${isLight ? "text-gray-800" : "text-white"
+          }`}
       >
         SpendWise
       </h1>
 
-      {/* Desktop Nav */}
       <nav className="hidden md:flex gap-8 items-center">
         <Link to="/dashboard" className={linkStyle("dashboard")}>
           Dashboard
@@ -75,10 +70,8 @@ export default function Navbar() {
         </Link>
       </nav>
 
-      {/* Right Section */}
       <div className="flex items-center gap-4">
 
-        {/* 🔥 Upload Receipt Button (Desktop Only) */}
         <button
           onClick={() => navigate("/dashboard/scanner")}
           className="hidden md:flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
@@ -87,24 +80,21 @@ export default function Navbar() {
           Scan Receipt
         </button>
 
-        {/* Theme Toggle */}
         <button
           onClick={() => dispatch(toggleTheme())}
-          className={`p-2 rounded-lg transition ${
-            isLight ? "bg-gray-100" : "bg-[#1E293B]"
-          }`}
+          className={`p-2 rounded-lg transition ${isLight ? "bg-gray-100" : "bg-[#1E293B]"
+            }`}
         >
           {isLight ? <Moon size={18} /> : <Sun size={18} />}
         </button>
 
-        {/* Profile Dropdown */}
         <div className="relative" ref={profileRef}>
           <div
             onClick={() => setProfileOpen(!profileOpen)}
             className="w-9 h-9 rounded-full overflow-hidden border-2 border-emerald-400 cursor-pointer"
           >
             <img
-              src={profileImage || "https://i.pravatar.cc/100?img=12"}
+              src={profileImage || ""}
               alt="User"
               className="w-full h-full object-cover"
             />
@@ -112,11 +102,10 @@ export default function Navbar() {
 
           {profileOpen && (
             <div
-              className={`absolute right-0 mt-3 w-44 rounded-xl shadow-lg border z-50 ${
-                isLight
-                  ? "bg-white border-gray-200"
+              className={`absolute right-0 mt-3 w-44 rounded-xl shadow-lg border z-50 ${isLight
+                  ? "bg-gray-400 border-gray-200"
                   : "bg-[#1E293B] border-gray-700"
-              }`}
+                }`}
             >
               <div className="px-4 py-3 border-b text-sm font-medium">
                 {username || "User"}
@@ -124,10 +113,10 @@ export default function Navbar() {
 
               <button
                 onClick={() => {
-                  navigate("/dashboard/settings");
+                  navigate("settings");
                   setProfileOpen(false);
                 }}
-                className="flex items-center gap-3 w-full px-4 py-3 text-sm hover:bg-emerald-50 transition"
+                className="flex items-center gap-3 w-full px-4 py-3 text-sm hover:bg-emerald-400 transition"
               >
                 <Settings size={16} />
                 Settings
@@ -144,7 +133,6 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* Mobile Menu Button */}
         <button
           onClick={() => setMobileOpen(!mobileOpen)}
           className="md:hidden"
@@ -153,14 +141,12 @@ export default function Navbar() {
         </button>
       </div>
 
-      {/* Mobile Menu */}
       {mobileOpen && (
         <div
-          className={`absolute top-16 left-0 w-full border-t md:hidden ${
-            isLight
+          className={`absolute top-16 left-0 w-full border-t md:hidden ${isLight
               ? "bg-white border-gray-200"
               : "bg-[#0f172a] border-gray-800"
-          }`}
+            }`}
         >
           <nav className="flex flex-col p-6 gap-4">
 

@@ -1,5 +1,5 @@
 import { useSelector, useDispatch } from "react-redux";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Pencil, Trash2 } from "lucide-react";
 import {
   deleteReceipt,
@@ -9,11 +9,25 @@ import {
 import { formatCurrency } from "../../utils/formatCurrency";
 
 export default function ExpenseTable({ search = "" }) {
-  const receipts = useSelector(
-    (state) => state.receipt.receipts
-  );
-  const dispatch = useDispatch();
-  const [editing, setEditing] = useState(null);
+  const { receipts, error } = useSelector(
+    (state) => state.receipt
+  )
+
+
+  const dispatch = useDispatch()
+  const [editing, setEditing] = useState(null)
+  const [openStatus, setOpenStatus] = useState(false);
+  const statusRef = useRef(null)
+
+
+  useEffect(() => {
+    const handleEsc = (e) => {
+      if (e.key === "Escape") setEditing(null);
+    };
+    window.addEventListener("keydown", handleEsc);
+    return () =>
+      window.removeEventListener("keydown", handleEsc);
+  }, []);
 
   /* ===============================
      FILTER + SORT
@@ -24,27 +38,35 @@ export default function ExpenseTable({ search = "" }) {
     )
     .sort((a, b) => new Date(b.date) - new Date(a.date));
 
+  /* ===============================
+     DELETE
+  =============================== */
   const handleDelete = (id) => {
     if (window.confirm("Delete this transaction?")) {
       dispatch(deleteReceipt(id));
     }
   };
 
+  /* ===============================
+     SAVE EDIT
+  =============================== */
   const handleSave = () => {
-    const { id, ...rest } = editing;
-
     dispatch(
       updateReceipt({
-        id,
-        updatedData: {
-          ...rest,
-          amount: Number(rest.amount),
+        id: editing.id,
+        updates: {
+          store: editing.store,
+          amount: Number(editing.amount),
+          date: editing.date,
+          category: editing.category,
+          status: editing.status,
         },
       })
     );
 
     setEditing(null);
   };
+
 
   const statusStyle = (status) => {
     switch (status) {
@@ -55,13 +77,32 @@ export default function ExpenseTable({ search = "" }) {
       default:
         return "bg-yellow-100 text-yellow-600 dark:bg-yellow-500/20 dark:text-yellow-400";
     }
-  };
+  }
+
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (statusRef.current && !statusRef.current.contains(e.target)) {
+        setOpenStatus(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () =>
+      document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
 
   return (
     <>
       <div className="rounded-2xl bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 overflow-hidden">
-        
-        {/* HEADER */}
+
+        {error && (
+          <div className="p-4 bg-red-100 text-red-600 text-sm">
+            {error}
+          </div>
+        )}
+
         <div className="hidden md:grid grid-cols-6 px-6 py-4 text-sm font-semibold border-b border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-400">
           <span>Merchant</span>
           <span>Date</span>
@@ -71,22 +112,20 @@ export default function ExpenseTable({ search = "" }) {
           <span className="text-center">Actions</span>
         </div>
 
-        {/* EMPTY */}
         {filteredReceipts.length === 0 && (
-          <div className="p-10 text-center text-gray-500">
+          <div className="p-10 text-center text-gray-500 dark:text-gray-400">
             No expenses found
           </div>
         )}
 
-        {/* ROWS */}
         {filteredReceipts.map((r) => (
           <div
             key={r.id}
             className="px-4 md:px-6 py-4 border-b border-gray-200 dark:border-white/5 hover:bg-gray-50 dark:hover:bg-white/5 transition"
           >
-            {/* DESKTOP */}
             <div className="hidden md:grid grid-cols-6 items-center">
-              <span className="font-medium">
+
+              <span className="font-medium text-gray-800 dark:text-white">
                 {r.store}
               </span>
 
@@ -100,7 +139,6 @@ export default function ExpenseTable({ search = "" }) {
                 {r.category}
               </span>
 
-              {/* STATUS BADGE */}
               <span
                 onClick={() =>
                   dispatch(toggleStatus(r.id))
@@ -125,9 +163,7 @@ export default function ExpenseTable({ search = "" }) {
                 </button>
 
                 <button
-                  onClick={() =>
-                    handleDelete(r.id)
-                  }
+                  onClick={() => handleDelete(r.id)}
                   className="text-red-500 hover:scale-110 transition"
                 >
                   <Trash2 size={18} />
@@ -135,18 +171,18 @@ export default function ExpenseTable({ search = "" }) {
               </div>
             </div>
 
-            {/* MOBILE */}
             <div className="md:hidden space-y-2">
               <div className="flex justify-between">
-                <span className="font-semibold">
+                <span className="font-semibold text-gray-800 dark:text-white">
                   {r.store}
                 </span>
+
                 <span className="font-bold text-emerald-600">
                   {formatCurrency(r.amount)}
                 </span>
               </div>
 
-              <div className="text-sm text-gray-500">
+              <div className="text-sm text-gray-500 dark:text-gray-400">
                 {r.date
                   ? new Date(r.date).toLocaleDateString()
                   : "-"}{" "}
@@ -172,9 +208,7 @@ export default function ExpenseTable({ search = "" }) {
                 </button>
 
                 <button
-                  onClick={() =>
-                    handleDelete(r.id)
-                  }
+                  onClick={() => handleDelete(r.id)}
                   className="text-red-500"
                 >
                   Delete
@@ -185,91 +219,122 @@ export default function ExpenseTable({ search = "" }) {
         ))}
       </div>
 
-      {/* ================= EDIT MODAL ================= */}
       {editing && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-[#0f2e24] w-96 p-6 rounded-2xl shadow-xl border border-gray-200 dark:border-green-900">
-            <h3 className="text-lg font-semibold mb-4 text-gray-800 dark:text-white">
+        <div
+          onClick={() => setEditing(null)}
+          className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-[400px] max-w-[95%] rounded-2xl p-6 shadow-2xl border
+            bg-white dark:bg-[#0f2e24]
+            border-gray-200 dark:border-green-900"
+          >
+            <h3 className="text-xl font-semibold mb-6 text-gray-800 dark:text-white">
               Edit Transaction
             </h3>
 
-            <input
-              type="text"
-              value={editing.store || ""}
-              onChange={(e) =>
-                setEditing({
-                  ...editing,
-                  store: e.target.value,
-                })
-              }
-              placeholder="Merchant"
-              className="w-full mb-3 p-2 rounded-lg border"
-            />
+            <div className="space-y-4">
+              <input
+                type="text"
+                value={editing.store ?? ""}
+                onChange={(e) =>
+                  setEditing({ ...editing, store: e.target.value })
+                }
+                className="w-full p-3 rounded-lg border bg-gray-50 dark:bg-white/10 dark:text-white"
+                placeholder="Merchant"
+              />
 
-            <input
-              type="number"
-              value={editing.amount || ""}
-              onChange={(e) =>
-                setEditing({
-                  ...editing,
-                  amount: e.target.value,
-                })
-              }
-              placeholder="Amount"
-              className="w-full mb-3 p-2 rounded-lg border"
-            />
+              <input
+                type="number"
+                value={editing.amount ?? ""}
+                onChange={(e) =>
+                  setEditing({ ...editing, amount: e.target.value })
+                }
+                className="w-full p-3 rounded-lg border bg-gray-50 dark:bg-white/10 dark:text-white"
+                placeholder="Amount"
+              />
 
-            <input
-              type="date"
-              value={editing.date || ""}
-              onChange={(e) =>
-                setEditing({
-                  ...editing,
-                  date: e.target.value,
-                })
-              }
-              className="w-full mb-3 p-2 rounded-lg border"
-            />
+              <input
+                type="date"
+                value={
+                  editing.date
+                    ? new Date(editing.date)
+                      .toISOString()
+                      .split("T")[0]
+                    : ""
+                }
+                onChange={(e) =>
+                  setEditing({ ...editing, date: e.target.value })
+                }
+                className="w-full p-3 rounded-lg border bg-gray-50 dark:bg-white/10 dark:text-white"
+              />
 
-            <input
-              type="text"
-              value={editing.category || ""}
-              onChange={(e) =>
-                setEditing({
-                  ...editing,
-                  category: e.target.value,
-                })
-              }
-              placeholder="Category"
-              className="w-full mb-3 p-2 rounded-lg border"
-            />
+              <input
+                type="text"
+                value={editing.category ?? ""}
+                onChange={(e) =>
+                  setEditing({ ...editing, category: e.target.value })
+                }
+                className="w-full p-3 rounded-lg border bg-gray-50 dark:bg-white/10 dark:text-white"
+                placeholder="Category"
+              />
+              <div className="relative" ref={statusRef}>
+                <div
+                  onClick={() => setOpenStatus(!openStatus)}
+                  className="
+      w-full p-3 rounded-lg border
+      bg-white dark:bg-gray-800
+      text-gray-800 dark:text-white
+      border-gray-300 dark:border-gray-600
+      cursor-pointer
+      flex justify-between items-center
+    "
+                >
+                  {editing.status || "Pending"}
+                  <span className="text-sm">▼</span>
+                </div>
 
-            <select
-              value={editing.status || "Pending"}
-              onChange={(e) =>
-                setEditing({
-                  ...editing,
-                  status: e.target.value,
-                })
-              }
-              className="w-full mb-4 p-2 rounded-lg border"
-            >
-              <option value="Pending">Pending</option>
-              <option value="Verified">Verified</option>
-              <option value="Rejected">Rejected</option>
-            </select>
+                {openStatus && (
+                  <div className="
+      absolute left-0 mt-2 w-full rounded-lg
+      bg-white dark:bg-gray-800
+      border border-gray-300 dark:border-gray-600
+      shadow-lg z-50 overflow-hidden
+    ">
+                    {["Pending", "Verified", "Rejected"].map((status) => (
+                      <div
+                        key={status}
+                        onClick={() => {
+                          setEditing({ ...editing, status });
+                          setOpenStatus(false);
+                        }}
+                        className="
+            px-4 py-2 cursor-pointer
+            hover:bg-emerald-500 hover:text-white
+            transition
+          "
+                      >
+                        {status}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
 
-            <div className="flex justify-end gap-3">
+            </div>
+
+            <div className="flex justify-end gap-4 mt-6">
               <button
                 onClick={() => setEditing(null)}
-                className="px-4 py-2 bg-gray-300 rounded-lg"
+                className="px-5 py-2 rounded-lg bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-white"
               >
                 Cancel
               </button>
 
               <button
                 onClick={handleSave}
-                className="px-4 py-2 bg-emerald-500 text-white rounded-lg"
+                className="px-5 py-2 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 transition"
               >
                 Save
               </button>

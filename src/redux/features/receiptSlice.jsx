@@ -4,7 +4,6 @@ import { createSlice, createSelector } from "@reduxjs/toolkit";
    🔧 HELPERS
 ====================================================== */
 
-// Safe ID generator
 const generateId = () => {
   if (typeof crypto !== "undefined" && crypto.randomUUID) {
     return crypto.randomUUID();
@@ -15,7 +14,6 @@ const generateId = () => {
   );
 };
 
-// Normalize status
 const normalizeStatus = (status) => {
   if (!status) return "Pending";
 
@@ -26,7 +24,6 @@ const normalizeStatus = (status) => {
   return "Pending";
 };
 
-// Validate receipt
 const validateReceipt = (data) => {
   if (!data.store || data.store.trim() === "") {
     return "Merchant name is required";
@@ -43,7 +40,15 @@ const validateReceipt = (data) => {
   return null;
 };
 
-// Load from localStorage
+const isDuplicateReceipt = (receipts, newReceipt) => {
+  return receipts.some(
+    (r) =>
+      r.store === newReceipt.store &&
+      Number(r.amount) === Number(newReceipt.amount) &&
+      r.date === newReceipt.date
+  );
+};
+
 const loadReceipts = () => {
   try {
     const data = localStorage.getItem("receipts");
@@ -63,13 +68,9 @@ const loadReceipts = () => {
   }
 };
 
-// Save to localStorage
 const saveReceipts = (receipts) => {
   try {
-    localStorage.setItem(
-      "receipts",
-      JSON.stringify(receipts)
-    );
+    localStorage.setItem("receipts", JSON.stringify(receipts));
   } catch (err) {
     console.error("Save error:", err);
   }
@@ -85,14 +86,10 @@ const receiptSlice = createSlice({
   initialState: {
     receipts: loadReceipts(),
 
-    // Filters
     search: "",
     statusFilter: "All",
+    categoryFilter: "All",
     sortBy: "Newest",
-
-    // Pagination
-    currentPage: 1,
-    receiptsPerPage: 6,
 
     error: null,
   },
@@ -102,12 +99,14 @@ const receiptSlice = createSlice({
     addReceipt: (state, action) => {
       state.error = null;
 
-      const validationError = validateReceipt(
-        action.payload
-      );
-
+      const validationError = validateReceipt(action.payload);
       if (validationError) {
         state.error = validationError;
+        return;
+      }
+
+      if (isDuplicateReceipt(state.receipts, action.payload)) {
+        state.error = "Duplicate receipt detected";
         return;
       }
 
@@ -115,9 +114,9 @@ const receiptSlice = createSlice({
         id: generateId(),
         ...action.payload,
         amount: Number(action.payload.amount),
-        status: normalizeStatus(
-          action.payload.status ?? "Pending"
-        ),
+        status: normalizeStatus(action.payload.status ?? "Pending"),
+        category: action.payload.category || "Other",
+        source: action.payload.source || "manual",
         createdAt: new Date().toISOString(),
       };
 
@@ -129,21 +128,9 @@ const receiptSlice = createSlice({
     updateReceipt: (state, action) => {
       const { id, updates } = action.payload;
 
-      const index = state.receipts.findIndex(
-        (r) => r.id === id
-      );
-
+      const index = state.receipts.findIndex((r) => r.id === id);
       if (index === -1) {
         state.error = "Receipt not found";
-        return;
-      }
-
-      if (
-        updates.amount !== undefined &&
-        (isNaN(updates.amount) ||
-          Number(updates.amount) <= 0)
-      ) {
-        state.error = "Amount must be greater than 0";
         return;
       }
 
@@ -172,7 +159,6 @@ const receiptSlice = createSlice({
       state.receipts = state.receipts.filter(
         (r) => r.id !== action.payload
       );
-
       saveReceipts(state.receipts);
     },
 
@@ -196,37 +182,23 @@ const receiptSlice = createSlice({
     /* ---------------- FILTERS ---------------- */
     setSearch: (state, action) => {
       state.search = action.payload;
-      state.currentPage = 1;
     },
 
     setStatusFilter: (state, action) => {
       state.statusFilter = action.payload;
-      state.currentPage = 1;
+    },
+
+    setCategoryFilter: (state, action) => {
+      state.categoryFilter = action.payload;
     },
 
     setSortBy: (state, action) => {
       state.sortBy = action.payload;
-      state.currentPage = 1;
     },
 
-    /* ---------------- PAGINATION ---------------- */
-    setCurrentPage: (state, action) => {
-      state.currentPage = action.payload;
-    },
-
-    nextPage: (state) => {
-      state.currentPage += 1;
-    },
-
-    prevPage: (state) => {
-      if (state.currentPage > 1) {
-        state.currentPage -= 1;
-      }
-    },
-
-    setReceiptsPerPage: (state, action) => {
-      state.receiptsPerPage = action.payload;
-      state.currentPage = 1;
+    /* ---------------- ERROR ---------------- */
+    setError: (state, action) => {
+      state.error = action.payload;
     },
 
     clearError: (state) => {
@@ -235,20 +207,17 @@ const receiptSlice = createSlice({
   },
 });
 
-/* ======================================================
-   🎯 MEMOIZED SELECTOR (NO WARNING)
-====================================================== */
 
-export const selectPaginatedReceipts = createSelector(
+
+export const selectFilteredReceipts = createSelector(
   [(state) => state.receipt],
   (receiptState) => {
     const {
       receipts,
       search,
       statusFilter,
+      categoryFilter,
       sortBy,
-      currentPage,
-      receiptsPerPage,
     } = receiptState;
 
     let data = receipts.filter((receipt) => {
@@ -262,52 +231,46 @@ export const selectPaginatedReceipts = createSelector(
           ? true
           : receipt.status === statusFilter;
 
-      return matchesSearch && matchesStatus;
+      const matchesCategory =
+        categoryFilter === "All"
+          ? true
+          : receipt.category === categoryFilter;
+
+      return (
+        matchesSearch &&
+        matchesStatus &&
+        matchesCategory
+      );
     });
 
-    // Sorting
-    if (sortBy === "Newest") {
-      data = [...data].sort(
-        (a, b) =>
-          new Date(b.createdAt) -
-          new Date(a.createdAt)
-      );
+    switch (sortBy) {
+      case "Newest":
+        data.sort(
+          (a, b) =>
+            new Date(b.createdAt) - new Date(a.createdAt)
+        );
+        break;
+
+      case "Oldest":
+        data.sort(
+          (a, b) =>
+            new Date(a.createdAt) - new Date(b.createdAt)
+        );
+        break;
+
+      case "Amount High-Low":
+        data.sort((a, b) => b.amount - a.amount);
+        break;
+
+      case "Amount Low-High":
+        data.sort((a, b) => a.amount - b.amount);
+        break;
+
+      default:
+        break;
     }
 
-    if (sortBy === "Oldest") {
-      data = [...data].sort(
-        (a, b) =>
-          new Date(a.createdAt) -
-          new Date(b.createdAt)
-      );
-    }
-
-    if (sortBy === "Amount High-Low") {
-      data = [...data].sort(
-        (a, b) => b.amount - a.amount
-      );
-    }
-
-    if (sortBy === "Amount Low-High") {
-      data = [...data].sort(
-        (a, b) => a.amount - b.amount
-      );
-    }
-
-    const totalPages = Math.ceil(
-      data.length / receiptsPerPage
-    );
-
-    const paginatedData = data.slice(
-      (currentPage - 1) * receiptsPerPage,
-      currentPage * receiptsPerPage
-    );
-
-    return {
-      receipts: paginatedData,
-      totalPages,
-      currentPage,
-    };
+    return data;
   }
 );
 
@@ -322,11 +285,9 @@ export const {
   toggleStatus,
   setSearch,
   setStatusFilter,
+  setCategoryFilter,
   setSortBy,
-  setCurrentPage,
-  nextPage,
-  prevPage,
-  setReceiptsPerPage,
+  setError,
   clearError,
 } = receiptSlice.actions;
 

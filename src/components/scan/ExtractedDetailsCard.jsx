@@ -1,117 +1,83 @@
 import { useDispatch, useSelector } from "react-redux";
-import { useState } from "react";
 import { addReceipt } from "../../redux/features/receiptSlice";
 import { resetScan } from "../../redux/features/scanSlice";
 
 export default function ExtractedDetailsCard() {
   const dispatch = useDispatch();
-  const [success, setSuccess] = useState(false);
 
-  const { extracted = {}, confidence = 0, image } =
+  const { extracted, confidence, image } =
     useSelector((state) => state.scan);
 
-  const { merchant, date, amount } = extracted;
+  if (!image) return null;
 
-  if (!merchant && !amount && !date && !success)
-    return null;
+  const { merchant, date, amount, category } =
+    extracted;
 
   const confidencePercent =
     confidence <= 1
       ? Math.round(confidence * 100)
       : Math.round(confidence);
 
-  const isLowConfidence = confidencePercent < 40;
-
   const handleSave = () => {
     dispatch(
       addReceipt({
         store: merchant,
-        date: date,
-        amount: amount,
-        image: image,
+        date,
+        amount,
+        category,
+        image,
         status: "Pending",
+        source: "scan",
       })
     );
 
-    setSuccess(true);
-
-    setTimeout(() => {
-      dispatch(resetScan());
-      setSuccess(false);
-    }, 2000);
-  };
-
-  const handleRetake = () => {
-    dispatch(resetScan());
-    setSuccess(false);
-  };
+    dispatch(resetScan())
+  }
 
   return (
-    <div className="bg-black/40 border border-green-500/20 rounded-2xl p-6 space-y-4">
-      {success && (
-        <div className="bg-green-500/20 text-green-400 p-3 rounded-lg text-sm">
-          ✅ Expense Saved Successfully!
-        </div>
-      )}
+    <div className="bg-zinc-900 p-8 rounded-2xl text-white space-y-6">
+      <div className="flex justify-between">
+        <h2 className="text-xl font-semibold">
+          Extracted Details
+        </h2>
+        <span className="text-green-400">
+          {confidencePercent}% Confidence
+        </span>
+      </div>
 
-      {merchant && !success && (
-        <>
-          <div className="flex justify-between items-center">
-            <h2 className="text-xl font-semibold">
-              Extracted Details
-            </h2>
+      <div className="space-y-4">
+        <Detail label="Merchant" value={merchant} />
+        <Detail label="Date" value={date} />
+        <Detail label="Amount" value={amount} />
+        <Detail label="Category" value={category} />
+      </div>
 
-            <span
-              className={
-                isLowConfidence
-                  ? "text-yellow-400"
-                  : "text-green-400"
-              }
-            >
-              {confidencePercent}% Confidence
-            </span>
-          </div>
+      <div className="flex gap-4 pt-4">
+        <button
+          onClick={handleSave}
+          className="flex-1 bg-green-500 hover:bg-green-400 text-black py-3 rounded-xl"
+        >
+          Save Expense
+        </button>
 
-          {isLowConfidence && (
-            <div className="bg-yellow-500/20 text-yellow-400 p-2 rounded text-sm">
-              Low scan accuracy. Please verify details.
-            </div>
-          )}
+        <button
+          onClick={() => dispatch(resetScan())}
+          className="flex-1 border border-zinc-600 py-3 rounded-xl"
+        >
+          Retake
+        </button>
+      </div>
+    </div>
+  );
+}
 
-          <div className="bg-black/60 p-3 rounded-lg">
-            {merchant || "Not detected"}
-          </div>
-
-          <div className="bg-black/60 p-3 rounded-lg">
-            {date || "Date not detected"}
-          </div>
-
-          <div className="bg-black/60 p-3 rounded-lg">
-            ₹ {amount || "Amount not detected"}
-          </div>
-
-          <div className="flex flex-col sm:flex-row gap-4 pt-4">
-            <button
-              disabled={!amount}
-              onClick={handleSave}
-              className={`flex-1 py-3 rounded-xl font-medium transition ${
-                amount
-                  ? "bg-green-500 text-black hover:bg-green-400"
-                  : "bg-gray-500 text-black cursor-not-allowed"
-              }`}
-            >
-              Save Expense
-            </button>
-
-            <button
-              onClick={handleRetake}
-              className="flex-1 border border-white py-3 rounded-xl hover:bg-white hover:text-black transition"
-            >
-              Retake
-            </button>
-          </div>
-        </>
-      )}
+function Detail({ label, value }) {
+  return (
+    <div>
+      <p className="text-sm text-zinc-400">{label}</p>
+      <p className="text-lg font-semibold">
+        {value || "Not detected"}
+      </p>
     </div>
   );
 }

@@ -1,133 +1,75 @@
 import { useDispatch, useSelector } from "react-redux";
-import { startScanning, setExtractedData, setScanError } from "../../redux/features/scanSlice";
-import Tesseract from "tesseract.js";
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { scanReceipt, resetScan } from "../../redux/features/scanSlice";
 
 export default function FileUploadCard() {
   const dispatch = useDispatch();
-  const { scanning, error } = useSelector((state) => state.scan);
+
+  const { scanning, progress, error } =
+    useSelector((state) => state.scan);
+
+  const isLight = useSelector(
+    (state) => state.theme.isLight
+  );
 
   const [preview, setPreview] = useState(null);
-  const [base64Image, setBase64Image] = useState(null);  // To hold Base64 string
 
-  /* ===============================
-     CLEANUP OBJECT URL
-  ================================ */
-  useEffect(() => {
-    return () => {
-      if (preview) URL.revokeObjectURL(preview);
-    };
-  }, [preview]);
 
-  /* ===============================
-     FILE UPLOAD HANDLER
-  ================================ */
-  const handleUpload = async (e) => {
-    const file = e.target.files[0];
-
-    // 🚨 No file
+  const handleUpload = (e) => {
+    const file = e.target.files?.[0];
     if (!file) return;
 
-    // 🚨 Not image
-    if (!file.type.startsWith("image/")) {
-      dispatch(setScanError("Only image files are allowed."));
-      return;
-    }
+    if (!file.type.startsWith("image/")) return;
+    if (file.size > 5 * 1024 * 1024) return;
 
-    // 🚨 File too large (5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      dispatch(setScanError("Image too large. Max 5MB allowed."));
-      return;
-    }
+    const reader = new FileReader()
 
-    try {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreview(reader.result);
-        setBase64Image(reader.result);  // Save the base64 string
-      };
-      reader.readAsDataURL(file);  // Convert image to base64 string
+    reader.onloadend = () => {
+      const base64Image = reader.result
+      setPreview(base64Image)
 
-      dispatch(startScanning());
+      dispatch(scanReceipt(base64Image))
+    };
 
-      const result = await Tesseract.recognize(file, "eng");
-
-      const text = result?.data?.text;
-
-      // 🚨 Empty OCR
-      if (!text || text.trim().length < 10) {
-        dispatch(
-          setScanError(
-            "Receipt not readable. Please upload a clearer image."
-          )
-        );
-        return;
-      }
-
-      /* ===============================
-         SMART EXTRACTION
-      ================================ */
-
-      const merchant = text.split("\n")[0] || "";
-
-      // Extract highest amount
-      const amounts = text.match(/(\d+\.\d{2})/g);
-      const amount =
-        amounts && amounts.length > 0
-          ? Math.max(...amounts.map(Number)).toFixed(2)
-          : "";
-
-      // Date detection (multiple formats)
-      const dateMatch = text.match(
-        /\d{2}[\/\-]\d{2}[\/\-]\d{2,4}/
-      );
-      const date = dateMatch ? dateMatch[0] : "";
-
-      const confidence = result.data.confidence || 0;
-
-      // 🚨 Low confidence warning
-      if (confidence < 40) {
-        dispatch(
-          setScanError(
-            "Low scan confidence. Results may not be accurate."
-          )
-        );
-      }
-
-      dispatch(
-        setExtractedData({
-          merchant,
-          date,
-          amount,
-          confidence,
-        })
-      );
-    } catch (err) {
-      console.error(err);
-      dispatch(
-        setScanError(
-          "Scanning failed. Please try again."
-        )
-      );
-    }
+    reader.readAsDataURL(file)
   };
 
-  return (
-    <div className="bg-black/40 border border-green-500/20 rounded-2xl p-6 relative">
 
-      {/* Loading Overlay */}
+
+  return (
+    <div
+      className={`w-full max-w-3xl mx-auto rounded-2xl p-4 sm:p-6 relative transition-all
+      ${
+        isLight
+          ? "bg-white border border-gray-200 shadow-md"
+          : "bg-black/40 border border-green-500/20 shadow-lg"
+      }`}
+    >
       {scanning && (
-        <div className="absolute inset-0 bg-black/70 flex items-center justify-center rounded-2xl z-50">
-          <div className="w-12 h-12 border-4 border-green-500 border-t-transparent rounded-full animate-spin"></div>
+        <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center rounded-2xl text-white z-50">
+          <div className="w-10 h-10 border-4 border-green-500 border-t-transparent rounded-full animate-spin mb-2"></div>
+          <p className="text-sm">
+            Scanning... {progress}%
+          </p>
         </div>
       )}
 
-      {/* Upload Area */}
-      {!preview ? (
-        <label className="flex flex-col items-center justify-center h-72 border-2 border-dashed border-green-500/40 rounded-xl cursor-pointer hover:bg-green-500/10 transition">
-          <span className="text-gray-400">
+      {!preview && (
+        <label
+          className={`flex flex-col items-center justify-center 
+          h-48 sm:h-56 md:h-64 
+          border-2 border-dashed rounded-xl cursor-pointer 
+          transition hover:opacity-80
+          ${
+            isLight
+              ? "border-gray-300 text-gray-500"
+              : "border-green-500/30 text-green-400"
+          }`}
+        >
+          <span className="text-sm sm:text-base text-center px-4">
             Click to Upload Receipt
           </span>
+
           <input
             type="file"
             accept="image/*"
@@ -135,17 +77,35 @@ export default function FileUploadCard() {
             className="hidden"
           />
         </label>
-      ) : (
-        <img
-          src={preview}
-          alt="preview"
-          className="rounded-xl w-full object-contain max-h-96"
-        />
       )}
 
-      {/* Error UI */}
+      {preview && (
+        <div className="flex flex-col items-center">
+          <img
+            src={preview}
+            alt="preview"
+            className="w-full max-h-64 sm:max-h-72 md:max-h-80 object-contain rounded-xl"
+          />
+
+          <button
+            onClick={() => {
+              setPreview(null);
+              dispatch(resetScan());
+            }}
+            className={`mt-4 px-4 py-2 rounded-lg text-sm transition
+            ${
+              isLight
+                ? "bg-gray-100 hover:bg-gray-200 text-gray-700"
+                : "bg-green-500/20 hover:bg-green-500/30 text-green-400"
+            }`}
+          >
+            Upload Another
+          </button>
+        </div>
+      )}
+
       {error && (
-        <div className="mt-4 p-3 bg-red-500/20 text-red-400 rounded-lg text-sm">
+        <div className="mt-4 p-3 bg-red-500/20 text-red-500 rounded-lg text-sm text-center">
           {error}
         </div>
       )}

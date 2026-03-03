@@ -210,7 +210,6 @@ export default function AddExpense() {
             />
           </div>
 
-          {/* Submit */}
           <button
             type="submit"
             className="w-full bg-emerald-600 
