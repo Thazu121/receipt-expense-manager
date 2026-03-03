@@ -7,11 +7,10 @@ export default function Landing() {
 
   return (
     <div
-      className={`min-h-screen transition-all duration-500 ${
-        isLight
+      className={`min-h-screen transition-all duration-500 ${isLight
           ? "bg-white text-gray-900"
           : "bg-gradient-to-b from-[#071a10] via-[#0b2a1a] to-[#05140c] text-white"
-      }`}
+        }`}
     >
       <Hero isLight={isLight} />
       <Features isLight={isLight} />
@@ -23,24 +22,22 @@ export default function Landing() {
 
 function Hero({ isLight }) {
   return (
-<section id="home" className="pt-24 pb-20 px-6">
+    <section id="home" className="pt-24 pb-20 px-6">
       <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
-        
+
         <div>
           <span
-            className={`inline-block text-xs font-semibold px-4 py-1 rounded-full ${
-              isLight
+            className={`inline-block text-xs font-semibold px-4 py-1 rounded-full ${isLight
                 ? "bg-green-100 text-green-700"
                 : "bg-green-900/40 text-green-400"
-            }`}
+              }`}
           >
             AI-POWERED RECEIPT SCANNING
           </span>
 
           <h1
-            className={`text-4xl md:text-5xl font-bold mt-6 leading-tight ${
-              isLight ? "text-gray-900" : "text-white"
-            }`}
+            className={`text-4xl md:text-5xl font-bold mt-6 leading-tight ${isLight ? "text-gray-900" : "text-white"
+              }`}
           >
             Scan Receipts. <br />
             <span className={isLight ? "text-green-600" : "text-green-400"}>
@@ -51,34 +48,31 @@ function Hero({ isLight }) {
           </h1>
 
           <p
-            className={`mt-6 max-w-lg leading-relaxed ${
-              isLight ? "text-gray-600" : "text-white/70"
-            }`}
+            className={`mt-6 max-w-lg leading-relaxed ${isLight ? "text-gray-600" : "text-white/70"
+              }`}
           >
             SpendWise uses advanced AI to scan receipts,
             track expenses automatically, and generate
             powerful financial insights in seconds.
           </p>
-<Link to={"signup"}>
-          <button
-      
-            className={`mt-8 px-8 py-3 rounded-xl shadow-lg transition ${
-              isLight
-                ? "bg-green-600 hover:bg-green-700 text-white"
-                : "bg-green-500 hover:bg-green-600 text-white"
-            }`}
-          >
-            Get Started
-          </button>
+          <Link to={"signup"}>
+            <button
+
+              className={`mt-8 px-8 py-3 rounded-xl shadow-lg transition ${isLight
+                  ? "bg-green-600 hover:bg-green-700 text-white"
+                  : "bg-green-500 hover:bg-green-600 text-white"
+                }`}
+            >
+              Get Started
+            </button>
           </Link>
         </div>
 
         <div
-          className={`p-6 rounded-3xl shadow-2xl ${
-            isLight
+          className={`p-6 rounded-3xl shadow-2xl ${isLight
               ? "bg-white border border-gray-200"
               : "bg-[#0e2418] border border-green-900/40"
-          }`}
+            }`}
         >
           <img
             src="https://images.unsplash.com/photo-1554224155-8d04cb21cd6c"
@@ -94,21 +88,19 @@ function Hero({ isLight }) {
 
 function Features({ isLight }) {
   return (
-<section id="features" className="py-20 px-6">
+    <section id="features" className="py-20 px-6">
       <div className="max-w-7xl mx-auto text-center">
-        
+
         <h2
-          className={`text-3xl font-bold ${
-            isLight ? "text-gray-900" : "text-white"
-          }`}
+          className={`text-3xl font-bold ${isLight ? "text-gray-900" : "text-white"
+            }`}
         >
           Powerful Features for Modern Finance
         </h2>
 
         <p
-          className={`mt-4 ${
-            isLight ? "text-gray-600" : "text-white/70"
-          }`}
+          className={`mt-4 ${isLight ? "text-gray-600" : "text-white/70"
+            }`}
         >
           Everything you need powered by intelligent automation.
         </p>
@@ -143,32 +135,28 @@ function Features({ isLight }) {
 function FeatureCard({ icon, title, text, isLight }) {
   return (
     <div
-      className={`p-8 rounded-3xl transition-all duration-300 hover:shadow-xl ${
-        isLight
+      className={`p-8 rounded-3xl transition-all duration-300 hover:shadow-xl ${isLight
           ? "bg-gray-50 border border-gray-200"
           : "bg-[#0e2418] border border-green-900/40"
-      }`}
+        }`}
     >
       <div
-        className={`mb-6 ${
-          isLight ? "text-green-600" : "text-green-400"
-        }`}
+        className={`mb-6 ${isLight ? "text-green-600" : "text-green-400"
+          }`}
       >
         {icon}
       </div>
 
       <h3
-        className={`font-semibold text-lg ${
-          isLight ? "text-gray-900" : "text-white"
-        }`}
+        className={`font-semibold text-lg ${isLight ? "text-gray-900" : "text-white"
+          }`}
       >
         {title}
       </h3>
 
       <p
-        className={`mt-4 ${
-          isLight ? "text-gray-600" : "text-white/70"
-        }`}
+        className={`mt-4 ${isLight ? "text-gray-600" : "text-white/70"
+          }`}
       >
         {text}
       </p>
@@ -179,20 +167,18 @@ function FeatureCard({ icon, title, text, isLight }) {
 
 function Steps({ isLight }) {
   return (
-<section
-  id="steps"
-  className={`py-20 px-6 ${
-    isLight ? "bg-gray-50" : "bg-[#0a1f15]"
-  }`}
->
+    <section
+      id="steps"
+      className={`py-20 px-6 ${isLight ? "bg-gray-50" : "bg-[#0a1f15]"
+        }`}
+    >
 
       <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
-        
+
         <div>
           <h2
-            className={`text-3xl font-bold ${
-              isLight ? "text-gray-900" : "text-white"
-            }`}
+            className={`text-3xl font-bold ${isLight ? "text-gray-900" : "text-white"
+              }`}
           >
             Getting Started is Simple
           </h2>
@@ -205,11 +191,10 @@ function Steps({ isLight }) {
         </div>
 
         <div
-          className={`p-6 rounded-3xl shadow-xl ${
-            isLight
+          className={`p-6 rounded-3xl shadow-xl ${isLight
               ? "bg-white border border-gray-200"
               : "bg-[#0e2418] border border-green-900/40"
-          }`}
+            }`}
         >
           <img
             src="https://images.unsplash.com/photo-1556742031-c6961e8560b0"
@@ -226,26 +211,23 @@ function Step({ number, title, text, isLight }) {
   return (
     <div className="flex gap-4">
       <div
-        className={`w-10 h-10 flex items-center justify-center rounded-full font-semibold text-white ${
-          isLight ? "bg-green-600" : "bg-green-500"
-        }`}
+        className={`w-10 h-10 flex items-center justify-center rounded-full font-semibold text-white ${isLight ? "bg-green-600" : "bg-green-500"
+          }`}
       >
         {number}
       </div>
 
       <div>
         <h4
-          className={`font-semibold ${
-            isLight ? "text-gray-900" : "text-white"
-          }`}
+          className={`font-semibold ${isLight ? "text-gray-900" : "text-white"
+            }`}
         >
           {title}
         </h4>
 
         <p
-          className={`text-sm mt-2 ${
-            isLight ? "text-gray-600" : "text-white/70"
-          }`}
+          className={`text-sm mt-2 ${isLight ? "text-gray-600" : "text-white/70"
+            }`}
         >
           {text}
         </p>

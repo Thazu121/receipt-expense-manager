@@ -23,7 +23,6 @@ export default function LandingNav() {
     >
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
 
-        {/* Logo */}
         <a
           href="#home"
           className={`flex items-center gap-2 font-semibold text-lg ${
@@ -34,7 +33,6 @@ export default function LandingNav() {
           <span>SpendWise</span>
         </a>
 
-        {/* Desktop Nav */}
         <nav
           className={`hidden md:flex gap-8 font-medium ${
             isLight ? "text-gray-800" : "text-white/70"
@@ -51,10 +49,8 @@ export default function LandingNav() {
           </a>
         </nav>
 
-        {/* Right Section */}
         <div className="flex items-center gap-4">
 
-          {/* Theme Toggle */}
           <button
             onClick={() => dispatch(toggleTheme())}
             className={`
@@ -74,7 +70,6 @@ export default function LandingNav() {
             )}
           </button>
 
-          {/* Desktop Buttons */}
           <div className="hidden md:flex gap-3">
             <Link
               to="/login"
@@ -99,7 +94,6 @@ export default function LandingNav() {
             </Link>
           </div>
 
-          {/* Mobile Menu Button */}
           <button
             onClick={() => setIsOpen(!isOpen)}
             className="md:hidden"
@@ -142,7 +136,6 @@ export default function LandingNav() {
       Steps
     </a>
 
-    {/* Divider */}
     <div className="pt-4 border-t border-emerald-500/20 space-y-3">
 
       <Link

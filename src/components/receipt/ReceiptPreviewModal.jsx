@@ -48,7 +48,6 @@ export default function ReceiptPreviewModal({ receipt, onClose }) {
         className={`w-full max-w-5xl rounded-2xl overflow-hidden shadow-2xl
           ${isLight ? "bg-white text-gray-800" : "bg-zinc-900 text-white"}`}
       >
-        {/* Header */}
         <div className="flex justify-between items-center px-6 py-4 border-b border-gray-300 dark:border-zinc-700">
           <h2 className="text-lg font-semibold">
             Edit Receipt
@@ -56,16 +55,13 @@ export default function ReceiptPreviewModal({ receipt, onClose }) {
           <button onClick={onClose}>✕</button>
         </div>
 
-        {/* Content */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 max-h-[85vh] overflow-y-auto">
-          {/* Image */}
           <img
             src={receipt.image}
             alt="receipt"
             className="w-full max-h-[450px] object-contain rounded-xl"
           />
 
-          {/* Editable Form */}
           <div className="space-y-4">
             <Input
               label="Store"
@@ -90,7 +86,6 @@ export default function ReceiptPreviewModal({ receipt, onClose }) {
               onChange={handleChange}
             />
 
-            {/* Category Dropdown */}
             <div>
               <label className="text-sm text-gray-400">
                 Category
@@ -116,13 +111,11 @@ export default function ReceiptPreviewModal({ receipt, onClose }) {
               </select>
             </div>
 
-            {/* Status (read-only) */}
             <div>
               <p className="text-sm text-gray-400">Status</p>
               <p className="font-semibold">{receipt.status}</p>
             </div>
 
-            {/* Save Button */}
             <button
               onClick={handleSave}
               className="w-full mt-4 py-2 rounded-lg bg-green-500 text-white font-semibold hover:bg-green-600 transition"

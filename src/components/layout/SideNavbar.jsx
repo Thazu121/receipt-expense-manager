@@ -79,7 +79,6 @@ export default function SideNavbar() {
         </div>
       </div>
 
-      {/* ================= DESKTOP SIDEBAR ================= */}
       <aside
         className={`
           hidden lg:flex

@@ -29,27 +29,21 @@ export default function ExpenseTable({ search = "" }) {
       window.removeEventListener("keydown", handleEsc);
   }, []);
 
-  /* ===============================
-     FILTER + SORT
-  =============================== */
+  
   const filteredReceipts = receipts
     .filter((r) =>
       r.store?.toLowerCase().includes(search.toLowerCase())
     )
     .sort((a, b) => new Date(b.date) - new Date(a.date));
 
-  /* ===============================
-     DELETE
-  =============================== */
+
   const handleDelete = (id) => {
     if (window.confirm("Delete this transaction?")) {
       dispatch(deleteReceipt(id));
     }
   };
 
-  /* ===============================
-     SAVE EDIT
-  =============================== */
+
   const handleSave = () => {
     dispatch(
       updateReceipt({
@@ -103,7 +97,7 @@ export default function ExpenseTable({ search = "" }) {
           </div>
         )}
 
-        <div className="hidden md:grid grid-cols-6 px-6 py-4 text-sm font-semibold border-b border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-400">
+        <div className="hidden md:grid grid-cols-6 gap-8 px-6 py-4 text-sm font-semibold border-b border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-400">
           <span>Merchant</span>
           <span>Date</span>
           <span>Category</span>
@@ -123,9 +117,9 @@ export default function ExpenseTable({ search = "" }) {
             key={r.id}
             className="px-4 md:px-6 py-4 border-b border-gray-200 dark:border-white/5 hover:bg-gray-50 dark:hover:bg-white/5 transition"
           >
-            <div className="hidden md:grid grid-cols-6 items-center">
+            <div className="hidden md:grid grid-cols-6 gap-14 items-center">
 
-              <span className="font-medium text-gray-800 dark:text-white">
+              <span className="font-medium  text-gray-800 dark:text-white">
                 {r.store}
               </span>
 

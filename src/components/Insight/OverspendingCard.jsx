@@ -2,7 +2,7 @@ import { useMemo } from "react";
 
 export default function OverspendingCard({ receipts }) {
   const isAlert = useMemo(() => {
-    return receipts.length > 20; // simple logic
+    return receipts.length > 20
   }, [receipts]);
 
   return (

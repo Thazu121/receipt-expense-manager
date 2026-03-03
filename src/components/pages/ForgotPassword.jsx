@@ -35,7 +35,6 @@ export default function ForgotPassword() {
     }
   }, [success, navigate]);
 
-  /* ================= VALIDATION ================= */
 
   const validate = () => {
     let newErrors = {};
@@ -124,7 +123,6 @@ export default function ForgotPassword() {
 
         <form className="space-y-4" onSubmit={handleSubmit}>
           
-          {/* EMAIL */}
           <div>
             <input
               type="email"
@@ -145,7 +143,6 @@ export default function ForgotPassword() {
             )}
           </div>
 
-          {/* NEW PASSWORD */}
           <div>
             <div className="relative">
               <input
@@ -176,7 +173,6 @@ export default function ForgotPassword() {
             )}
           </div>
 
-          {/* CONFIRM PASSWORD */}
           <div>
             <div className="relative">
               <input

@@ -19,7 +19,7 @@ import ScanReceipt from "./components/pages/ReceiptScanner";
 
 import InsightsPage from "./components/pages/Report";
 import ReceiptGallery from "./components/pages/ReceiptGallery";
-// import Settings from "./components/pages/setting";
+import Settings from "./components/pages/setting";
 import ForgotPassword from "./components/pages/ForgotPassword";
 
 const router = createBrowserRouter([
@@ -56,7 +56,7 @@ const router = createBrowserRouter([
       { path: "insight", element: <InsightsPage /> },
       { path: "gallery", element: <ReceiptGallery /> },
       { path: "report", element: <InsightsPage /> },
-      // { path: "settings", element: <Settings /> },
+      { path: "settings", element: <Settings /> },
       { path: "expense", element: <ExpensePage /> },
       { path: "add-expense", element: <AddExpense /> },
 

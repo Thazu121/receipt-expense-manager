@@ -60,7 +60,6 @@ export default function FinancialOverviewCard({ receipts = [] }) {
           </p>
         </div>
 
-        {/* Total Entries */}
         <div>
           <p className="text-xs sm:text-sm text-gray-500">
             Total Entries
@@ -70,7 +69,6 @@ export default function FinancialOverviewCard({ receipts = [] }) {
           </p>
         </div>
 
-        {/* Average Expense */}
         <div>
           <p className="text-xs sm:text-sm text-gray-500">
             Average Expense
@@ -80,7 +78,6 @@ export default function FinancialOverviewCard({ receipts = [] }) {
           </p>
         </div>
 
-        {/* Highest Expense */}
         <div>
           <p className="text-xs sm:text-sm text-gray-500">
             Highest Expense

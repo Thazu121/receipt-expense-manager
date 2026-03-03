@@ -22,9 +22,7 @@ export default function ExtractedDetailsCard() {
   const { merchant, date, amount, category } =
     extracted;
 
-  /* ============================
-     CLEAN AMOUNT (VERY IMPORTANT)
-  ============================ */
+ 
   const cleanAmount = (value) => {
     if (!value) return "";
 
@@ -38,7 +36,6 @@ const handleSave = () => {
     .replace(/[^\d.]/g, "")
     .trim();
 
-  // ✅ If date invalid → fallback to today
   const finalDate =
     date && !isNaN(Date.parse(date))
       ? date
@@ -66,7 +63,6 @@ const handleSave = () => {
 
   return (
     <div className="bg-zinc-900 p-8 rounded-2xl text-white space-y-6 shadow-xl">
-      {/* HEADER */}
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold">
           Extracted Details
@@ -84,7 +80,6 @@ const handleSave = () => {
         </span>
       </div>
 
-      {/* IMAGE PREVIEW */}
       <div className="rounded-xl overflow-hidden border border-zinc-700">
         <img
           src={image}
@@ -93,7 +88,6 @@ const handleSave = () => {
         />
       </div>
 
-      {/* WARNINGS */}
       {warnings?.length > 0 && (
         <div className="bg-yellow-500/10 border border-yellow-500/40 p-4 rounded-xl text-yellow-300 text-sm space-y-1">
           {warnings.map((w, i) => (
@@ -102,14 +96,12 @@ const handleSave = () => {
         </div>
       )}
 
-      {/* RECEIPT VALIDATION ERROR */}
       {receiptError && (
         <div className="bg-red-500/10 border border-red-500/40 p-4 rounded-xl text-red-400 text-sm">
           ❌ {receiptError}
         </div>
       )}
 
-      {/* DETAILS */}
       <div className="space-y-4">
         <Detail label="Merchant" value={merchant} />
         <Detail label="Date" value={date} />
@@ -120,7 +112,6 @@ const handleSave = () => {
         <Detail label="Category" value={category} />
       </div>
 
-      {/* ACTION BUTTONS */}
       <div className="flex gap-4 pt-4">
         <button
           onClick={handleSave}
@@ -141,9 +132,7 @@ const handleSave = () => {
   );
 }
 
-/* ============================
-   REUSABLE DETAIL ROW
-============================ */
+
 function Detail({ label, value }) {
   return (
     <div>

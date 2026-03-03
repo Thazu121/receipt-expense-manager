@@ -19,17 +19,12 @@ export default function CameraCard() {
   const canvasRef = useRef(null);
   const streamRef = useRef(null);
 
-  /* ==============================
-     CAMERA START
-  ============================== */
   useEffect(() => {
     startCamera();
     return () => stopCamera();
   }, []);
 
-  /* ==============================
-     AUTO CLEAR ERROR
-  ============================== */
+
   useEffect(() => {
     if (error) {
       const timer = setTimeout(() => {
@@ -94,9 +89,7 @@ export default function CameraCard() {
     }
   };
 
-  /* ==============================
-     CAPTURE + SCAN
-  ============================== */
+
   const captureAndScan = async () => {
     if (!videoRef.current || scanning)
       return;
@@ -152,9 +145,7 @@ export default function CameraCard() {
     }
   };
 
-  /* ==============================
-     UI
-  ============================== */
+
 
   return (
     <div

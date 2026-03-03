@@ -19,9 +19,7 @@ export default function TrendBreakdown() {
   const receipts = useSelector((state) => state.receipt.receipts);
   const currency = useSelector((state) => state.settings.currency);
 
-  /* =========================================
-     SMART 7-SLOT TIME ENGINE (NO MORE 1 DOT)
-  ========================================== */
+
 
   const chartData = useMemo(() => {
     if (!receipts.length) return [];
@@ -74,7 +72,6 @@ export default function TrendBreakdown() {
       map[key] = { total: 0, sortKey };
     }
 
-    // Add receipt data
     receipts.forEach((r) => {
       if (!r.date) return;
 
@@ -130,7 +127,6 @@ export default function TrendBreakdown() {
   return (
     <div className="p-5 sm:p-6 rounded-2xl shadow-sm bg-white/80 border border-emerald-100 dark:bg-[#0f2e24]/60 dark:border-green-800 transition-all duration-300">
 
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-5">
         <h3 className="font-semibold text-base sm:text-lg">
           Trend Breakdown
@@ -159,7 +155,6 @@ export default function TrendBreakdown() {
         </div>
       ) : (
         <>
-          {/* Chart */}
           <div className="w-full min-h-[260px] sm:min-h-[300px]">
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={chartData}>
@@ -219,9 +214,7 @@ export default function TrendBreakdown() {
   );
 }
 
-/* =========================================
-   AI INSIGHT ENGINE
-========================================= */
+
 
 function TrendInsights({ chartData, currency }) {
   if (chartData.length < 2) return null;

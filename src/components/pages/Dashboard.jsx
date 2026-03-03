@@ -25,7 +25,6 @@ export default function Dashboard() {
     totalSavings,
     pendingReceipts,
   } = useMemo(() => {
-    // ✅ Only count verified receipts for totals
     const verifiedReceipts = receipts.filter(
       (r) => r.status?.toLowerCase() === "verified"
     );
@@ -52,7 +51,6 @@ export default function Dashboard() {
         0
       );
 
-    // ✅ FIXED: Case insensitive pending check
     const pending = receipts.filter(
       (r) => r.status?.toLowerCase() === "pending"
     ).length;
@@ -70,12 +68,10 @@ export default function Dashboard() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10">
 
-        {/* Header */}
         <div className="mb-6 sm:mb-8">
           <Header />
         </div>
 
-        {/* Stats Section */}
         <div className="
           grid 
           grid-cols-1 
@@ -109,7 +105,6 @@ export default function Dashboard() {
           />
         </div>
 
-        {/* Charts + Categories */}
         <div className="
           grid 
           grid-cols-1 
@@ -126,7 +121,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Transactions Table */}
         <div className="w-full overflow-x-auto">
           <TransactionsTable receipts={receipts} />
         </div>

@@ -15,7 +15,6 @@ export default function AuthNav() {
   const isSignup = location.pathname === "/signup";
   const isSignin = location.pathname === "/login";
 
-  // Close when clicking outside
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) {
@@ -40,7 +39,6 @@ export default function AuthNav() {
           </span>
         </Link>
 
-        {/* Desktop */}
         <div className="hidden md:flex items-center gap-6">
           <Link to="/" className="text-emerald-500 font-medium hover:text-emerald-400 transition">
             Home
@@ -68,7 +66,6 @@ export default function AuthNav() {
             </>
           )}
 
-          {/* Theme Toggle */}
           <button
             onClick={() => dispatch(toggleTheme())}
             className={`w-11 h-11 flex items-center justify-center rounded-full border transition hover:scale-105 ${
@@ -85,7 +82,6 @@ export default function AuthNav() {
           </button>
         </div>
 
-        {/* Hamburger */}
         <button
           onClick={() => setIsOpen(!isOpen)}
           className={`md:hidden p-2 rounded-full transition-all duration-300 ${
@@ -102,12 +98,10 @@ export default function AuthNav() {
         </button>
       </div>
 
-      {/* Overlay */}
       {isOpen && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm md:hidden"></div>
       )}
 
-      {/* Mobile Dropdown */}
       <div
         ref={menuRef}
         className={`absolute right-0 mt-4 w-full md:hidden transform transition-all duration-300 ${

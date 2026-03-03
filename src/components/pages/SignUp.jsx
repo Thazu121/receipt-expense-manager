@@ -26,7 +26,6 @@ export default function SignUp() {
 
   const [strength, setStrength] = useState(0);
 
-  /* ================= PASSWORD STRENGTH ================= */
 
   const calculateStrength = (value) => {
     let score = 0;
@@ -51,8 +50,6 @@ export default function SignUp() {
 
   const strengthData = getStrengthData();
 
-  /* ================= EFFECT ================= */
-
   useEffect(() => {
     if (success) {
       setTimeout(() => navigate("/login"), 1500);
@@ -63,7 +60,6 @@ export default function SignUp() {
     };
   }, [success, navigate, dispatch]);
 
-  /* ================= VALIDATION ================= */
 
   const validate = () => {
     let valid = true;
@@ -135,13 +131,11 @@ export default function SignUp() {
     password === confirmPassword &&
     strength >= 3;
 
-  /* ================= UI ================= */
 
   return (
     <main className="min-h-screen flex items-center justify-center px-6 py-10">
       <div className="w-full max-w-6xl flex flex-col md:flex-row rounded-3xl overflow-hidden shadow-2xl">
         
-        {/* LEFT SIDE */}
         <div className="hidden md:flex w-1/2 bg-green-600 items-center justify-center p-12 text-white">
           <div className="text-center">
             <h2 className="text-4xl font-bold mb-6">
@@ -154,7 +148,6 @@ export default function SignUp() {
           </div>
         </div>
 
-        {/* RIGHT SIDE */}
         <div
           className={`w-full md:w-1/2 p-10 transition-all duration-300 ${
             isLight
@@ -180,7 +173,6 @@ export default function SignUp() {
 
           <form className="space-y-5" onSubmit={handleSubmit}>
             
-            {/* NAME */}
             <div>
               <label className="block text-sm mb-2">Full Name</label>
               <input
@@ -204,7 +196,6 @@ export default function SignUp() {
               )}
             </div>
 
-            {/* EMAIL */}
             <div>
               <label className="block text-sm mb-2">Email Address</label>
               <input
@@ -228,7 +219,6 @@ export default function SignUp() {
               )}
             </div>
 
-            {/* PASSWORD */}
             <div>
               <label className="block text-sm mb-2">Password</label>
               <div className="relative">
@@ -278,7 +268,6 @@ export default function SignUp() {
               )}
             </div>
 
-            {/* CONFIRM PASSWORD */}
             <div>
               <label className="block text-sm mb-2">
                 Confirm Password
@@ -314,7 +303,6 @@ export default function SignUp() {
               )}
             </div>
 
-            {/* BUTTON */}
             <button
               type="submit"
               disabled={!isFormValid}

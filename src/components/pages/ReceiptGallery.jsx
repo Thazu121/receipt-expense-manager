@@ -26,16 +26,11 @@ export default function GalleryPage() {
 
   const loaderRef = useRef(null);
 
-  /* ===============================
-     RESET WHEN FILTER CHANGES
-  ================================ */
+ 
   useEffect(() => {
     setVisibleCount(INITIAL_COUNT);
   }, [allReceiptsRaw]);
 
-  /* ===============================
-     PRIORITIZE SCANNED FIRST
-  ================================ */
   const merged = useMemo(() => {
     const scanned = allReceipts.filter(
       (r) => r?.source === "scan"
@@ -56,9 +51,7 @@ export default function GalleryPage() {
   const hasMore =
     visibleCount < merged.length;
 
-  /* ===============================
-     INFINITE SCROLL
-  ================================ */
+
   useEffect(() => {
     if (!hasMore) return;
 
@@ -81,9 +74,7 @@ export default function GalleryPage() {
     return () => observer.disconnect();
   }, [hasMore]);
 
-  /* ===============================
-     THEME STYLES
-  ================================ */
+ 
   const pageBg = isLight
     ? "bg-gray-50 text-gray-900"
     : "bg-black text-white";

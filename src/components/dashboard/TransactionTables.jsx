@@ -18,7 +18,6 @@ export default function TransactionsTable() {
     );
   }
 
-  // Sort latest first
   const sortedReceipts = [...receipts].sort(
     (a, b) => new Date(b.date) - new Date(a.date)
   );
@@ -29,7 +28,6 @@ export default function TransactionsTable() {
         Recent Transactions
       </h2>
 
-      {/* ✅ Desktop Table */}
       <div className="hidden md:block overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
@@ -75,7 +73,6 @@ export default function TransactionsTable() {
         </table>
       </div>
 
-      {/* ✅ Mobile Card Layout */}
       <div className="space-y-4 md:hidden">
         {sortedReceipts.map((r, index) => {
           const amount = Number(r.amount) || 0;

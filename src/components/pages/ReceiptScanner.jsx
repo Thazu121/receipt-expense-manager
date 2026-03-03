@@ -1,4 +1,3 @@
-// ScanPage.js
 import { useDispatch, useSelector } from "react-redux";
 import { resetScan } from "../../redux/features/scanSlice";
 import ExtractedDetailsCard from "../scan/ExtractedDetailsCard";

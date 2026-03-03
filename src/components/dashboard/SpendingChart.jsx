@@ -73,10 +73,8 @@ export default function SpendingChart() {
               key={i}
               className="flex flex-col items-center min-w-[55px] group"
             >
-              {/* Background Track */}
               <div className="h-44 sm:h-56 w-6 sm:w-8 bg-gray-100 dark:bg-white/10 rounded-full flex items-end overflow-hidden">
                 
-                {/* Actual Bar */}
                 <div
                   className={`
                     w-full rounded-full transition-all duration-700
@@ -93,12 +91,10 @@ export default function SpendingChart() {
                 />
               </div>
 
-              {/* Month */}
               <span className="text-[10px] sm:text-xs mt-2 text-gray-600 dark:text-gray-400">
                 {item.month}
               </span>
 
-              {/* Amount */}
               <span
                 className={`text-[9px] sm:text-[10px] mt-1 ${
                   isHighest

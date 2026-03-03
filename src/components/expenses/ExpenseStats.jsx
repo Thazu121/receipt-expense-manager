@@ -5,9 +5,7 @@ export default function ExpenseStats() {
   const receipts = useSelector((state) => state.receipt.receipts);
   const isLight = useSelector((state) => state.theme.isLight);
 
-  /* ============================= */
-  /* 💰 Total Spending */
-  /* ============================= */
+
   const total = useMemo(() => {
     return receipts.reduce(
       (sum, r) => sum + Math.abs(Number(r.amount || 0)),
@@ -15,9 +13,7 @@ export default function ExpenseStats() {
     );
   }, [receipts]);
 
-  /* ============================= */
-  /* 📊 Category Analysis */
-  /* ============================= */
+  
   const { topCategory, activeBudgets } = useMemo(() => {
     if (!receipts.length)
       return { topCategory: "N/A", activeBudgets: 0 };
@@ -68,9 +64,7 @@ export default function ExpenseStats() {
   );
 }
 
-/* ============================= */
-/* 🎨 Stat Card */
-/* ============================= */
+
 
 function StatCard({ title, value, isLight }) {
   return (

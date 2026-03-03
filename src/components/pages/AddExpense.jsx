@@ -62,7 +62,6 @@ export default function AddExpense() {
                     bg-gradient-to-br from-emerald-50 to-white 
                     dark:from-black dark:to-gray-900">
 
-      {/* BACK BUTTON */}
       <button
         onClick={() => navigate(-1)}
         className="flex items-center gap-2 mb-6 text-gray-600 
@@ -98,7 +97,6 @@ export default function AddExpense() {
 
         <form onSubmit={handleSubmit} className="space-y-5">
 
-          {/* Merchant */}
           <div>
             <label className="block mb-1 text-sm font-medium">
               Merchant *
@@ -117,7 +115,6 @@ export default function AddExpense() {
             />
           </div>
 
-          {/* Amount */}
           <div>
             <label className="block mb-1 text-sm font-medium">
               Amount (INR) *
@@ -145,7 +142,6 @@ export default function AddExpense() {
             </div>
           </div>
 
-          {/* Category Dropdown */}
           <div
             className="relative"
             tabIndex={0}
@@ -191,7 +187,6 @@ export default function AddExpense() {
             )}
           </div>
 
-          {/* Date */}
           <div>
             <label className="block mb-1 text-sm font-medium">
               Date

@@ -1,261 +1,287 @@
-// import { useState } from "react";
-// import { useDispatch, useSelector } from "react-redux";
-// import {
-//   updateName,
-//   changePassword,
-// } from "../../redux/features/authSlice";
-// import {
-//   setProfileImage,
-//   removeProfileImage,
-// } from "../../redux/features/userSlice";
-// import { Eye, EyeOff } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  updateUsername,
+  changePassword,
+  logout,
+  deleteAccount,
+  clearMessages,
+  updateProfilePhoto,
+} from "../../redux/features/authSlice";
+import { toggleNotifications } from "../../redux/features/settingSlice";
+import { toggleTheme } from "../../redux/features/themeSlice";
+import { useNavigate } from "react-router-dom";
+import { Eye, EyeOff } from "lucide-react";
 
-// export default function Settings() {
-//   const dispatch = useDispatch();
+export default function Settings() {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const fileRef = useRef();
 
-//   const user = useSelector((state) => state.auth.user);
-//   const profileImage = useSelector((state) => state.user.profileImage);
+  const { user, error, success } = useSelector((s) => s.auth);
+  const notificationsEnabled = useSelector(
+    (s) => s.settings.notificationsEnabled
+  );
+  const isLight = useSelector((s) => s.theme.isLight);
+  const dark = !isLight;
 
-//   /* ================= PROFILE STATE ================= */
-//   const [name, setName] = useState(user?.name || "");
-//   const [profileMessage, setProfileMessage] = useState("");
+  const [username, setUsername] = useState(user?.name || "");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [localError, setLocalError] = useState("");
 
-//   /* ================= PASSWORD STATE ================= */
-//   const [currentPassword, setCurrentPassword] = useState("");
-//   const [newPassword, setNewPassword] = useState("");
-//   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showCurrent, setShowCurrent] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
-//   const [showCurrent, setShowCurrent] = useState(false);
-//   const [showNew, setShowNew] = useState(false);
-//   const [showConfirm, setShowConfirm] = useState(false);
+  const bg = dark
+    ? "bg-gradient-to-br from-[#031a13] via-[#042e1e] to-[#001d13] text-white"
+    : "bg-gradient-to-br from-[#f2fff9] via-[#e6fff3] to-[#dbffec] text-black";
 
-//   const [passwordError, setPasswordError] = useState("");
-//   const [passwordSuccess, setPasswordSuccess] = useState("");
+  const card = dark ? "bg-[#081f17]" : "bg-white";
+  const input = dark ? "bg-[#0e2d22] text-white" : "bg-gray-100";
 
-//   /* ================= PROFILE FUNCTION ================= */
+  const strengthCheck = (pass) => {
+    let s = 0;
+    if (pass.length >= 8) s++;
+    if (/[A-Z]/.test(pass)) s++;
+    if (/[0-9]/.test(pass)) s++;
+    if (/[^A-Za-z0-9]/.test(pass)) s++;
 
-//   const handleSaveProfile = () => {
-//     if (!name.trim()) {
-//       setProfileMessage("Name cannot be empty.");
-//       return;
-//     }
+    if (s <= 1)
+      return { label: "Weak", color: "bg-red-500", width: "33%" };
+    if (s <= 3)
+      return { label: "Medium", color: "bg-yellow-500", width: "66%" };
+    return { label: "Strong", color: "bg-green-500", width: "100%" };
+  };
 
-//     dispatch(updateName(name));
-//     setProfileMessage("Profile updated successfully!");
+  const strength = strengthCheck(newPassword);
 
-//     setTimeout(() => {
-//       setProfileMessage("");
-//     }, 3000);
-//   };
+  useEffect(() => {
+    if (success) {
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    }
 
-//   const handleImageChange = (e) => {
-//     const file = e.target.files[0];
-//     if (!file) return;
+    if (error || success) {
+      const t = setTimeout(() => {
+        dispatch(clearMessages());
+        setLocalError("");
+      }, 3000);
+      return () => clearTimeout(t);
+    }
+  }, [error, success, dispatch]);
 
-//     const reader = new FileReader();
-//     reader.onloadend = () => {
-//       dispatch(setProfileImage(reader.result));
-//     };
-//     reader.readAsDataURL(file);
-//   };
+  const handlePhoto = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
 
-//   /* ================= PASSWORD FUNCTION ================= */
+    if (!file.type.startsWith("image/")) {
+      setLocalError("Upload image only");
+      return;
+    }
 
-//   const handleChangePassword = () => {
-//     setPasswordError("");
-//     setPasswordSuccess("");
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      dispatch(updateProfilePhoto(reader.result));
+    };
+    reader.readAsDataURL(file);
+  };
 
-//     if (!currentPassword || !newPassword || !confirmPassword) {
-//       setPasswordError("All fields are required.");
-//       return;
-//     }
+  const updateProfile = () => {
+    setLocalError("");
 
-//     if (newPassword.length < 6) {
-//       setPasswordError("Password must be at least 6 characters.");
-//       return;
-//     }
+    if (username.length < 3)
+      return setLocalError("Username min 3 chars");
 
-//     if (newPassword !== confirmPassword) {
-//       setPasswordError("New password and confirm password do not match.");
-//       return;
-//     }
+    dispatch(updateUsername({ newName: username }));
+  };
 
-//     try {
-//       dispatch(
-//         changePassword({
-//           currentPassword,
-//           newPassword,
-//         })
-//       );
+  const updatePass = () => {
+    setLocalError("");
 
-//       setPasswordSuccess("Password updated successfully!");
+    if (!currentPassword || !newPassword || !confirmPassword)
+      return setLocalError("All fields required");
 
-//       setCurrentPassword("");
-//       setNewPassword("");
-//       setConfirmPassword("");
+    if (newPassword !== confirmPassword)
+      return setLocalError("Passwords not match");
 
-//       setTimeout(() => {
-//         setPasswordSuccess("");
-//       }, 3000);
-//     } catch (error) {
-//       setPasswordError(error.message);
-//     }
-//   };
+    dispatch(changePassword({ currentPassword, newPassword }));
+  };
 
-//   return (
-//     <div className="max-w-5xl mx-auto mt-10 px-4 space-y-10">
+  return (
+    <div className={`min-h-screen p-6 ${bg}`}>
+      <div className="max-w-6xl mx-auto grid lg:grid-cols-3 gap-8">
+        <div className="space-y-6">
+          <div className={`p-6 rounded-3xl ${card}`}>
+            <div className="w-28 h-28 mx-auto">
+              {user?.photo ? (
+                <img
+                  src={user.photo}
+                  alt=""
+                  className="w-full h-full rounded-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-green-600 rounded-full flex items-center justify-center text-3xl text-white">
+                  {username?.charAt(0)?.toUpperCase()}
+                </div>
+              )}
+            </div>
 
-//       {/* ================= PROFILE SECTION ================= */}
-//       <div className="bg-green-900/40 p-8 rounded-2xl shadow-lg">
-//         <h2 className="text-2xl font-bold text-white mb-8">
-//           Profile Settings
-//         </h2>
+            <button
+              onClick={() => fileRef.current.click()}
+              className="mt-6 w-full py-2 border border-green-600 rounded-xl"
+            >
+              Change Photo
+            </button>
 
-//         <div className="grid md:grid-cols-2 gap-10">
+            <input
+              type="file"
+              ref={fileRef}
+              onChange={handlePhoto}
+              className="hidden"
+            />
+          </div>
 
-//           <div className="flex flex-col items-center gap-4">
-//             <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-emerald-400 shadow-lg">
-//               <img
-//                 src={profileImage}
-//                 alt="Profile"
-//                 className="w-full h-full object-cover"
-//               />
-//             </div>
+          <div className={`p-6 rounded-3xl ${card} space-y-3`}>
+            <button
+              onClick={() => dispatch(toggleTheme())}
+              className="w-full py-2 bg-green-600 text-white rounded-xl"
+            >
+              Toggle Theme
+            </button>
 
-//             <input
-//               type="file"
-//               accept="image/*"
-//               onChange={handleImageChange}
-//               className="text-white text-sm"
-//             />
+            <button
+              onClick={() => dispatch(toggleNotifications())}
+              className="w-full py-2 border border-green-600 rounded-xl"
+            >
+              Notifications: {notificationsEnabled ? "ON" : "OFF"}
+            </button>
 
-//             {profileImage && (
-//               <button
-//                 onClick={() => dispatch(removeProfileImage())}
-//                 className="text-red-400 text-sm hover:underline"
-//               >
-//                 Remove Image
-//               </button>
-//             )}
-//           </div>
+            <button
+              onClick={() => {
+                dispatch(logout());
+                navigate("/login");
+              }}
+              className="w-full py-2 bg-green-600 text-white rounded-xl"
+            >
+              Logout
+            </button>
 
-//           <div>
-//             <label className="block text-white mb-2 font-medium">
-//               Full Name
-//             </label>
+            <button
+              onClick={() => {
+                dispatch(deleteAccount());
+                navigate("/signup");
+              }}
+              className="w-full py-2 border border-red-500 text-red-500 rounded-xl"
+            >
+              Delete Account
+            </button>
+          </div>
+        </div>
 
-//             <input
-//               type="text"
-//               value={name}
-//               onChange={(e) => setName(e.target.value)}
-//               className="w-full px-4 py-2 rounded-lg bg-white text-black focus:outline-none focus:ring-2 focus:ring-emerald-400"
-//             />
+        <div className="lg:col-span-2 space-y-6">
+          <div className={`p-6 rounded-3xl ${card}`}>
+            <input
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className={`p-3 w-full rounded-xl ${input}`}
+            />
+            <button
+              onClick={updateProfile}
+              className="mt-4 bg-green-600 text-white px-6 py-2 rounded-xl"
+            >
+              Save
+            </button>
+          </div>
 
-//             <button
-//               onClick={handleSaveProfile}
-//               className="mt-4 w-full bg-emerald-500 hover:bg-emerald-600 text-white py-2 rounded-lg transition"
-//             >
-//               Save Profile
-//             </button>
+          <div className={`p-6 rounded-3xl ${card}`}>
+            <div className="relative">
+              <input
+                type={showCurrent ? "text" : "password"}
+                placeholder="Current Password"
+                value={currentPassword}
+                onChange={(e) =>
+                  setCurrentPassword(e.target.value)
+                }
+                className={`p-3 w-full rounded-xl ${input}`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowCurrent(!showCurrent)}
+                className="absolute right-3 top-3"
+              >
+                {showCurrent ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
 
-//             {profileMessage && (
-//               <p className="text-emerald-400 text-sm mt-3">
-//                 {profileMessage}
-//               </p>
-//             )}
-//           </div>
-//         </div>
-//       </div>
+            <div className="relative mt-3">
+              <input
+                type={showNew ? "text" : "password"}
+                placeholder="New Password"
+                value={newPassword}
+                onChange={(e) =>
+                  setNewPassword(e.target.value)
+                }
+                className={`p-3 w-full rounded-xl ${input}`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowNew(!showNew)}
+                className="absolute right-3 top-3"
+              >
+                {showNew ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
 
-//       {/* ================= PASSWORD SECTION ================= */}
-//       <div className="bg-green-900/40 p-8 rounded-2xl shadow-lg">
-//         <h2 className="text-2xl font-bold text-white mb-8">
-//           Change Password
-//         </h2>
+            {newPassword && (
+              <div className="mt-2">
+                <div className="h-2 bg-gray-300 rounded-full">
+                  <div
+                    className={`${strength.color} h-2 rounded-full`}
+                    style={{ width: strength.width }}
+                  />
+                </div>
+                <p className="text-sm mt-1">{strength.label}</p>
+              </div>
+            )}
 
-//         <div className="space-y-5 max-w-md">
+            <div className="relative mt-3">
+              <input
+                type={showConfirm ? "text" : "password"}
+                placeholder="Confirm Password"
+                value={confirmPassword}
+                onChange={(e) =>
+                  setConfirmPassword(e.target.value)
+                }
+                className={`p-3 w-full rounded-xl ${input}`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirm(!showConfirm)}
+                className="absolute right-3 top-3"
+              >
+                {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
 
-//           {/* Current Password */}
-//           <div className="relative">
-//             <label className="block text-white mb-1">
-//               Current Password
-//             </label>
-//             <input
-//               type={showCurrent ? "text" : "password"}
-//               value={currentPassword}
-//               onChange={(e) => setCurrentPassword(e.target.value)}
-//               className="w-full px-4 py-2 rounded-lg bg-white text-black"
-//             />
-//             <button
-//               type="button"
-//               onClick={() => setShowCurrent(!showCurrent)}
-//               className="absolute right-3 top-9 text-gray-600"
-//             >
-//               {showCurrent ? <EyeOff size={18} /> : <Eye size={18} />}
-//             </button>
-//           </div>
+            <button
+              onClick={updatePass}
+              className="mt-4 bg-green-600 text-white px-6 py-2 rounded-xl"
+            >
+              Update Password
+            </button>
+          </div>
 
-//           {/* New Password */}
-//           <div className="relative">
-//             <label className="block text-white mb-1">
-//               New Password
-//             </label>
-//             <input
-//               type={showNew ? "text" : "password"}
-//               value={newPassword}
-//               onChange={(e) => setNewPassword(e.target.value)}
-//               className="w-full px-4 py-2 rounded-lg bg-white text-black"
-//             />
-//             <button
-//               type="button"
-//               onClick={() => setShowNew(!showNew)}
-//               className="absolute right-3 top-9 text-gray-600"
-//             >
-//               {showNew ? <EyeOff size={18} /> : <Eye size={18} />}
-//             </button>
-//           </div>
-
-//           {/* Confirm Password */}
-//           <div className="relative">
-//             <label className="block text-white mb-1">
-//               Confirm New Password
-//             </label>
-//             <input
-//               type={showConfirm ? "text" : "password"}
-//               value={confirmPassword}
-//               onChange={(e) => setConfirmPassword(e.target.value)}
-//               className="w-full px-4 py-2 rounded-lg bg-white text-black"
-//             />
-//             <button
-//               type="button"
-//               onClick={() => setShowConfirm(!showConfirm)}
-//               className="absolute right-3 top-9 text-gray-600"
-//             >
-//               {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
-//             </button>
-//           </div>
-
-//           {passwordError && (
-//             <p className="text-red-400 text-sm">
-//               {passwordError}
-//             </p>
-//           )}
-
-//           {passwordSuccess && (
-//             <p className="text-emerald-400 text-sm">
-//               {passwordSuccess}
-//             </p>
-//           )}
-
-//           <button
-//             onClick={handleChangePassword}
-//             className="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-2 rounded-lg transition"
-//           >
-//             Update Password
-//           </button>
-
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
+          {(error || success || localError) && (
+            <div className="p-3 bg-red-500 text-white rounded-xl">
+              {localError || error || success}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -1,9 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { scanReceiptOCR } from "../../services/OcrService";
 
-/* =========================================
-   ASYNC THUNK
-========================================= */
+
 export const scanReceipt = createAsyncThunk(
   "scan/scanReceipt",
   async (base64Image, { dispatch, rejectWithValue }) => {
@@ -37,9 +35,6 @@ export const scanReceipt = createAsyncThunk(
   }
 );
 
-/* =========================================
-   HELPERS
-========================================= */
 
 const normalizeAmount = (value) => {
   if (!value) return "";
@@ -62,9 +57,7 @@ const normalizeDate = (value) => {
   return parsed.toISOString().split("T")[0];
 };
 
-/* =========================================
-   INITIAL STATE
-========================================= */
+
 const initialState = {
   mode: "camera",
   scanning: false,
@@ -84,9 +77,7 @@ const initialState = {
   isValid: false,
 };
 
-/* =========================================
-   SLICE
-========================================= */
+
 const scanSlice = createSlice({
   name: "scan",
   initialState,
@@ -113,7 +104,6 @@ const scanSlice = createSlice({
   extraReducers: (builder) => {
     builder
 
-      /* ================= PENDING ================= */
       .addCase(scanReceipt.pending, (state) => {
         state.scanning = true;
         state.progress = 0;
@@ -122,7 +112,6 @@ const scanSlice = createSlice({
         state.isValid = false;
       })
 
-      /* ================= SUCCESS ================= */
       .addCase(scanReceipt.fulfilled, (state, action) => {
         state.scanning = false;
         state.progress = 100;
@@ -142,7 +131,6 @@ const scanSlice = createSlice({
         const normalizedDate =
           normalizeDate(date);
 
-        // Normalize confidence (supports 0–1 OR 0–100)
         const normalizedConfidence =
           confidence <= 1
             ? confidence * 100
@@ -158,7 +146,6 @@ const scanSlice = createSlice({
         state.confidence = normalizedConfidence;
         state.warnings = [];
 
-        /* ================= WARNINGS ================= */
 
         if (!state.extracted.merchant) {
           state.warnings.push(
@@ -184,14 +171,12 @@ const scanSlice = createSlice({
           );
         }
 
-        /* ================= VALIDATION ================= */
-        // Only require valid amount to enable Save
+       
         state.isValid =
           !!normalizedAmount &&
           Number(normalizedAmount) > 0;
       })
 
-      /* ================= ERROR ================= */
       .addCase(scanReceipt.rejected, (state, action) => {
         state.scanning = false;
         state.progress = 0;

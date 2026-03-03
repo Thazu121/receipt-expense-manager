@@ -10,7 +10,6 @@ export default function StatCard({
       ? value
       : Number(value) || 0;
 
-  // 🇮🇳 Better currency formatting
   const formattedValue = isCurrency
     ? new Intl.NumberFormat("en-IN", {
         style: "currency",
@@ -39,7 +38,6 @@ export default function StatCard({
         min-h-[110px] sm:min-h-[130px]
       "
     >
-      {/* Top Row */}
       <div className="flex items-center justify-between">
         <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
           {title}
@@ -52,7 +50,6 @@ export default function StatCard({
         )}
       </div>
 
-      {/* Value */}
       <h2
         className={`
           text-lg sm:text-2xl lg:text-3xl
