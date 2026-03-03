@@ -66,9 +66,9 @@ const router = createBrowserRouter([
 
     ],
   },],
-//   {
-//   basename:"/receipt-expense-manager/"
-// }
+  {
+  basename:"/receipt-expense-manager/"
+}
 
 
 );
