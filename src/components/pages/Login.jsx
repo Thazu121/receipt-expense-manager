@@ -1,12 +1,12 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { useState, useEffect } from "react";
-import { login } from "../../redux/features/authSlice"
+import { login, clearMessages } from "../../redux/features/authSlice";
 
 export default function Login() {
   const isLight = useSelector((state) => state.theme.isLight);
-  const isAuthenticated = useSelector(
-    (state) => state.auth.isAuthenticated
+  const { isAuthenticated, error } = useSelector(
+    (state) => state.auth
   );
 
   const dispatch = useDispatch();
@@ -14,65 +14,33 @@ export default function Login() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [errors, setErrors] = useState({});
 
-  const [emailErr, setEmailErr] = useState("");
-  const [passwordErr, setPasswordErr] = useState("");
-  const [formErr, setFormErr] = useState("");
-  const [isSuccess, setIsSuccess] = useState(false);
-
-  // 🔒 Auto redirect if already logged in
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated)
       navigate("/dashboard", { replace: true });
-    }
   }, [isAuthenticated, navigate]);
+
+  useEffect(() => {
+    dispatch(clearMessages());
+  }, [dispatch]);
+
+  const validate = () => {
+    let newErrors = {};
+
+    if (!/^\S+@\S+\.\S+$/.test(email))
+      newErrors.email = "Enter valid email";
+
+    if (!password) newErrors.password = "Password required";
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    setEmailErr("");
-    setPasswordErr("");
-    setFormErr("");
-    setIsSuccess(false);
-
-    let isValid = true;
-
-    if (!email.trim()) {
-      setEmailErr("Email is required");
-      isValid = false;
-    } else if (!/^\S+@\S+\.\S+$/.test(email)) {
-      setEmailErr("Enter valid email address");
-      isValid = false;
-    }
-
-    if (!password) {
-      setPasswordErr("Password is required");
-      isValid = false;
-    }
-
-    if (!isValid) return;
-
-    const users = JSON.parse(localStorage.getItem("users")) || [];
-
-    const existingUser = users.find(
-      (user) =>
-        user.email.toLowerCase() === email.toLowerCase() &&
-        user.password === password
-    );
-
-    if (!existingUser) {
-      setFormErr("Invalid email or password");
-      return;
-    }
-
-    // 🔐 Update Redux + localStorage
-    dispatch(login(existingUser));
-
-    setIsSuccess(true);
-
-    setTimeout(() => {
-      navigate("/dashboard", { replace: true });
-    }, 1200);
+    if (!validate()) return;
+    dispatch(login({ email, password }));
   };
 
   return (
@@ -88,73 +56,72 @@ export default function Login() {
           Welcome Back 👋
         </h2>
 
-        {formErr && (
-          <p className="text-red-500 text-center mb-3">{formErr}</p>
-        )}
-
-        {isSuccess && (
-          <p className="text-green-500 text-center mb-3">
-            Login successful 🎉
+        {error && (
+          <p className="text-red-500 text-center mb-3">
+            {error}
           </p>
         )}
 
-        <form className="space-y-5" onSubmit={handleSubmit}>
-          {/* Email */}
+        <form className="space-y-4" onSubmit={handleSubmit}>
           <div>
-            <label className="block text-sm mb-2">Email</label>
             <input
               type="email"
+              placeholder="Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
-              className={`w-full px-4 py-3 rounded-lg outline-none transition ${
+              className={`w-full px-4 py-3 rounded-lg outline-none ${
                 isLight
                   ? "bg-gray-100 focus:ring-2 focus:ring-green-500"
                   : "bg-white/5 border border-white/10 focus:border-green-400"
               }`}
             />
-            {emailErr && (
-              <p className="text-red-500 text-sm mt-1">{emailErr}</p>
+            {errors.email && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.email}
+              </p>
             )}
           </div>
 
-          {/* Password */}
           <div>
-            <label className="block text-sm mb-2">Password</label>
             <input
               type="password"
+              placeholder="Password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your password"
-              className={`w-full px-4 py-3 rounded-lg outline-none transition ${
+              onChange={(e) =>
+                setPassword(e.target.value)
+              }
+              className={`w-full px-4 py-3 rounded-lg outline-none ${
                 isLight
                   ? "bg-gray-100 focus:ring-2 focus:ring-green-500"
                   : "bg-white/5 border border-white/10 focus:border-green-400"
               }`}
             />
-            {passwordErr && (
-              <p className="text-red-500 text-sm mt-1">{passwordErr}</p>
+            {errors.password && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.password}
+              </p>
             )}
+
+            <div className="text-right mt-2">
+              <Link
+                to="/login/forgot-password"
+                className="text-sm text-green-500 hover:underline"
+              >
+                Forgot Password?
+              </Link>
+            </div>
           </div>
 
-          {/* Button */}
-          <button
-            type="submit"
-            className="w-full py-3 rounded-lg font-semibold bg-green-500 hover:bg-green-600 transition text-white"
-          >
+          <button className="w-full py-3 rounded-lg font-semibold bg-green-500 hover:bg-green-600 text-white">
             Login
           </button>
         </form>
 
-        <p
-          className={`text-center mt-6 text-sm ${
-            isLight ? "text-gray-500" : "text-gray-400"
-          }`}
-        >
+        <p className="text-center mt-6 text-sm">
           Don't have an account?{" "}
           <Link
             to="/signup"
-            className="text-green-500 font-medium hover:underline"
+            className="text-green-500 hover:underline"
           >
             Create Account
           </Link>

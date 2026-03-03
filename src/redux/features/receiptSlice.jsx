@@ -1,8 +1,7 @@
 import { createSlice, createSelector } from "@reduxjs/toolkit";
+import { logout } from "../../redux/features/authSlice"
 
-/* ======================================================
-   🔧 HELPERS
-====================================================== */
+
 
 const generateId = () => {
   if (typeof crypto !== "undefined" && crypto.randomUUID) {
@@ -40,18 +39,48 @@ const validateReceipt = (data) => {
   return null;
 };
 
-const isDuplicateReceipt = (receipts, newReceipt) => {
-  return receipts.some(
-    (r) =>
-      r.store === newReceipt.store &&
+const isDuplicateReceipt = (
+  receipts,
+  newReceipt,
+  excludeId = null
+) => {
+  return receipts.some((r) => {
+    if (excludeId && r.id === excludeId) return false;
+
+    return (
+      r.store?.trim().toLowerCase() ===
+        newReceipt.store?.trim().toLowerCase() &&
       Number(r.amount) === Number(newReceipt.amount) &&
       r.date === newReceipt.date
-  );
+    );
+  });
 };
+
+/* ======================================================
+   👤 CURRENT USER
+====================================================== */
+
+const getCurrentUser = () => {
+  try {
+    return JSON.parse(localStorage.getItem("currentUser"));
+  } catch {
+    return null;
+  }
+};
+
+/* ======================================================
+   💾 LOCAL STORAGE (USER BASED)
+====================================================== */
 
 const loadReceipts = () => {
   try {
-    const data = localStorage.getItem("receipts");
+    const user = getCurrentUser();
+    if (!user) return [];
+
+    const data = localStorage.getItem(
+      `receipts_${user.email}`
+    );
+
     if (!data) return [];
 
     const parsed = JSON.parse(data);
@@ -70,7 +99,13 @@ const loadReceipts = () => {
 
 const saveReceipts = (receipts) => {
   try {
-    localStorage.setItem("receipts", JSON.stringify(receipts));
+    const user = getCurrentUser();
+    if (!user) return;
+
+    localStorage.setItem(
+      `receipts_${user.email}`,
+      JSON.stringify(receipts)
+    );
   } catch (err) {
     console.error("Save error:", err);
   }
@@ -95,17 +130,29 @@ const receiptSlice = createSlice({
   },
 
   reducers: {
-    /* ---------------- ADD RECEIPT ---------------- */
+    /* ================= LOAD USER DATA ================= */
+    loadUserReceipts: (state) => {
+      state.receipts = loadReceipts();
+    },
+
+    /* ================= ADD ================= */
     addReceipt: (state, action) => {
       state.error = null;
 
-      const validationError = validateReceipt(action.payload);
+      const validationError = validateReceipt(
+        action.payload
+      );
       if (validationError) {
         state.error = validationError;
         return;
       }
 
-      if (isDuplicateReceipt(state.receipts, action.payload)) {
+      if (
+        isDuplicateReceipt(
+          state.receipts,
+          action.payload
+        )
+      ) {
         state.error = "Duplicate receipt detected";
         return;
       }
@@ -114,9 +161,13 @@ const receiptSlice = createSlice({
         id: generateId(),
         ...action.payload,
         amount: Number(action.payload.amount),
-        status: normalizeStatus(action.payload.status ?? "Pending"),
-        category: action.payload.category || "Other",
-        source: action.payload.source || "manual",
+        status: normalizeStatus(
+          action.payload.status ?? "Pending"
+        ),
+        category:
+          action.payload.category || "Other",
+        source:
+          action.payload.source || "manual",
         createdAt: new Date().toISOString(),
       };
 
@@ -124,45 +175,68 @@ const receiptSlice = createSlice({
       saveReceipts(state.receipts);
     },
 
-    /* ---------------- UPDATE RECEIPT ---------------- */
+    /* ================= UPDATE ================= */
     updateReceipt: (state, action) => {
       const { id, updates } = action.payload;
+      state.error = null;
 
-      const index = state.receipts.findIndex((r) => r.id === id);
+      const index = state.receipts.findIndex(
+        (r) => r.id === id
+      );
+
       if (index === -1) {
         state.error = "Receipt not found";
         return;
       }
 
-      const existing = state.receipts[index];
-
-      state.receipts[index] = {
-        ...existing,
+      const updatedData = {
+        ...state.receipts[index],
         ...updates,
-        amount:
-          updates.amount !== undefined
-            ? Number(updates.amount)
-            : existing.amount,
-        status:
-          updates.status !== undefined
-            ? normalizeStatus(updates.status)
-            : existing.status,
-        updatedAt: new Date().toISOString(),
       };
 
-      state.error = null;
+      const validationError =
+        validateReceipt(updatedData);
+
+      if (validationError) {
+        state.error = validationError;
+        return;
+      }
+
+      if (
+        isDuplicateReceipt(
+          state.receipts,
+          updatedData,
+          id
+        )
+      ) {
+        state.error =
+          "Duplicate receipt detected";
+        return;
+      }
+
+      state.receipts[index] = {
+        ...updatedData,
+        amount: Number(updatedData.amount),
+        status: normalizeStatus(
+          updatedData.status
+        ),
+        updatedAt:
+          new Date().toISOString(),
+      };
+
       saveReceipts(state.receipts);
     },
 
-    /* ---------------- DELETE ---------------- */
+    /* ================= DELETE ================= */
     deleteReceipt: (state, action) => {
       state.receipts = state.receipts.filter(
         (r) => r.id !== action.payload
       );
+
       saveReceipts(state.receipts);
     },
 
-    /* ---------------- TOGGLE STATUS ---------------- */
+    /* ================= TOGGLE STATUS ================= */
     toggleStatus: (state, action) => {
       const receipt = state.receipts.find(
         (r) => r.id === action.payload
@@ -179,7 +253,7 @@ const receiptSlice = createSlice({
       saveReceipts(state.receipts);
     },
 
-    /* ---------------- FILTERS ---------------- */
+    /* ================= FILTERS ================= */
     setSearch: (state, action) => {
       state.search = action.payload;
     },
@@ -189,96 +263,116 @@ const receiptSlice = createSlice({
     },
 
     setCategoryFilter: (state, action) => {
-      state.categoryFilter = action.payload;
+      state.categoryFilter =
+        action.payload;
     },
 
     setSortBy: (state, action) => {
       state.sortBy = action.payload;
     },
 
-    /* ---------------- ERROR ---------------- */
-    setError: (state, action) => {
-      state.error = action.payload;
-    },
-
+    /* ================= ERROR ================= */
     clearError: (state) => {
       state.error = null;
     },
   },
+
+  /* ================= LOGOUT CLEAR ================= */
+  extraReducers: (builder) => {
+    builder.addCase(logout, (state) => {
+      state.receipts = [];
+    });
+  },
 });
 
+/* ======================================================
+   📊 SELECTOR
+====================================================== */
 
+export const selectFilteredReceipts =
+  createSelector(
+    [(state) => state.receipt],
+    (receiptState) => {
+      const {
+        receipts,
+        search,
+        statusFilter,
+        categoryFilter,
+        sortBy,
+      } = receiptState;
 
-export const selectFilteredReceipts = createSelector(
-  [(state) => state.receipt],
-  (receiptState) => {
-    const {
-      receipts,
-      search,
-      statusFilter,
-      categoryFilter,
-      sortBy,
-    } = receiptState;
+      let data = receipts.filter(
+        (receipt) => {
+          const matchesSearch =
+            receipt.store
+              ?.toLowerCase()
+              .includes(
+                search.toLowerCase()
+              );
 
-    let data = receipts.filter((receipt) => {
-      const matchesSearch =
-        receipt.store
-          ?.toLowerCase()
-          .includes(search.toLowerCase());
+          const matchesStatus =
+            statusFilter === "All"
+              ? true
+              : receipt.status ===
+                statusFilter;
 
-      const matchesStatus =
-        statusFilter === "All"
-          ? true
-          : receipt.status === statusFilter;
+          const matchesCategory =
+            categoryFilter === "All"
+              ? true
+              : receipt.category ===
+                categoryFilter;
 
-      const matchesCategory =
-        categoryFilter === "All"
-          ? true
-          : receipt.category === categoryFilter;
-
-      return (
-        matchesSearch &&
-        matchesStatus &&
-        matchesCategory
+          return (
+            matchesSearch &&
+            matchesStatus &&
+            matchesCategory
+          );
+        }
       );
-    });
 
-    switch (sortBy) {
-      case "Newest":
-        data.sort(
-          (a, b) =>
-            new Date(b.createdAt) - new Date(a.createdAt)
-        );
-        break;
+      switch (sortBy) {
+        case "Newest":
+          data.sort(
+            (a, b) =>
+              new Date(b.createdAt) -
+              new Date(a.createdAt)
+          );
+          break;
 
-      case "Oldest":
-        data.sort(
-          (a, b) =>
-            new Date(a.createdAt) - new Date(b.createdAt)
-        );
-        break;
+        case "Oldest":
+          data.sort(
+            (a, b) =>
+              new Date(a.createdAt) -
+              new Date(b.createdAt)
+          );
+          break;
 
-      case "Amount High-Low":
-        data.sort((a, b) => b.amount - a.amount);
-        break;
+        case "Amount High-Low":
+          data.sort(
+            (a, b) => b.amount - a.amount
+          );
+          break;
 
-      case "Amount Low-High":
-        data.sort((a, b) => a.amount - b.amount);
-        break;
+        case "Amount Low-High":
+          data.sort(
+            (a, b) => a.amount - b.amount
+          );
+          break;
 
-      default:
-        break;
+        default:
+          break;
+      }
+
+      return data;
     }
-
-    return data;
-  }
-);
+  );
 
 /* ======================================================
    📦 EXPORTS
 ====================================================== */
 
 export const {
+  loadUserReceipts,
   addReceipt,
   updateReceipt,
   deleteReceipt,
@@ -287,7 +381,6 @@ export const {
   setStatusFilter,
   setCategoryFilter,
   setSortBy,
-  setError,
   clearError,
 } = receiptSlice.actions;
 

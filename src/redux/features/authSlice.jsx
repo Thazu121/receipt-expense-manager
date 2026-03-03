@@ -1,110 +1,99 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-/* ================= GET CURRENT USER ================= */
-const getCurrentUser = () => {
-  const user = localStorage.getItem("currentUser");
-  return user ? JSON.parse(user) : null;
+const storedUser = JSON.parse(localStorage.getItem("currentUser"));
+
+const initialState = {
+  user: storedUser || null,
+  isAuthenticated: !!storedUser,
+  error: null,
+  success: null,
 };
 
 const authSlice = createSlice({
   name: "auth",
-
-  initialState: {
-    isAuthenticated: !!localStorage.getItem("currentUser"),
-    user: getCurrentUser(),
-  },
-
+  initialState,
   reducers: {
-    /* ================= LOGIN ================= */
-    login: (state, action) => {
-      state.isAuthenticated = true;
-      state.user = action.payload;
+    signup: (state, action) => {
+      const { name, email, password } = action.payload;
 
-      localStorage.setItem(
-        "currentUser",
-        JSON.stringify(action.payload)
-      );
+      state.error = null;
+      state.success = null;
+
+      const users = JSON.parse(localStorage.getItem("users")) || [];
+
+      const exists = users.find((u) => u.email === email);
+      if (exists) {
+        state.error = "User already exists";
+        return;
+      }
+
+      const newUser = { name, email, password };
+      users.push(newUser);
+
+      localStorage.setItem("users", JSON.stringify(users));
+
+      state.success = "Account created successfully";
     },
 
-    /* ================= LOGOUT ================= */
-    logout: (state) => {
-      state.isAuthenticated = false;
-      state.user = null;
+    login: (state, action) => {
+      const { email, password } = action.payload;
 
+      state.error = null;
+      state.success = null;
+
+      const users = JSON.parse(localStorage.getItem("users")) || [];
+
+      const user = users.find(
+        (u) => u.email === email && u.password === password
+      );
+
+      if (!user) {
+        state.error = "Invalid email or password";
+        return;
+      }
+
+      state.user = user;
+      state.isAuthenticated = true;
+
+      localStorage.setItem("currentUser", JSON.stringify(user));
+    },
+
+    logout: (state) => {
+      state.user = null;
+      state.isAuthenticated = false;
       localStorage.removeItem("currentUser");
     },
 
-    /* ================= CHANGE PASSWORD ================= */
-    changePassword: (state, action) => {
-      const { currentPassword, newPassword } = action.payload;
+    resetPassword: (state, action) => {
+      const { email, newPassword } = action.payload;
 
-      if (!state.user) return;
+      const users = JSON.parse(localStorage.getItem("users")) || [];
+      const userIndex = users.findIndex((u) => u.email === email);
 
-      // Check current password
-      if (state.user.password !== currentPassword) {
-        throw new Error("Current password is incorrect.");
+      if (userIndex === -1) {
+        state.error = "User not found";
+        return;
       }
 
-      // Update password in current user
-      state.user.password = newPassword;
+      users[userIndex].password = newPassword;
+      localStorage.setItem("users", JSON.stringify(users));
 
-      // Update currentUser in localStorage
-      localStorage.setItem(
-        "currentUser",
-        JSON.stringify(state.user)
-      );
-
-      // Update password inside users list
-      const users =
-        JSON.parse(localStorage.getItem("users")) || [];
-
-      const updatedUsers = users.map((u) =>
-        u.email === state.user.email
-          ? { ...u, password: newPassword }
-          : u
-      );
-
-      localStorage.setItem(
-        "users",
-        JSON.stringify(updatedUsers)
-      );
+      state.success = "Password updated successfully";
     },
 
-    /* ================= UPDATE NAME ================= */
-    updateName: (state, action) => {
-      if (!state.user) return;
-
-      state.user.name = action.payload;
-
-      // Update currentUser
-      localStorage.setItem(
-        "currentUser",
-        JSON.stringify(state.user)
-      );
-
-      // Update users list
-      const users =
-        JSON.parse(localStorage.getItem("users")) || [];
-
-      const updatedUsers = users.map((u) =>
-        u.email === state.user.email
-          ? { ...u, name: action.payload }
-          : u
-      );
-
-      localStorage.setItem(
-        "users",
-        JSON.stringify(updatedUsers)
-      );
+    clearMessages: (state) => {
+      state.error = null;
+      state.success = null;
     },
   },
 });
 
 export const {
+  signup,
   login,
   logout,
-  changePassword,
-  updateName,
+  resetPassword,
+  clearMessages,
 } = authSlice.actions;
 
 export default authSlice.reducer;
