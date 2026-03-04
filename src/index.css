@@ -3,7 +3,9 @@
 @tailwind utilities;
 
 
-
+*{
+  box-sizing: border-box;
+}
  
 @keyframes scan {
   0% { top: 0%; }

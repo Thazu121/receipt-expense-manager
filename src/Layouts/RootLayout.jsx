@@ -8,20 +8,23 @@ export default function RootLayout() {
 
   return (
     <div className={isLight ? "" : "dark"}>
-      <div className="min-h-screen flex bg-white dark:bg-slate-950 text-black dark:text-white transition-colors duration-300">
+      <div className="min-h-screen flex overflow-x-hidden bg-white dark:bg-slate-950 text-black dark:text-white transition-colors duration-300">
 
+        {/* Sidebar */}
         <SideNavbar />
 
-        <div className="flex-1 flex flex-col">
+        {/* Main Content */}
+        <div className="flex-1 flex flex-col min-w-0">
 
+          {/* Top Navbar */}
           <Navbar />
 
-          <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-x-hidden">
+          {/* Page Content */}
+          <main className="flex-1 w-full p-4 sm:p-6 lg:p-8 overflow-x-hidden">
             <Outlet />
           </main>
 
         </div>
-
       </div>
     </div>
   );
