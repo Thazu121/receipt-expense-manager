@@ -16,7 +16,7 @@ export default function CategoryPerformanceCard() {
   const currency = useSelector((state) => state.settings.currency);
 
   const data = useMemo(() => {
-    if (!receipts.length) return [];
+    if (!receipts?.length) return [];
 
     const map = {};
 
@@ -52,9 +52,9 @@ export default function CategoryPerformanceCard() {
   ];
 
   return (
-    <div className="p-6 rounded-2xl bg-white/80 dark:bg-[#0f2e24]/60 border border-emerald-100 dark:border-green-800 shadow-sm transition-all duration-300">
+    <div className="w-full p-4 sm:p-6 rounded-2xl bg-white/80 dark:bg-[#0f2e24]/60 border border-emerald-100 dark:border-green-800 shadow-sm transition-all duration-300">
 
-      <h3 className="font-semibold mb-6 text-lg">
+      <h3 className="font-semibold text-base sm:text-lg mb-4 sm:mb-6">
         Spending by Category
       </h3>
 
@@ -63,16 +63,18 @@ export default function CategoryPerformanceCard() {
           No data available
         </div>
       ) : (
-        <div className="w-full h-[320px]">
+        <div className="w-full h-[260px] sm:h-[320px] md:h-[360px]">
           <ResponsiveContainer width="100%" height="100%">
-
             <PieChart>
+
               <Pie
                 data={data}
                 dataKey="value"
                 nameKey="name"
-                outerRadius={110}
-                innerRadius={60}
+                cx="50%"
+                cy="45%"
+                outerRadius="80%"
+                innerRadius="45%"
                 paddingAngle={3}
                 labelLine={false}
               >
@@ -90,7 +92,14 @@ export default function CategoryPerformanceCard() {
                 }
               />
 
-              <Legend verticalAlign="bottom" height={36} />
+              <Legend
+                verticalAlign="bottom"
+                align="center"
+                wrapperStyle={{
+                  fontSize: "12px",
+                  paddingTop: "10px",
+                }}
+              />
             </PieChart>
           </ResponsiveContainer>
         </div>

@@ -3,7 +3,7 @@ import { resetScan } from "../../redux/features/scanSlice";
 import ExtractedDetailsCard from "../scan/ExtractedDetailsCard";
 import ScanTabs from "../scan/ScanTab";
 import ScanCameraCard from "../scan/ScanCameraCard";
-import ScanHeader from "../scan/ScanHeader"
+import ScanHeader from "../scan/ScanHeader";
 import FileUploadCard from "../scan/FileUploadCard";
 import { useEffect } from "react";
 
@@ -20,31 +20,49 @@ export default function ScanPage() {
 
   return (
     <div
-      className={`min-h-screen p-4 md:p-6 transition-all duration-300
-        ${isLight
-          ? "bg-gray-100 text-black"
-          : "bg-gradient-to-br from-[#071b11] via-[#0b2a1b] to-[#071b11] text-white"
-        }`}
+      className={`
+        min-h-screen
+        w-full
+        transition-all duration-300
+        px-4 sm:px-6 lg:px-8
+        py-6 sm:py-8
+        ${
+          isLight
+            ? "bg-gray-100 text-black"
+            : "bg-gradient-to-br from-[#071b11] via-[#0b2a1b] to-[#071b11] text-white"
+        }
+      `}
     >
-      <div className="text-center m-5">
-        <ScanHeader />
+      {/* Centered Content Wrapper */}
+      <div className="max-w-7xl mx-auto">
 
-      </div>
-      <div className="flex justify-center md:justify-start">
-        <ScanTabs />
-      </div>
-
-      <div className="grid lg:grid-cols-2 gap-8 mt-8">
-        <div>
-          {mode === "camera" ? (
-            <ScanCameraCard />
-          ) : (
-            <FileUploadCard />
-          )}
+        {/* Header */}
+        <div className="text-center mb-6 sm:mb-8">
+          <ScanHeader />
         </div>
 
-        <div>
-          <ExtractedDetailsCard />
+        {/* Tabs */}
+        <div className="flex justify-center md:justify-start mb-6">
+          <ScanTabs />
+        </div>
+
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+          
+          {/* Left Section */}
+          <div className="w-full">
+            {mode === "camera" ? (
+              <ScanCameraCard />
+            ) : (
+              <FileUploadCard />
+            )}
+          </div>
+
+          {/* Right Section */}
+          <div className="w-full">
+            <ExtractedDetailsCard />
+          </div>
+
         </div>
       </div>
     </div>

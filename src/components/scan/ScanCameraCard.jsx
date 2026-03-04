@@ -7,10 +7,8 @@ import {
 
 export default function CameraCard() {
   const dispatch = useDispatch();
-
   const { scanning, error, progress } =
     useSelector((state) => state.scan);
-
   const isLight = useSelector(
     (state) => state.theme.isLight
   );
@@ -24,13 +22,11 @@ export default function CameraCard() {
     return () => stopCamera();
   }, []);
 
-
   useEffect(() => {
     if (error) {
       const timer = setTimeout(() => {
         dispatch(clearError());
       }, 4000);
-
       return () => clearTimeout(timer);
     }
   }, [error, dispatch]);
@@ -39,36 +35,23 @@ export default function CameraCard() {
     try {
       const stream =
         await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode: {
-              ideal: "environment",
-            },
-          },
+          video: { facingMode: { ideal: "environment" } },
         });
 
       if (videoRef.current) {
-        videoRef.current.srcObject =
-          stream;
+        videoRef.current.srcObject = stream;
       }
 
       streamRef.current = stream;
     } catch (err) {
-      let message =
-        "Unable to access camera.";
+      let message = "Unable to access camera.";
 
       if (err.name === "NotAllowedError") {
-        message =
-          "Camera permission denied.";
-      } else if (
-        err.name === "NotFoundError"
-      ) {
-        message =
-          "No camera device found.";
-      } else if (
-        err.name === "NotReadableError"
-      ) {
-        message =
-          "Camera already in use.";
+        message = "Camera permission denied.";
+      } else if (err.name === "NotFoundError") {
+        message = "No camera device found.";
+      } else if (err.name === "NotReadableError") {
+        message = "Camera already in use.";
       }
 
       dispatch({
@@ -80,82 +63,53 @@ export default function CameraCard() {
 
   const stopCamera = () => {
     if (streamRef.current) {
-      streamRef.current
-        .getTracks()
-        .forEach((track) =>
-          track.stop()
-        );
+      streamRef.current.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
     }
   };
 
-
   const captureAndScan = async () => {
-    if (!videoRef.current || scanning)
-      return;
+    if (!videoRef.current || scanning) return;
 
     try {
       const video = videoRef.current;
       const canvas = canvasRef.current;
-      const ctx =
-        canvas.getContext("2d");
+      const ctx = canvas.getContext("2d");
+      if (!ctx) throw new Error("Canvas not ready");
 
-      if (!ctx)
-        throw new Error(
-          "Canvas not ready"
-        );
-
-      canvas.width =
-        video.videoWidth;
-      canvas.height =
-        video.videoHeight;
-
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
       ctx.drawImage(video, 0, 0);
 
-      const imageData =
-        canvas.toDataURL("image/png");
-
+      const imageData = canvas.toDataURL("image/png");
       stopCamera();
 
-      const result =
-        await dispatch(
-          scanReceipt(imageData)
-        );
+      const result = await dispatch(scanReceipt(imageData));
 
-      if (
-        scanReceipt.rejected.match(
-          result
-        )
-      ) {
-        throw new Error(
-          result.payload
-        );
+      if (scanReceipt.rejected.match(result)) {
+        throw new Error(result.payload);
       }
 
       startCamera();
     } catch (err) {
       dispatch({
         type: "scan/setError",
-        payload:
-          err.message ||
-          "Scan failed",
+        payload: err.message || "Scan failed",
       });
-
       startCamera();
     }
   };
 
-
-
   return (
     <div
-      className={`w-full max-w-3xl mx-auto rounded-2xl p-6 transition-all duration-300
+      className={`w-full max-w-3xl mx-auto rounded-2xl p-4 sm:p-6 transition-all duration-300
       ${
         isLight
           ? "bg-white border border-gray-300 shadow-md text-gray-800"
           : "bg-[#071b11] border border-green-500/20 text-white"
       }`}
     >
+      {/* Error Message */}
       {error && (
         <div
           className={`mb-4 p-3 rounded-lg text-sm text-center
@@ -169,8 +123,10 @@ export default function CameraCard() {
         </div>
       )}
 
+      {/* Camera Preview */}
       <div className="relative rounded-xl overflow-hidden border border-green-500/40">
-        <div className="relative w-full aspect-video sm:h-96">
+
+        <div className="relative w-full aspect-video sm:h-[420px]">
           <video
             ref={videoRef}
             autoPlay
@@ -179,14 +135,12 @@ export default function CameraCard() {
             className="absolute inset-0 w-full h-full object-cover"
           />
 
-          <canvas
-            ref={canvasRef}
-            className="hidden"
-          />
+          <canvas ref={canvasRef} className="hidden" />
 
+          {/* Scanning Overlay */}
           {scanning && (
             <div
-              className={`absolute inset-0 flex flex-col items-center justify-center gap-3 font-semibold
+              className={`absolute inset-0 flex flex-col items-center justify-center gap-3 font-semibold text-center px-4
               ${
                 isLight
                   ? "bg-white/70 text-green-600"
@@ -194,14 +148,14 @@ export default function CameraCard() {
               }`}
             >
               🔍 Scanning...
-              <div className="w-2/3 bg-gray-300 rounded-full h-2 overflow-hidden">
+
+              <div className="w-full max-w-xs bg-gray-300 rounded-full h-2 overflow-hidden">
                 <div
                   className="bg-green-500 h-full transition-all duration-300"
-                  style={{
-                    width: `${progress}%`,
-                  }}
+                  style={{ width: `${progress}%` }}
                 />
               </div>
+
               <span className="text-xs">
                 {progress}%
               </span>
@@ -209,28 +163,26 @@ export default function CameraCard() {
           )}
         </div>
 
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-4/5 sm:w-auto">
+        {/* Capture Button */}
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-[85%] sm:w-auto">
           <button
-            onClick={
-              captureAndScan
-            }
+            onClick={captureAndScan}
             disabled={scanning}
-            className={`w-full sm:w-auto px-8 py-3 rounded-xl font-semibold transition disabled:opacity-50
+            className={`w-full sm:w-auto px-6 sm:px-8 py-3 rounded-xl font-semibold transition-all duration-200 disabled:opacity-50
             ${
               isLight
                 ? "bg-green-600 text-white hover:bg-green-500"
                 : "bg-green-500 text-black hover:bg-green-400"
             }`}
           >
-            {scanning
-              ? "Processing..."
-              : "SCAN RECEIPT"}
+            {scanning ? "Processing..." : "SCAN RECEIPT"}
           </button>
         </div>
       </div>
 
+      {/* Feature Indicators */}
       <div
-        className={`flex justify-center gap-6 mt-4 text-sm
+        className={`flex flex-wrap justify-center gap-4 sm:gap-6 mt-4 text-xs sm:text-sm
         ${
           isLight
             ? "text-green-600"
