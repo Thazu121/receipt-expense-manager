@@ -33,10 +33,8 @@ export default function ScanPage() {
         }
       `}
     >
-      {/* Centered Content Wrapper */}
       <div className="max-w-7xl mx-auto">
 
-        {/* Header */}
         <div className="text-center mb-6 sm:mb-8">
           <ScanHeader />
         </div>
@@ -46,10 +44,8 @@ export default function ScanPage() {
           <ScanTabs />
         </div>
 
-        {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
           
-          {/* Left Section */}
           <div className="w-full">
             {mode === "camera" ? (
               <ScanCameraCard />
@@ -58,7 +54,6 @@ export default function ScanPage() {
             )}
           </div>
 
-          {/* Right Section */}
           <div className="w-full">
             <ExtractedDetailsCard />
           </div>

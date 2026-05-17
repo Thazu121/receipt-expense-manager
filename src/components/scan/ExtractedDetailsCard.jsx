@@ -64,7 +64,6 @@ export default function ExtractedDetailsCard() {
             : "bg-zinc-900 border border-zinc-700 text-white"
         }`}
     >
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
         <h2 className="text-lg sm:text-xl font-semibold">
           Extracted Details
@@ -83,7 +82,6 @@ export default function ExtractedDetailsCard() {
         </span>
       </div>
 
-      {/* Image Preview */}
       <div
         className={`rounded-xl overflow-hidden border ${
           isLight ? "border-gray-200" : "border-zinc-700"
@@ -96,7 +94,6 @@ export default function ExtractedDetailsCard() {
         />
       </div>
 
-      {/* Warnings */}
       {warnings?.length > 0 && (
         <div className="bg-yellow-500/10 border border-yellow-500/40 p-4 rounded-xl text-yellow-600 dark:text-yellow-300 text-sm space-y-1">
           {warnings.map((w, i) => (
@@ -105,14 +102,12 @@ export default function ExtractedDetailsCard() {
         </div>
       )}
 
-      {/* Error */}
       {receiptError && (
         <div className="bg-red-500/10 border border-red-500/40 p-4 rounded-xl text-red-500 text-sm">
           ❌ {receiptError}
         </div>
       )}
 
-      {/* Details */}
       <div className="grid sm:grid-cols-2 gap-4">
         <Detail label="Merchant" value={merchant} isLight={isLight} />
         <Detail label="Date" value={date} isLight={isLight} />
@@ -124,7 +119,6 @@ export default function ExtractedDetailsCard() {
         <Detail label="Category" value={category} isLight={isLight} />
       </div>
 
-      {/* Buttons */}
       <div className="flex flex-col sm:flex-row gap-4 pt-4">
         <button
           onClick={handleSave}

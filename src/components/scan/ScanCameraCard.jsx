@@ -109,7 +109,6 @@ export default function CameraCard() {
           : "bg-[#071b11] border border-green-500/20 text-white"
       }`}
     >
-      {/* Error Message */}
       {error && (
         <div
           className={`mb-4 p-3 rounded-lg text-sm text-center
@@ -123,7 +122,6 @@ export default function CameraCard() {
         </div>
       )}
 
-      {/* Camera Preview */}
       <div className="relative rounded-xl overflow-hidden border border-green-500/40">
 
         <div className="relative w-full aspect-video sm:h-[420px]">
@@ -137,7 +135,6 @@ export default function CameraCard() {
 
           <canvas ref={canvasRef} className="hidden" />
 
-          {/* Scanning Overlay */}
           {scanning && (
             <div
               className={`absolute inset-0 flex flex-col items-center justify-center gap-3 font-semibold text-center px-4

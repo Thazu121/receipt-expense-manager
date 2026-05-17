@@ -43,25 +43,21 @@ export default function FinancialOverviewCard({ receipts = [] }) {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
-        {/* Total Spent */}
         <StatItem
           label="Total Spent"
           value={formatCurrency(stats.total, currency)}
         />
 
-        {/* Total Entries */}
         <StatItem
           label="Total Entries"
           value={stats.count}
         />
 
-        {/* Average Expense */}
         <StatItem
           label="Average Expense"
           value={formatCurrency(stats.average, currency)}
         />
 
-        {/* Highest Expense */}
         <StatItem
           label="Highest Expense"
           value={formatCurrency(stats.highest, currency)}
@@ -71,7 +67,6 @@ export default function FinancialOverviewCard({ receipts = [] }) {
   );
 }
 
-/* Small reusable stat block */
 function StatItem({ label, value }) {
   return (
     <div className="p-3 sm:p-4 rounded-xl 
