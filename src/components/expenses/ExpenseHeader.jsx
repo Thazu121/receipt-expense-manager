@@ -1,28 +1,117 @@
-import { Plus } from "lucide-react"
-import { Link } from "react-router-dom"
+import { Plus } from "lucide-react";
+
+import { Link } from "react-router-dom";
 
 export default function ExpenseHeader() {
+
   return (
-    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-10">
-      
-      <div>
-        <h1 className="text-4xl font-bold">Expenses</h1>
-        <p className="text-gray-400 mt-2">
-          Manage and track your personal spending with ease.
+
+    <div
+      className="
+        flex
+        flex-col
+
+        sm:flex-row
+        sm:items-center
+        sm:justify-between
+
+        gap-5
+        sm:gap-6
+
+        mb-6
+        sm:mb-10
+      "
+    >
+
+      {/* ================= LEFT ================= */}
+
+      <div
+        className="
+          w-full
+        "
+      >
+
+        <h1
+          className="
+            text-2xl
+            sm:text-3xl
+            lg:text-4xl
+
+            font-bold
+
+            break-words
+          "
+        >
+          Expenses
+        </h1>
+
+        <p
+          className="
+            text-sm
+            sm:text-base
+
+            text-gray-500
+            dark:text-gray-400
+
+            mt-2
+
+            leading-relaxed
+          "
+        >
+          Manage and track your
+          personal spending with ease.
         </p>
+
       </div>
 
+
+      {/* ================= BUTTON ================= */}
+
       <Link
+
         to="/dashboard/add-expense"
-        className="flex items-center gap-2 
-                   bg-emerald-500 hover:bg-emerald-600 
-                   px-6 py-3 rounded-xl 
-                   font-semibold transition text-white"
+
+        className="
+          w-full
+          sm:w-auto
+
+          flex
+          items-center
+          justify-center
+
+          gap-2
+
+          bg-emerald-500
+          hover:bg-emerald-600
+
+          px-5
+          sm:px-6
+
+          py-3
+
+          rounded-xl
+
+          font-semibold
+
+          text-sm
+          sm:text-base
+
+          text-white
+
+          transition
+          duration-300
+
+          shadow-md
+          hover:shadow-lg
+        "
       >
+
         <Plus size={18} />
+
         Add Expense
+
       </Link>
 
     </div>
-  )
+  );
 }

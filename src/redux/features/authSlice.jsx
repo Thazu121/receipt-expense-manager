@@ -6,270 +6,130 @@ import {
 import API from "../../api/api";
 
 
+let storedUser = null;
 
-const storedUser =
-  JSON.parse(
-    localStorage.getItem("user")
-  );
+try {
+  storedUser = JSON.parse(localStorage.getItem("user"));
+} catch (e) {
+  storedUser = null;
+}
 
-const storedToken =
-  localStorage.getItem("token");
-
-
-
-export const login =
-  createAsyncThunk(
-    "auth/login",
-
-    async (
-      userData,
-      thunkAPI
-    ) => {
-      try {
-
-        const response =
-          await API.post(
-            "/auth/login",
-            userData
-          );
-
-        localStorage.setItem(
-          "token",
-          response.data.token
-        );
-
-        localStorage.setItem(
-          "user",
-          JSON.stringify(
-            response.data.user
-          )
-        );
-
-        return response.data;
-
-      } catch (error) {
-
-        return thunkAPI.rejectWithValue(
-          error.response.data.message
-        );
-      }
-    }
-  );
+const storedToken = localStorage.getItem("token");
 
 
+const authRequest = async (url, userData, thunkAPI) => {
+  try {
+    const response = await API.post(url, userData);
 
-export const signup =
-  createAsyncThunk(
-    "auth/signup",
+    localStorage.setItem("token", response.data.token);
+    localStorage.setItem("user", JSON.stringify(response.data.user));
 
-    async (
-      userData,
-      thunkAPI
-    ) => {
-      try {
+    return response.data;
 
-        const response =
-          await API.post(
-            "/auth/register",
-            userData
-          );
+  } catch (error) {
+    return thunkAPI.rejectWithValue(
+      error.response?.data?.message || "Something went wrong"
+    );
+  }
+};
 
-        localStorage.setItem(
-          "token",
-          response.data.token
-        );
 
-        localStorage.setItem(
-          "user",
-          JSON.stringify(
-            response.data.user
-          )
-        );
+export const login = createAsyncThunk(
+  "auth/login",
+  async (userData, thunkAPI) => {
+    return authRequest("/auth/login", userData, thunkAPI);
+  }
+);
 
-        return response.data;
-
-      } catch (error) {
-
-        return thunkAPI.rejectWithValue(
-          error.response.data.message
-        );
-      }
-    }
-  );
-
+export const signup = createAsyncThunk(
+  "auth/signup",
+  async (userData, thunkAPI) => {
+    return authRequest("/auth/register", userData, thunkAPI);
+  }
+);
 
 
 const initialState = {
-
   user: storedUser || null,
-
   token: storedToken || null,
-
-  isAuthenticated:
-    !!storedToken,
-
+  isAuthenticated: !!storedToken,
   loading: false,
-
   error: null,
-
   success: null,
 };
 
 
-
 const authSlice = createSlice({
   name: "auth",
-
   initialState,
 
   reducers: {
-
     logout: (state) => {
-
       state.user = null;
-
       state.token = null;
+      state.isAuthenticated = false;
+      state.loading = false;
+      state.error = null;
+      state.success = null;
 
-      state.isAuthenticated =
-        false;
-
-      localStorage.removeItem(
-        "token"
-      );
-
-      localStorage.removeItem(
-        "user"
-      );
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
     },
 
-
     clearMessages: (state) => {
-
       state.error = null;
-
       state.success = null;
     },
 
-
-    updateProfilePhoto: (
-      state,
-      action
-    ) => {
-
+    updateProfilePhoto: (state, action) => {
       if (state.user) {
-
-        state.user.profileImage =
-          action.payload;
+        state.user.profileImage = action.payload;
 
         localStorage.setItem(
           "user",
-
-          JSON.stringify(
-            state.user
-          )
+          JSON.stringify(state.user)
         );
       }
     },
   },
 
-
-  
   extraReducers: (builder) => {
-
     builder
 
-    
-      .addCase(
-        login.pending,
-
-        (state) => {
-
-          state.loading = true;
-
-          state.error = null;
-        }
-      )
-
-      .addCase(
-        login.fulfilled,
-
-        (state, action) => {
-
-          state.loading = false;
-
-          state.user =
-            action.payload.user;
-
-          state.token =
-            action.payload.token;
-
-          state.isAuthenticated =
-            true;
-
-          state.success =
-            action.payload.message;
-        }
-      )
-
-      .addCase(
-        login.rejected,
-
-        (state, action) => {
-
-          state.loading = false;
-
-          state.error =
-            action.payload;
-        }
-      )
+      .addCase(login.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(login.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action.payload.user;
+        state.token = action.payload.token;
+        state.isAuthenticated = true;
+        state.success = action.payload.message;
+      })
+      .addCase(login.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
 
 
-      .addCase(
-        signup.pending,
-
-        (state) => {
-
-          state.loading = true;
-
-          state.error = null;
-        }
-      )
-
-      .addCase(
-        signup.fulfilled,
-
-        (state, action) => {
-
-          state.loading = false;
-
-          state.user =
-            action.payload.user;
-
-          state.token =
-            action.payload.token;
-
-          state.isAuthenticated =
-            true;
-
-          state.success =
-            action.payload.message;
-        }
-      )
-
-      .addCase(
-        signup.rejected,
-
-        (state, action) => {
-
-          state.loading = false;
-
-          state.error =
-            action.payload;
-        }
-      );
+      .addCase(signup.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(signup.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action.payload.user;
+        state.token = action.payload.token;
+        state.isAuthenticated = true;
+        state.success = action.payload.message;
+      })
+      .addCase(signup.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      });
   },
 });
-
 
 
 export const {

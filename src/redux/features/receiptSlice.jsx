@@ -1,213 +1,528 @@
-import { createSlice, createSelector } from "@reduxjs/toolkit";
+import {
+  createSlice,
+  createAsyncThunk,
+  createSelector,
+} from "@reduxjs/toolkit";
+
+import API from "../../api/api";
 
 
-const generateId = () => {
-  if (crypto?.randomUUID) return crypto.randomUUID();
-  return Date.now().toString(36) + Math.random().toString(36).slice(2);
-};
 
-const normalizeStatus = (status) => {
-  if (!status) return "Pending";
-  const s = status.toLowerCase();
-  if (s === "verified") return "Verified";
-  if (s === "rejected") return "Rejected";
-  return "Pending";
-};
+/* =========================================
+   GET TOKEN
+========================================= */
 
-const validateReceipt = (data) => {
-  if (!data.store?.trim()) return "Merchant name is required";
-  if (!data.amount || Number(data.amount) <= 0)
-    return "Valid amount is required";
-  if (!data.date) return "Date is required";
-  return null;
-};
-
-const isDuplicate = (receipts, newReceipt, excludeId = null) =>
-  receipts.some((r) => {
-    if (excludeId && r.id === excludeId) return false;
-    return (
-      r.store?.toLowerCase() === newReceipt.store?.toLowerCase() &&
-      Number(r.amount) === Number(newReceipt.amount) &&
-      r.date === newReceipt.date
-    );
-  });
+const token =
+  localStorage.getItem("token");
 
 
-const loadReceipts = () => {
-  try {
-    const data = localStorage.getItem("receipts");
-    return data ? JSON.parse(data) : [];
-  } catch {
-    return [];
-  }
-};
 
-const saveReceipts = (receipts) => {
-  try {
-    localStorage.setItem("receipts", JSON.stringify(receipts));
-  } catch (err) {
-    console.error("Receipt save error:", err);
-  }
-};
+/* =========================================
+   AXIOS AUTH HEADER
+========================================= */
 
-
-const receiptSlice = createSlice({
-  name: "receipt",
-  initialState: {
-    receipts: loadReceipts(),
-    search: "",
-    statusFilter: "All",
-    categoryFilter: "All",
-    sortBy: "Newest",
-    error: null,
-  },
-  reducers: {
-    addReceipt: (state, action) => {
-      state.error = null;
-
-      const validationError = validateReceipt(action.payload);
-      if (validationError) {
-        state.error = validationError;
-        return;
-      }
-
-      if (isDuplicate(state.receipts, action.payload)) {
-        state.error = "Duplicate receipt detected";
-        return;
-      }
-
-      const newReceipt = {
-        id: generateId(),
-        ...action.payload,
-        amount: Number(action.payload.amount),
-        status: normalizeStatus(action.payload.status),
-        category: action.payload.category || "Other",
-        createdAt: new Date().toISOString(),
-      };
-
-      state.receipts.push(newReceipt);
-      saveReceipts(state.receipts);
-    },
-
-    updateReceipt: (state, action) => {
-      const { id, updates } = action.payload;
-      state.error = null;
-
-      const index = state.receipts.findIndex((r) => r.id === id);
-      if (index === -1) {
-        state.error = "Receipt not found";
-        return;
-      }
-
-      const updated = { ...state.receipts[index], ...updates };
-
-      const validationError = validateReceipt(updated);
-      if (validationError) {
-        state.error = validationError;
-        return;
-      }
-
-      if (isDuplicate(state.receipts, updated, id)) {
-        state.error = "Duplicate receipt detected";
-        return;
-      }
-
-      state.receipts[index] = {
-        ...updated,
-        amount: Number(updated.amount),
-        status: normalizeStatus(updated.status),
-        updatedAt: new Date().toISOString(),
-      };
-
-      saveReceipts(state.receipts);
-    },
-
-    deleteReceipt: (state, action) => {
-      state.receipts = state.receipts.filter(
-        (r) => r.id !== action.payload
-      );
-      saveReceipts(state.receipts);
-    },
-
-    toggleStatus: (state, action) => {
-      const receipt = state.receipts.find(
-        (r) => r.id === action.payload
-      );
-      if (!receipt) return;
-
-      receipt.status =
-        receipt.status === "Pending"
-          ? "Verified"
-          : receipt.status === "Verified"
-          ? "Rejected"
-          : "Pending";
-
-      saveReceipts(state.receipts);
-    },
-
-    setSearch: (state, action) => {
-      state.search = action.payload;
-    },
-
-    setStatusFilter: (state, action) => {
-      state.statusFilter = action.payload;
-    },
-
-    setCategoryFilter: (state, action) => {
-      state.categoryFilter = action.payload;
-    },
-
-    setSortBy: (state, action) => {
-      state.sortBy = action.payload;
-    },
-
-    clearError: (state) => {
-      state.error = null;
-    },
+const authConfig = () => ({
+  headers: {
+    Authorization: `Bearer ${token}`,
   },
 });
 
 
-export const selectFilteredReceipts = createSelector(
-  [(state) => state.receipt],
-  ({ receipts, search, statusFilter, categoryFilter, sortBy }) => {
-    let data = receipts.filter((r) => {
-      const matchesSearch = r.store
-        ?.toLowerCase()
-        .includes(search.toLowerCase());
 
-      const matchesStatus =
-        statusFilter === "All" || r.status === statusFilter;
+/* =========================================
+   FETCH RECEIPTS
+========================================= */
 
-      const matchesCategory =
-        categoryFilter === "All" || r.category === categoryFilter;
+export const fetchReceipts =
+  createAsyncThunk(
+    "receipt/fetchReceipts",
 
-      return matchesSearch && matchesStatus && matchesCategory;
-    });
+    async (_, thunkAPI) => {
+      try {
 
-    if (sortBy === "Newest")
-      data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    if (sortBy === "Oldest")
-      data.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
-    if (sortBy === "Amount High-Low")
-      data.sort((a, b) => b.amount - a.amount);
-    if (sortBy === "Amount Low-High")
-      data.sort((a, b) => a.amount - b.amount);
+        const response =
+          await API.get(
+            "/receipts",
+            authConfig()
+          );
 
-    return data;
-  }
-);
+        return response.data.receipts;
+
+      } catch (error) {
+
+        return thunkAPI.rejectWithValue(
+          error.response?.data?.message ||
+            "Failed to fetch receipts"
+        );
+      }
+    }
+  );
+
+
+
+/* =========================================
+   ADD RECEIPT
+========================================= */
+
+export const addReceipt =
+  createAsyncThunk(
+    "receipt/addReceipt",
+
+    async (receiptData, thunkAPI) => {
+      try {
+
+        const formData =
+          new FormData();
+
+        Object.keys(receiptData)
+          .forEach((key) => {
+            formData.append(
+              key,
+              receiptData[key]
+            );
+          });
+
+        const response =
+          await API.post(
+            "/receipts/upload",
+            formData,
+            {
+              headers: {
+                Authorization:
+                  `Bearer ${token}`,
+                "Content-Type":
+                  "multipart/form-data",
+              },
+            }
+          );
+
+        return response.data.receipt;
+
+      } catch (error) {
+
+        return thunkAPI.rejectWithValue(
+          error.response?.data?.message ||
+            "Failed to upload receipt"
+        );
+      }
+    }
+  );
+
+
+
+/* =========================================
+   UPDATE RECEIPT
+========================================= */
+
+export const updateReceipt =
+  createAsyncThunk(
+    "receipt/updateReceipt",
+
+    async (
+      { id, updates },
+      thunkAPI
+    ) => {
+      try {
+
+        const response =
+          await API.put(
+            `/receipts/${id}`,
+            updates,
+            authConfig()
+          );
+
+        return response.data.receipt;
+
+      } catch (error) {
+
+        return thunkAPI.rejectWithValue(
+          error.response?.data?.message ||
+            "Failed to update receipt"
+        );
+      }
+    }
+  );
+
+
+
+/* =========================================
+   DELETE RECEIPT
+========================================= */
+
+export const deleteReceipt =
+  createAsyncThunk(
+    "receipt/deleteReceipt",
+
+    async (id, thunkAPI) => {
+      try {
+
+        await API.delete(
+          `/receipts/${id}`,
+          authConfig()
+        );
+
+        return id;
+
+      } catch (error) {
+
+        return thunkAPI.rejectWithValue(
+          error.response?.data?.message ||
+            "Failed to delete receipt"
+        );
+      }
+    }
+  );
+
+
+
+/* =========================================
+   TOGGLE STATUS
+========================================= */
+
+export const toggleStatus =
+  createAsyncThunk(
+    "receipt/toggleStatus",
+
+    async (receipt, thunkAPI) => {
+      try {
+
+        let newStatus =
+          receipt.status === "Pending"
+            ? "Verified"
+            : receipt.status ===
+              "Verified"
+            ? "Rejected"
+            : "Pending";
+
+        const response =
+          await API.put(
+            `/receipts/${receipt._id}`,
+            {
+              status: newStatus,
+            },
+            authConfig()
+          );
+
+        return response.data.receipt;
+
+      } catch (error) {
+
+        return thunkAPI.rejectWithValue(
+          error.response?.data?.message ||
+            "Failed to update status"
+        );
+      }
+    }
+  );
+
+
+
+/* =========================================
+   SLICE
+========================================= */
+
+const receiptSlice =
+  createSlice({
+    name: "receipt",
+
+    initialState: {
+      receipts: [],
+
+      loading: false,
+
+      error: null,
+
+      success: null,
+
+      search: "",
+
+      statusFilter: "All",
+
+      categoryFilter: "All",
+
+      sortBy: "Newest",
+    },
+
+    reducers: {
+
+      clearError: (state) => {
+        state.error = null;
+      },
+
+      clearSuccess: (state) => {
+        state.success = null;
+      },
+
+      setSearch: (
+        state,
+        action
+      ) => {
+        state.search =
+          action.payload;
+      },
+
+      setStatusFilter: (
+        state,
+        action
+      ) => {
+        state.statusFilter =
+          action.payload;
+      },
+
+      setCategoryFilter: (
+        state,
+        action
+      ) => {
+        state.categoryFilter =
+          action.payload;
+      },
+
+      setSortBy: (
+        state,
+        action
+      ) => {
+        state.sortBy =
+          action.payload;
+      },
+    },
+
+
+
+    extraReducers: (builder) => {
+
+      builder
+
+
+
+        /* FETCH */
+
+        .addCase(
+          fetchReceipts.pending,
+          (state) => {
+            state.loading = true;
+            state.error = null;
+          }
+        )
+
+        .addCase(
+          fetchReceipts.fulfilled,
+          (state, action) => {
+            state.loading = false;
+            state.receipts =
+              action.payload;
+          }
+        )
+
+        .addCase(
+          fetchReceipts.rejected,
+          (state, action) => {
+            state.loading = false;
+            state.error =
+              action.payload;
+          }
+        )
+
+
+
+        /* ADD */
+
+        .addCase(
+          addReceipt.pending,
+          (state) => {
+            state.loading = true;
+          }
+        )
+
+        .addCase(
+          addReceipt.fulfilled,
+          (state, action) => {
+            state.loading = false;
+
+            state.receipts.unshift(
+              action.payload
+            );
+
+            state.success =
+              "Receipt uploaded successfully";
+          }
+        )
+
+        .addCase(
+          addReceipt.rejected,
+          (state, action) => {
+            state.loading = false;
+            state.error =
+              action.payload;
+          }
+        )
+
+
+
+        /* UPDATE */
+
+        .addCase(
+          updateReceipt.fulfilled,
+          (state, action) => {
+
+            const index =
+              state.receipts.findIndex(
+                (r) =>
+                  r._id ===
+                  action.payload._id
+              );
+
+            if (index !== -1) {
+              state.receipts[index] =
+                action.payload;
+            }
+
+            state.success =
+              "Receipt updated successfully";
+          }
+        )
+
+
+
+        /* DELETE */
+
+        .addCase(
+          deleteReceipt.fulfilled,
+          (state, action) => {
+
+            state.receipts =
+              state.receipts.filter(
+                (r) =>
+                  r._id !==
+                  action.payload
+              );
+          }
+        )
+
+
+
+        /* TOGGLE STATUS */
+
+        .addCase(
+          toggleStatus.fulfilled,
+          (state, action) => {
+
+            const index =
+              state.receipts.findIndex(
+                (r) =>
+                  r._id ===
+                  action.payload._id
+              );
+
+            if (index !== -1) {
+              state.receipts[index] =
+                action.payload;
+            }
+          }
+        );
+    },
+  });
+
+
+
+/* =========================================
+   SELECTOR
+========================================= */
+
+export const selectFilteredReceipts =
+  createSelector(
+    [(state) => state.receipt],
+
+    ({
+      receipts,
+      search,
+      statusFilter,
+      categoryFilter,
+      sortBy,
+    }) => {
+
+      let data =
+        receipts.filter((r) => {
+
+          const matchesSearch =
+            r.merchantName
+              ?.toLowerCase()
+              .includes(
+                search.toLowerCase()
+              );
+
+          const matchesStatus =
+            statusFilter === "All" ||
+            r.status === statusFilter;
+
+          const matchesCategory =
+            categoryFilter === "All" ||
+            r.category ===
+              categoryFilter;
+
+          return (
+            matchesSearch &&
+            matchesStatus &&
+            matchesCategory
+          );
+        });
+
+
+
+      if (sortBy === "Newest") {
+        data.sort(
+          (a, b) =>
+            new Date(
+              b.createdAt
+            ) -
+            new Date(a.createdAt)
+        );
+      }
+
+      if (sortBy === "Oldest") {
+        data.sort(
+          (a, b) =>
+            new Date(
+              a.createdAt
+            ) -
+            new Date(b.createdAt)
+        );
+      }
+
+      if (
+        sortBy ===
+        "Amount High-Low"
+      ) {
+        data.sort(
+          (a, b) =>
+            b.extractedAmount -
+            a.extractedAmount
+        );
+      }
+
+      if (
+        sortBy ===
+        "Amount Low-High"
+      ) {
+        data.sort(
+          (a, b) =>
+            a.extractedAmount -
+            b.extractedAmount
+        );
+      }
+
+      return data;
+    }
+  );
+
+
 
 export const {
-  addReceipt,
-  updateReceipt,
-  deleteReceipt,
-  toggleStatus,
+  clearError,
+  clearSuccess,
   setSearch,
   setStatusFilter,
   setCategoryFilter,
   setSortBy,
-  clearError,
 } = receiptSlice.actions;
 
 export default receiptSlice.reducer;

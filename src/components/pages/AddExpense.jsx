@@ -1,12 +1,27 @@
-import { useState } from "react"
-import { useDispatch } from "react-redux"
-import { useNavigate } from "react-router-dom"
-import { ArrowLeft } from "lucide-react"
-import { addReceipt } from "../../redux/features/receiptSlice"
+import { useState } from "react";
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+
+import {
+  ArrowLeft,
+  ChevronDown,
+} from "lucide-react";
+
+import {
+  addReceipt,
+} from "../../redux/features/receiptSlice";
+
+
 
 export default function AddExpense() {
-  const dispatch = useDispatch()
-  const navigate = useNavigate()
+
+  const dispatch =
+    useDispatch();
+
+  const navigate =
+    useNavigate();
+
+
 
   const categories = [
     "Food",
@@ -14,181 +29,635 @@ export default function AddExpense() {
     "Transport",
     "Bills",
     "Shopping",
-    "General"
-  ]
+    "Entertainment",
+    "Medical",
+    "General",
+  ];
 
-  const [open, setOpen] = useState(false)
 
-  const [form, setForm] = useState({
-    store: "",
-    amount: "",
-    category: "",
-    date: new Date().toISOString().split("T")[0]
-  })
 
-  const [success, setSuccess] = useState(false)
-  const [error, setError] = useState("")
+  const [open, setOpen] =
+    useState(false);
+
+  const [loading, setLoading] =
+    useState(false);
+
+  const [success, setSuccess] =
+    useState(false);
+
+  const [error, setError] =
+    useState("");
+
+
+
+  const [form, setForm] =
+    useState({
+
+      store: "",
+
+      amount: "",
+
+      category: "",
+
+      date:
+        new Date()
+          .toISOString()
+          .split("T")[0],
+    });
+
+
+
+  /* ================= HANDLE CHANGE ================= */
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value })
-  }
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
+    setForm({
 
-    if (!form.store || !form.amount) {
-      setError("Please fill required fields")
-      return
+      ...form,
+
+      [e.target.name]:
+        e.target.value,
+    });
+
+  };
+
+
+
+  /* ================= SUBMIT ================= */
+
+  const handleSubmit = async (e) => {
+
+    e.preventDefault();
+
+    setError("");
+
+
+
+    if (
+      !form.store.trim()
+    ) {
+      setError(
+        "Merchant name is required"
+      );
+      return;
     }
 
-    dispatch(
-      addReceipt({
-        id: Date.now(),
-        ...form,
-        amount: Number(form.amount)
-      })
-    )
 
-    setError("")
-    setSuccess(true)
 
-    setTimeout(() => {
-      navigate("../expense")
-    }, 1200)
-  }
+    if (
+      !form.amount ||
+      Number(form.amount) <= 0
+    ) {
+      setError(
+        "Enter valid amount"
+      );
+      return;
+    }
+
+
+
+    try {
+
+      setLoading(true);
+
+
+
+      dispatch(
+
+        addReceipt({
+
+          id: Date.now(),
+
+          store:
+            form.store.trim(),
+
+          amount:
+            Number(form.amount),
+
+          category:
+            form.category ||
+            "General",
+
+          date: form.date,
+
+          status: "Pending",
+        })
+      );
+
+
+
+      setSuccess(true);
+
+
+
+      setTimeout(() => {
+
+        navigate(
+          "/dashboard/expense"
+        );
+
+      }, 1200);
+
+    } catch (err) {
+
+      setError(
+        "Failed to save expense"
+      );
+
+    } finally {
+
+      setLoading(false);
+
+    }
+  };
+
+
 
   return (
-    <div className="min-h-screen px-4 py-6 sm:py-10 
-                    bg-gradient-to-br from-emerald-50 to-white 
-                    dark:from-black dark:to-gray-900">
+
+    <div
+      className="
+        min-h-screen
+
+        px-3
+        py-5
+
+        sm:px-5
+        sm:py-8
+
+        lg:px-8
+
+        bg-gradient-to-br
+        from-emerald-50
+        to-white
+
+        dark:from-black
+        dark:via-[#07130f]
+        dark:to-gray-900
+      "
+    >
+
+
+      {/* ================= BACK BUTTON ================= */}
 
       <button
-        onClick={() => navigate(-1)}
-        className="flex items-center gap-2 mb-6 text-gray-600 
-                   hover:text-emerald-600 transition"
+
+        onClick={() =>
+          navigate(-1)
+        }
+
+        className="
+          flex
+          items-center
+          gap-2
+
+          mb-6
+
+          text-sm
+          sm:text-base
+
+          text-gray-600
+          dark:text-gray-300
+
+          hover:text-emerald-600
+
+          transition
+        "
       >
-        <ArrowLeft size={20} />
+
+        <ArrowLeft size={18} />
+
         Back
+
       </button>
 
-      <div className="max-w-xl mx-auto 
-                      bg-white dark:bg-white/5 
-                      backdrop-blur-xl
-                      p-6 sm:p-8 
-                      rounded-3xl shadow-xl 
-                      border border-gray-200 
-                      dark:border-white/10">
 
-        <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-center">
-          Add Expense
-        </h2>
+
+      {/* ================= CARD ================= */}
+
+      <div
+        className="
+          max-w-2xl
+          mx-auto
+
+          rounded-3xl
+
+          border
+          border-gray-200
+          dark:border-white/10
+
+          bg-white
+          dark:bg-white/5
+
+          backdrop-blur-xl
+
+          p-5
+          sm:p-8
+
+          shadow-xl
+        "
+      >
+
+
+        {/* ================= TITLE ================= */}
+
+        <div className="mb-8">
+
+          <h1
+            className="
+              text-2xl
+              sm:text-3xl
+
+              font-bold
+
+              text-center
+            "
+          >
+            Add Expense
+          </h1>
+
+          <p
+            className="
+              mt-2
+
+              text-center
+
+              text-sm
+              sm:text-base
+
+              text-gray-500
+              dark:text-gray-400
+            "
+          >
+            Track and manage
+            your spending
+          </p>
+
+        </div>
+
+
+
+        {/* ================= SUCCESS ================= */}
 
         {success && (
-          <div className="mb-4 p-3 rounded-xl bg-green-100 text-green-700 text-center">
-            ✅ Expense Saved Successfully!
+
+          <div
+            className="
+              mb-5
+
+              rounded-2xl
+
+              bg-green-100
+              dark:bg-green-500/20
+
+              px-4
+              py-3
+
+              text-center
+
+              text-sm
+              sm:text-base
+
+              text-green-700
+              dark:text-green-400
+            "
+          >
+            ✅ Expense saved
+            successfully
           </div>
         )}
 
+
+
+        {/* ================= ERROR ================= */}
+
         {error && (
-          <div className="mb-4 p-3 rounded-xl bg-red-100 text-red-600 text-center">
+
+          <div
+            className="
+              mb-5
+
+              rounded-2xl
+
+              bg-red-100
+              dark:bg-red-500/20
+
+              px-4
+              py-3
+
+              text-center
+
+              text-sm
+              sm:text-base
+
+              text-red-600
+              dark:text-red-400
+            "
+          >
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+
+
+        {/* ================= FORM ================= */}
+
+        <form
+          onSubmit={handleSubmit}
+          className="
+            space-y-5
+          "
+        >
+
+
+          {/* ================= MERCHANT ================= */}
 
           <div>
-            <label className="block mb-1 text-sm font-medium">
+
+            <label
+              className="
+                mb-2
+                block
+
+                text-sm
+                font-medium
+              "
+            >
               Merchant *
             </label>
+
             <input
               type="text"
               name="store"
               value={form.store}
               onChange={handleChange}
-              placeholder="Enter Merchant name"
-              className="w-full p-3 rounded-xl border
-                         border-gray-300 dark:border-white/10
-                         bg-white dark:bg-transparent
-                         focus:outline-none focus:ring-2 
-                         focus:ring-emerald-500"
+              placeholder="Enter merchant name"
+              className="
+                w-full
+
+                rounded-2xl
+
+                border
+                border-gray-300
+                dark:border-white/10
+
+                bg-white
+                dark:bg-transparent
+
+                px-4
+                py-3
+
+                text-sm
+                sm:text-base
+
+                outline-none
+
+                focus:ring-2
+                focus:ring-emerald-500
+              "
             />
+
           </div>
 
+
+
+          {/* ================= AMOUNT ================= */}
+
           <div>
-            <label className="block mb-1 text-sm font-medium">
-              Amount (INR) *
+
+            <label
+              className="
+                mb-2
+                block
+
+                text-sm
+                font-medium
+              "
+            >
+              Amount *
             </label>
 
             <div className="relative">
-              <span className="absolute left-3 top-3 text-gray-500">₹</span>
+
+              <span
+                className="
+                  absolute
+
+                  left-4
+                  top-1/2
+                  -translate-y-1/2
+
+                  text-gray-500
+                "
+              >
+                ₹
+              </span>
+
               <input
                 type="text"
                 name="amount"
                 value={form.amount}
                 placeholder="0.00"
                 onChange={(e) => {
-                  const value = e.target.value
-                  if (/^\d*\.?\d*$/.test(value)) {
-                    setForm({ ...form, amount: value })
+
+                  const value =
+                    e.target.value;
+
+                  if (
+                    /^\d*\.?\d*$/.test(value)
+                  ) {
+
+                    setForm({
+
+                      ...form,
+
+                      amount: value,
+                    });
                   }
                 }}
-                className="w-full pl-8 p-3 rounded-xl border
-                           border-gray-300 dark:border-white/10
-                           bg-white dark:bg-transparent
-                           focus:outline-none focus:ring-2 
-                           focus:ring-emerald-500"
+                className="
+                  w-full
+
+                  rounded-2xl
+
+                  border
+                  border-gray-300
+                  dark:border-white/10
+
+                  bg-white
+                  dark:bg-transparent
+
+                  pl-9
+                  pr-4
+                  py-3
+
+                  text-sm
+                  sm:text-base
+
+                  outline-none
+
+                  focus:ring-2
+                  focus:ring-emerald-500
+                "
               />
+
             </div>
+
           </div>
+
+
+
+          {/* ================= CATEGORY ================= */}
 
           <div
             className="relative"
             tabIndex={0}
-            onBlur={() => setOpen(false)}
+            onBlur={() =>
+              setOpen(false)
+            }
           >
-            <label className="block mb-1 text-sm font-medium">
+
+            <label
+              className="
+                mb-2
+                block
+
+                text-sm
+                font-medium
+              "
+            >
               Category
             </label>
 
-            <div
-              onClick={() => setOpen(!open)}
-              className="w-full p-3 rounded-xl border cursor-pointer
-                         border-gray-300 bg-white text-gray-800
-                         dark:border-white/10 dark:bg-white/5 dark:text-white
-                         flex justify-between items-center"
+            <button
+              type="button"
+              onClick={() =>
+                setOpen(!open)
+              }
+              className="
+                w-full
+
+                rounded-2xl
+
+                border
+                border-gray-300
+                dark:border-white/10
+
+                bg-white
+                dark:bg-white/5
+
+                px-4
+                py-3
+
+                text-left
+
+                flex
+                items-center
+                justify-between
+
+                text-sm
+                sm:text-base
+              "
             >
-              {form.category || "Select Category"}
-              <span className="text-sm">▼</span>
-            </div>
+
+              <span>
+                {form.category ||
+                  "Select Category"}
+              </span>
+
+              <ChevronDown
+                size={18}
+              />
+
+            </button>
+
+
 
             {open && (
+
               <div
-                className="absolute w-full mt-2 rounded-xl shadow-lg z-50
-                           border border-gray-200
-                           bg-white text-gray-800
-                           dark:bg-gray-900 dark:text-white dark:border-white/10"
+                className="
+                  absolute
+                  z-50
+
+                  mt-2
+
+                  w-full
+
+                  overflow-hidden
+
+                  rounded-2xl
+
+                  border
+                  border-gray-200
+                  dark:border-white/10
+
+                  bg-white
+                  dark:bg-[#0f1720]
+
+                  shadow-xl
+                "
               >
-                {categories.map((cat) => (
-                  <div
-                    key={cat}
-                    onClick={() => {
-                      setForm({ ...form, category: cat })
-                      setOpen(false)
-                    }}
-                    className="px-4 py-2 cursor-pointer
-                               hover:bg-emerald-100
-                               dark:hover:bg-emerald-600/20"
-                  >
-                    {cat}
-                  </div>
-                ))}
+
+                {categories.map(
+                  (cat) => (
+
+                    <button
+                      type="button"
+                      key={cat}
+                      onClick={() => {
+
+                        setForm({
+
+                          ...form,
+
+                          category: cat,
+                        });
+
+                        setOpen(false);
+                      }}
+                      className="
+                        w-full
+
+                        px-4
+                        py-3
+
+                        text-left
+
+                        text-sm
+                        sm:text-base
+
+                        hover:bg-emerald-100
+                        dark:hover:bg-emerald-500/20
+
+                        transition
+                      "
+                    >
+                      {cat}
+                    </button>
+                  )
+                )}
+
               </div>
             )}
+
           </div>
 
+
+
+          {/* ================= DATE ================= */}
+
           <div>
-            <label className="block mb-1 text-sm font-medium">
+
+            <label
+              className="
+                mb-2
+                block
+
+                text-sm
+                font-medium
+              "
+            >
               Date
             </label>
 
@@ -197,27 +666,75 @@ export default function AddExpense() {
               name="date"
               value={form.date}
               onChange={handleChange}
-              className="w-full p-3 rounded-xl border
-                         border-gray-300 bg-white text-gray-800
-                         dark:bg-transparent dark:text-white
-                         dark:border-white/20
-                         focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="
+                w-full
+
+                rounded-2xl
+
+                border
+                border-gray-300
+                dark:border-white/10
+
+                bg-white
+                dark:bg-transparent
+
+                px-4
+                py-3
+
+                text-sm
+                sm:text-base
+
+                outline-none
+
+                focus:ring-2
+                focus:ring-emerald-500
+              "
             />
+
           </div>
+
+
+
+          {/* ================= BUTTON ================= */}
 
           <button
             type="submit"
-            className="w-full bg-emerald-600 
-                       hover:bg-emerald-700 
-                       active:scale-95
-                       text-white py-3 rounded-xl 
-                       font-semibold transition-all duration-200"
+            disabled={loading}
+            className="
+              w-full
+
+              rounded-2xl
+
+              bg-emerald-600
+              hover:bg-emerald-700
+
+              py-3
+
+              text-sm
+              sm:text-base
+
+              font-semibold
+              text-white
+
+              transition-all
+
+              active:scale-[0.98]
+
+              disabled:opacity-70
+              disabled:cursor-not-allowed
+            "
           >
-            Save Expense
+
+            {loading
+              ? "Saving..."
+              : "Save Expense"}
+
           </button>
 
         </form>
+
       </div>
+
     </div>
-  )
+  );
 }
