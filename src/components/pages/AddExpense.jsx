@@ -67,7 +67,6 @@ export default function AddExpense() {
 
 
 
-  /* ================= HANDLE CHANGE ================= */
 
   const handleChange = (e) => {
 
@@ -83,7 +82,6 @@ export default function AddExpense() {
 
 
 
-  /* ================= SUBMIT ================= */
 
   const handleSubmit = async (e) => {
 
@@ -198,7 +196,6 @@ export default function AddExpense() {
     >
 
 
-      {/* ================= BACK BUTTON ================= */}
 
       <button
 
@@ -233,7 +230,6 @@ export default function AddExpense() {
 
 
 
-      {/* ================= CARD ================= */}
 
       <div
         className="
@@ -259,7 +255,6 @@ export default function AddExpense() {
       >
 
 
-        {/* ================= TITLE ================= */}
 
         <div className="mb-8">
 
@@ -297,7 +292,6 @@ export default function AddExpense() {
 
 
 
-        {/* ================= SUCCESS ================= */}
 
         {success && (
 
@@ -329,7 +323,6 @@ export default function AddExpense() {
 
 
 
-        {/* ================= ERROR ================= */}
 
         {error && (
 
@@ -360,7 +353,6 @@ export default function AddExpense() {
 
 
 
-        {/* ================= FORM ================= */}
 
         <form
           onSubmit={handleSubmit}
@@ -370,7 +362,6 @@ export default function AddExpense() {
         >
 
 
-          {/* ================= MERCHANT ================= */}
 
           <div>
 
@@ -421,7 +412,6 @@ export default function AddExpense() {
 
 
 
-          {/* ================= AMOUNT ================= */}
 
           <div>
 
@@ -507,7 +497,6 @@ export default function AddExpense() {
 
 
 
-          {/* ================= CATEGORY ================= */}
 
           <div
             className="relative"
@@ -645,7 +634,6 @@ export default function AddExpense() {
 
 
 
-          {/* ================= DATE ================= */}
 
           <div>
 
@@ -695,7 +683,6 @@ export default function AddExpense() {
 
 
 
-          {/* ================= BUTTON ================= */}
 
           <button
             type="submit"

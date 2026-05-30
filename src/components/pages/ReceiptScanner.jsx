@@ -15,7 +15,7 @@ export default function ScanPage() {
   useEffect(() => {
     return () => {
       dispatch(resetScan());
-    };
+    }
   }, [dispatch]);
 
   return (

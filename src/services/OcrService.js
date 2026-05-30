@@ -1,66 +1,137 @@
 import Tesseract from "tesseract.js";
 
+export const scanReceiptOCR = async (
+  base64Image,
+  onProgress
+) => {
 
+  const result =
+    await Tesseract.recognize(
+      base64Image,
+      "eng",
 
-export const scanReceiptOCR = async (base64Image, onProgress) => {
-  const result = await Tesseract.recognize(base64Image, "eng", {
-    logger: (m) => {
-      if (m.status === "recognizing text" && onProgress) {
-        onProgress(Math.round(m.progress * 100));
+      {
+        logger: (m) => {
+
+          if (
+            m.status ===
+              "recognizing text" &&
+            onProgress
+          ) {
+            onProgress(
+              Math.round(
+                m.progress * 100
+              )
+            );
+          }
+        },
       }
-    },
-  });
+    );
 
-  const text = result.data.text;
-  const category = detectCategory(text);
+
+
+  const text =
+    result.data.text;
+
+
+
+  const confidence =
+    result.data.confidence / 100;
+
+
+
+  if (confidence < 0.4) {
+    throw new Error(
+      "Low OCR confidence"
+    );
+  }
+
+
 
   return {
-    merchant: detectMerchant(text),
-    date: detectDate(text),
-    amount: detectAmount(text),
-    category,
-        rawText: text,
 
-    confidence: result.data.confidence / 100,
+    merchant:
+      detectMerchant(text),
+
+    date:
+      detectDate(text),
+
+    amount:
+      detectAmount(text),
+
+    category:
+      detectCategory(text),
+
+    rawText: text,
+
+    confidence,
   };
 };
+
+
+
+
+
+
 const detectCategory = (text) => {
-  const lower = text.toLowerCase();
-  const lines = lower.split("\n").filter(Boolean);
+
+  const lower =
+    text.toLowerCase();
+
+  const lines =
+    lower
+      .split("\n")
+      .filter(Boolean);
 
 
 
   const merchantMap = {
+
     "indian oil": "Fuel",
     "bharat petroleum": "Fuel",
     "hp petrol": "Fuel",
-    "shell": "Fuel",
+    shell: "Fuel",
 
-    "kfc": "Food",
-    "mcdonald": "Food",
+    kfc: "Food",
+    mcdonald: "Food",
     "pizza hut": "Food",
-    "dominos": "Food",
+    dominos: "Food",
 
-    "amazon": "Shopping",
-    "flipkart": "Shopping",
+    amazon: "Shopping",
+    flipkart: "Shopping",
 
-    "apollo pharmacy": "Medical",
-    "medplus": "Medical",
+    "apollo pharmacy":
+      "Medical",
 
-    "reliance fresh": "Grocery",
-    "big bazaar": "Grocery",
-    "d mart": "Grocery",
+    medplus: "Medical",
+
+    "reliance fresh":
+      "Grocery",
+
+    "big bazaar":
+      "Grocery",
+
+    "d mart":
+      "Grocery",
   };
 
+
+
   for (const merchant in merchantMap) {
-    if (lower.includes(merchant)) {
-      return merchantMap[merchant];
+
+    if (
+      lower.includes(merchant)
+    ) {
+      return merchantMap[
+        merchant
+      ];
     }
   }
 
 
 
   const categories = {
+
     Food: [
       "restaurant",
       "cafe",
@@ -68,8 +139,6 @@ const detectCategory = (text) => {
       "burger",
       "pizza",
       "meal",
-      "dine",
-      "hotel",
       "bakery",
     ],
 
@@ -80,8 +149,6 @@ const detectCategory = (text) => {
       "vegetable",
       "milk",
       "rice",
-      "atta",
-      "provision",
     ],
 
     Fuel: [
@@ -95,140 +162,242 @@ const detectCategory = (text) => {
     Medical: [
       "pharmacy",
       "medical",
-      "clinic",
       "tablet",
       "capsule",
-      "drug",
     ],
 
     Shopping: [
       "fashion",
-      "clothing",
       "electronics",
-      "retail",
       "mall",
+      "retail",
     ],
   };
 
-  const scores = {};
-  Object.keys(categories).forEach(
-    (cat) => (scores[cat] = 0)
-  );
 
-  lines.slice(0, 3).forEach((line) => {
-    for (const category in categories) {
-      categories[category].forEach((keyword) => {
-        if (line.includes(keyword)) {
-          scores[category] += 3;
-        }
-      });
-    }
-  });
+
+  const scores = {};
+
+
+
+  Object.keys(categories)
+    .forEach((cat) => {
+      scores[cat] = 0;
+    });
+
+
 
   lines.forEach((line) => {
+
     for (const category in categories) {
-      categories[category].forEach((keyword) => {
-        if (line.includes(keyword)) {
-          scores[category] += 1;
+
+      categories[
+        category
+      ].forEach((keyword) => {
+
+        if (
+          line.includes(keyword)
+        ) {
+          scores[
+            category
+          ] += 1;
         }
       });
     }
   });
 
-  
 
-  if (lines.length > 20) {
-    scores["Grocery"] += 2;
-  }
 
-  if (lower.includes("litre") || lower.includes("ltr")) {
-    scores["Fuel"] += 5;
-  }
+  let bestCategory =
+    "General";
 
-  if (lower.includes("tablet") || lower.includes("capsule")) {
-    scores["Medical"] += 4;
-  }
-
- 
-
-  let bestCategory = "General";
   let maxScore = 0;
 
+
+
   for (const category in scores) {
-    if (scores[category] > maxScore) {
-      maxScore = scores[category];
-      bestCategory = category;
+
+    if (
+      scores[category] >
+      maxScore
+    ) {
+
+      maxScore =
+        scores[category];
+
+      bestCategory =
+        category;
     }
   }
 
-  return maxScore === 0 ? "General" : bestCategory;
+
+
+  return maxScore === 0
+    ? "General"
+    : bestCategory;
 };
 
 
 
-const detectMerchant = (text) => {
-  const lines = text.split("\n").filter(Boolean);
+
+
+
+const detectMerchant = (
+  text
+) => {
+
+  const lines =
+    text
+      .split("\n")
+      .filter(Boolean);
+
+
 
   for (let line of lines) {
-    if (line.length > 3 && !line.match(/\d/)) {
-      return line.trim();
+
+    if (
+      line.length > 3 &&
+      !line.match(/\d/)
+    ) {
+
+      return line
+        .replace(
+          /[^a-zA-Z0-9\s]/g,
+          ""
+        )
+        .trim();
     }
   }
+
+
 
   return "Unknown Merchant";
 };
 
 
+
+
+
+
 const detectDate = (text) => {
 
   const dateRegex =
-    /\b(\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4})\b/;
+    /\b(\d{1,4}[\/\-.]\d{1,2}[\/\-.]\d{1,4})\b/;
 
-  const match = text.match(dateRegex);
-  return match ? match[1] : "";
+
+
+  const match =
+    text.match(dateRegex);
+
+
+
+  return match
+    ? match[1]
+    : "";
 };
 
 
 
-const detectAmount = (text) => {
-  const lines = text.split("\n");
 
-  let totalAmount = null;
-  let subTotalAmount = null;
-  let highestAmount = 0;
+
+
+const detectAmount = (
+  text
+) => {
+
+  const lines =
+    text.split("\n");
+
+
+
+  let totalAmount =
+    null;
+
+  let subTotalAmount =
+    null;
+
+  let highestAmount =
+    0;
+
+
 
   for (let line of lines) {
-    const lower = line.toLowerCase();
 
-  
-    const match = line.match(
-      /(?:₹|\$|aed|inr|rs\.?)?\s?([\d,]+\.\d{2})/i
-    );
+    const lower =
+      line.toLowerCase();
 
-    if (!match) continue;
 
-    const amount = parseFloat(
-      match[1].replace(/,/g, "")
-    );
 
-    if (isNaN(amount)) continue;
+    const match =
+      line.match(
+        /(?:₹|rs\.?|inr|\$)?\s*([\d,]+(?:\.\d{1,2})?)/i
+      );
+
+
+
+    if (!match)
+      continue;
+
+
+
+    const amount =
+      parseFloat(
+        match[1].replace(
+          /,/g,
+          ""
+        )
+      );
+
+
+
+    if (isNaN(amount))
+      continue;
+
+
 
     if (
-      lower.includes("total") &&
-      !lower.includes("subtotal") &&
-      !lower.includes("total qty")
+      lower.includes(
+        "total"
+      ) &&
+      !lower.includes(
+        "subtotal"
+      )
     ) {
-      totalAmount = amount;
+
+      totalAmount =
+        amount;
     }
 
-    if (lower.includes("subtotal")) {
-      subTotalAmount = amount;
+
+
+    if (
+      lower.includes(
+        "subtotal"
+      )
+    ) {
+
+      subTotalAmount =
+        amount;
     }
 
-    if (amount > highestAmount) {
-      highestAmount = amount;
+
+
+    if (
+      amount >
+      highestAmount
+    ) {
+
+      highestAmount =
+        amount;
     }
   }
 
-  return totalAmount || subTotalAmount || highestAmount || 0;
-};
+
+
+  return (
+    totalAmount ||
+    subTotalAmount ||
+    highestAmount ||
+    0
+  )
+}

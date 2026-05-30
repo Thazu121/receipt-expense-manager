@@ -12,7 +12,6 @@ export default function CategoriesCard() {
 
 
 
-  /* ================= CATEGORY DATA ================= */
 
   const categories = useMemo(() => {
 
@@ -109,7 +108,6 @@ export default function CategoriesCard() {
       "
     >
 
-      {/* ================= HEADER ================= */}
 
       <div
         className="
@@ -155,7 +153,6 @@ export default function CategoriesCard() {
 
 
 
-      {/* ================= EMPTY ================= */}
 
       {isEmpty ? (
 
@@ -194,7 +191,6 @@ export default function CategoriesCard() {
                 key={index}
               >
 
-                {/* ================= TOP ROW ================= */}
 
                 <div
                   className="
@@ -293,7 +289,6 @@ export default function CategoriesCard() {
 
 
 
-                {/* ================= BAR ================= */}
 
                 <div
                   className="

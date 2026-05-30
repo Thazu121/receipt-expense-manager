@@ -1,112 +1,268 @@
-import { useDispatch, useSelector } from "react-redux";
-import { useState } from "react";
-import { scanReceipt, resetScan } from "../../redux/features/scanSlice";
+import {
+  useDispatch,
+  useSelector,
+} from "react-redux";
+
+import {
+  scanReceipt,
+  resetScan,
+} from "../../redux/features/scanSlice";
+
+import {
+  useState,
+  useEffect,
+} from "react";
 
 export default function FileUploadCard() {
   const dispatch = useDispatch();
 
-  const { scanning, progress, error } =
-    useSelector((state) => state.scan);
-
-  const isLight = useSelector(
-    (state) => state.theme.isLight
+  const {
+    scanning,
+    error,
+    extracted,
+  } = useSelector(
+    (state) => state.scan
   );
 
-  const [preview, setPreview] = useState(null);
+  const [preview, setPreview] =
+    useState(null);
 
+  useEffect(() => {
+    return () => {
+      if (preview) {
+        URL.revokeObjectURL(
+          preview
+        );
+      }
+    };
+  }, [preview]);
 
   const handleUpload = (e) => {
-    const file = e.target.files?.[0];
+    const file =
+      e.target.files?.[0];
+
     if (!file) return;
 
-    if (!file.type.startsWith("image/")) return;
-    if (file.size > 5 * 1024 * 1024) return;
+    if (
+      !file.type.startsWith(
+        "image/"
+      )
+    ) {
+      alert(
+        "Please upload an image file"
+      );
+      return;
+    }
 
-    const reader = new FileReader()
+    if (
+      file.size >
+      5 * 1024 * 1024
+    ) {
+      alert(
+        "Image must be less than 5MB"
+      );
+      return;
+    }
 
-    reader.onloadend = () => {
-      const base64Image = reader.result
-      setPreview(base64Image)
+    const imageUrl =
+      URL.createObjectURL(file);
 
-      dispatch(scanReceipt(base64Image))
-    };
+    setPreview(imageUrl);
 
-    reader.readAsDataURL(file)
+    dispatch(
+      scanReceipt(file)
+    );
   };
 
+  const handleRemove = () => {
+    if (preview) {
+      URL.revokeObjectURL(
+        preview
+      );
+    }
 
+    setPreview(null);
+
+    dispatch(
+      resetScan()
+    );
+  };
 
   return (
     <div
-      className={`w-full max-w-3xl mx-auto rounded-2xl p-4 sm:p-6 relative transition-all
-      ${
-        isLight
-          ? "bg-white border border-gray-200 shadow-md"
-          : "bg-black/40 border border-green-500/20 shadow-lg"
-      }`}
+      className="
+        p-6
+        rounded-2xl
+        border
+        bg-white
+        shadow-sm
+      "
     >
-      {scanning && (
-        <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center rounded-2xl text-white z-50">
-          <div className="w-10 h-10 border-4 border-green-500 border-t-transparent rounded-full animate-spin mb-2"></div>
-          <p className="text-sm">
-            Scanning... {progress}%
-          </p>
-        </div>
-      )}
-
       {!preview && (
         <label
-          className={`flex flex-col items-center justify-center 
-          h-48 sm:h-56 md:h-64 
-          border-2 border-dashed rounded-xl cursor-pointer 
-          transition hover:opacity-80
-          ${
-            isLight
-              ? "border-gray-300 text-gray-500"
-              : "border-green-500/30 text-green-400"
-          }`}
+          className="
+            block
+            border-2
+            border-dashed
+            border-gray-300
+            rounded-xl
+            p-10
+            text-center
+            cursor-pointer
+            hover:border-emerald-500
+            transition
+          "
         >
-          <span className="text-sm sm:text-base text-center px-4">
-            Click to Upload Receipt
-          </span>
+          <div>
+            <p className="font-medium">
+              Upload Receipt
+            </p>
+
+            <p className="text-sm text-gray-500 mt-2">
+              JPG, PNG, WEBP
+            </p>
+          </div>
 
           <input
             type="file"
             accept="image/*"
-            onChange={handleUpload}
+            onChange={
+              handleUpload
+            }
             className="hidden"
           />
         </label>
       )}
 
       {preview && (
-        <div className="flex flex-col items-center">
+        <div className="space-y-4">
           <img
             src={preview}
-            alt="preview"
-            className="w-full max-h-64 sm:max-h-72 md:max-h-80 object-contain rounded-xl"
+            alt="Receipt Preview"
+            className="
+              w-full
+              rounded-xl
+              max-h-[400px]
+              object-contain
+            "
           />
 
           <button
-            onClick={() => {
-              setPreview(null);
-              dispatch(resetScan());
-            }}
-            className={`mt-4 px-4 py-2 rounded-lg text-sm transition
-            ${
-              isLight
-                ? "bg-gray-100 hover:bg-gray-200 text-gray-700"
-                : "bg-green-500/20 hover:bg-green-500/30 text-green-400"
-            }`}
+            onClick={
+              handleRemove
+            }
+            className="
+              px-4
+              py-2
+              bg-red-500
+              hover:bg-red-600
+              text-white
+              rounded-lg
+            "
           >
-            Upload Another
+            Remove
           </button>
         </div>
       )}
 
+      {scanning && (
+        <div
+          className="
+            mt-4
+            flex
+            items-center
+            gap-3
+          "
+        >
+          <div
+            className="
+              w-5
+              h-5
+              border-2
+              border-emerald-500
+              border-t-transparent
+              rounded-full
+              animate-spin
+            "
+          />
+
+          <span>
+            Scanning Receipt...
+          </span>
+        </div>
+      )}
+
       {error && (
-        <div className="mt-4 p-3 bg-red-500/20 text-red-500 rounded-lg text-sm text-center">
+        <div
+          className="
+            mt-4
+            p-3
+            rounded-lg
+            bg-red-100
+            text-red-600
+          "
+        >
           {error}
+        </div>
+      )}
+
+      {extracted?.merchant && (
+        <div
+          className="
+            mt-6
+            p-4
+            rounded-xl
+            border
+            bg-gray-50
+          "
+        >
+          <h3
+            className="
+              font-semibold
+              mb-3
+            "
+          >
+            Extracted Details
+          </h3>
+
+          <div className="space-y-2">
+            <p>
+              <strong>
+                Merchant:
+              </strong>{" "}
+              {
+                extracted.merchant
+              }
+            </p>
+
+            <p>
+              <strong>
+                Amount:
+              </strong>{" "}
+              ₹
+              {
+                extracted.amount
+              }
+            </p>
+
+            <p>
+              <strong>
+                Date:
+              </strong>{" "}
+              {
+                extracted.date
+              }
+            </p>
+
+            <p>
+              <strong>
+                Category:
+              </strong>{" "}
+              {
+                extracted.category
+              }
+            </p>
+          </div>
         </div>
       )}
     </div>

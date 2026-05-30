@@ -42,9 +42,6 @@ export default function ExpenseRow({
       `}
     >
 
-      {/* ====================================== */}
-      {/* DESKTOP TABLE */}
-      {/* ====================================== */}
 
       <div
         className="
@@ -58,7 +55,6 @@ export default function ExpenseRow({
         "
       >
 
-        {/* MERCHANT */}
 
         <div
           className="
@@ -71,7 +67,6 @@ export default function ExpenseRow({
         </div>
 
 
-        {/* DATE */}
 
         <div
           className={`
@@ -94,7 +89,6 @@ export default function ExpenseRow({
         </div>
 
 
-        {/* CATEGORY */}
 
         <div>
 
@@ -159,9 +153,7 @@ export default function ExpenseRow({
       </div>
 
 
-      {/* ====================================== */}
-      {/* MOBILE CARD */}
-      {/* ====================================== */}
+      {/*  */}
 
       <div
         className="
@@ -174,7 +166,6 @@ export default function ExpenseRow({
         "
       >
 
-        {/* TOP */}
 
         <div
           className="

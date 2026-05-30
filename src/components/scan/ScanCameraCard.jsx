@@ -1,14 +1,23 @@
 import { useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
+
 import {
   scanReceipt,
   clearError,
+  setError,
 } from "../../redux/features/scanSlice";
 
 export default function CameraCard() {
   const dispatch = useDispatch();
-  const { scanning, error, progress } =
-    useSelector((state) => state.scan);
+
+  const {
+    scanning,
+    progress,
+    error,
+  } = useSelector(
+    (state) => state.scan
+  );
+
   const isLight = useSelector(
     (state) => state.theme.isLight
   );
@@ -19,175 +28,292 @@ export default function CameraCard() {
 
   useEffect(() => {
     startCamera();
-    return () => stopCamera();
+
+    return () => {
+      stopCamera();
+    };
   }, []);
 
   useEffect(() => {
-    if (error) {
-      const timer = setTimeout(() => {
-        dispatch(clearError());
-      }, 4000);
-      return () => clearTimeout(timer);
-    }
+    if (!error) return;
+
+    const timer = setTimeout(() => {
+      dispatch(clearError());
+    }, 4000);
+
+    return () => clearTimeout(timer);
   }, [error, dispatch]);
 
   const startCamera = async () => {
     try {
       const stream =
         await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { ideal: "environment" } },
+          video: {
+            facingMode: {
+              ideal: "environment",
+            },
+            width: {
+              ideal: 1920,
+            },
+            height: {
+              ideal: 1080,
+            },
+          },
         });
+
+      streamRef.current = stream;
 
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
       }
-
-      streamRef.current = stream;
     } catch (err) {
-      let message = "Unable to access camera.";
-
-      if (err.name === "NotAllowedError") {
-        message = "Camera permission denied.";
-      } else if (err.name === "NotFoundError") {
-        message = "No camera device found.";
-      } else if (err.name === "NotReadableError") {
-        message = "Camera already in use.";
-      }
-
-      dispatch({
-        type: "scan/scanReceipt/rejected",
-        payload: message,
-      });
+      dispatch(
+        setError(
+          "Unable to access camera."
+        )
+      );
     }
   };
 
   const stopCamera = () => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach((track) => track.stop());
-      streamRef.current = null;
-    }
+    if (!streamRef.current) return;
+
+    streamRef.current
+      .getTracks()
+      .forEach((track) =>
+        track.stop()
+      );
+
+    streamRef.current = null;
   };
 
-  const captureAndScan = async () => {
-    if (!videoRef.current || scanning) return;
+  const captureAndScan =
+    async () => {
+      if (
+        !videoRef.current ||
+        scanning
+      )
+        return;
 
-    try {
-      const video = videoRef.current;
-      const canvas = canvasRef.current;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) throw new Error("Canvas not ready");
+      try {
+        const video =
+          videoRef.current;
 
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      ctx.drawImage(video, 0, 0);
+        const canvas =
+          canvasRef.current;
 
-      const imageData = canvas.toDataURL("image/png");
-      stopCamera();
+        const ctx =
+          canvas.getContext("2d");
 
-      const result = await dispatch(scanReceipt(imageData));
+        canvas.width =
+          video.videoWidth;
 
-      if (scanReceipt.rejected.match(result)) {
-        throw new Error(result.payload);
+        canvas.height =
+          video.videoHeight;
+
+        ctx.drawImage(
+          video,
+          0,
+          0
+        );
+
+        const image =
+          canvas.toDataURL(
+            "image/png"
+          );
+
+        const result =
+          await dispatch(
+            scanReceipt(image)
+          );
+
+        if (
+          scanReceipt.rejected.match(
+            result
+          )
+        ) {
+          throw new Error(
+            result.payload
+          );
+        }
+      } catch (err) {
+        dispatch(
+          setError(
+            err.message ||
+              "Scan failed"
+          )
+        );
       }
-
-      startCamera();
-    } catch (err) {
-      dispatch({
-        type: "scan/setError",
-        payload: err.message || "Scan failed",
-      });
-      startCamera();
-    }
-  };
+    };
 
   return (
     <div
-      className={`w-full max-w-3xl mx-auto rounded-2xl p-4 sm:p-6 transition-all duration-300
-      ${
-        isLight
-          ? "bg-white border border-gray-300 shadow-md text-gray-800"
-          : "bg-[#071b11] border border-green-500/20 text-white"
-      }`}
+      className={`
+        w-full
+        rounded-2xl
+        overflow-hidden
+        p-4
+        sm:p-6
+        transition-all
+
+        ${
+          isLight
+            ? `
+              bg-white
+              border
+              border-gray-200
+              shadow-md
+            `
+            : `
+              bg-[#071b11]
+              border
+              border-green-500/20
+            `
+        }
+      `}
     >
       {error && (
         <div
-          className={`mb-4 p-3 rounded-lg text-sm text-center
-          ${
-            isLight
-              ? "bg-red-100 text-red-600"
-              : "bg-red-500/20 text-red-400"
-          }`}
+          className="
+            mb-4
+            p-3
+            rounded-lg
+            bg-red-500/10
+            text-red-500
+            text-sm
+            text-center
+          "
         >
           {error}
         </div>
       )}
 
-      <div className="relative rounded-xl overflow-hidden border border-green-500/40">
+      <div
+        className="
+          relative
+          overflow-hidden
+          rounded-xl
+          border
+          border-green-500/30
+        "
+      >
+        <video
+          ref={videoRef}
+          autoPlay
+          playsInline
+          muted
+          className="
+            w-full
+            h-[260px]
+            sm:h-[420px]
+            object-cover
+          "
+        />
 
-        <div className="relative w-full aspect-video sm:h-[420px]">
-          <video
-            ref={videoRef}
-            autoPlay
-            playsInline
-            muted
-            className="absolute inset-0 w-full h-full object-cover"
-          />
+        <canvas
+          ref={canvasRef}
+          className="hidden"
+        />
 
-          <canvas ref={canvasRef} className="hidden" />
-
-          {scanning && (
-            <div
-              className={`absolute inset-0 flex flex-col items-center justify-center gap-3 font-semibold text-center px-4
-              ${
-                isLight
-                  ? "bg-white/70 text-green-600"
-                  : "bg-black/60 text-green-400"
-              }`}
-            >
-              🔍 Scanning...
-
-              <div className="w-full max-w-xs bg-gray-300 rounded-full h-2 overflow-hidden">
-                <div
-                  className="bg-green-500 h-full transition-all duration-300"
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
-
-              <span className="text-xs">
-                {progress}%
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Capture Button */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-[85%] sm:w-auto">
-          <button
-            onClick={captureAndScan}
-            disabled={scanning}
-            className={`w-full sm:w-auto px-6 sm:px-8 py-3 rounded-xl font-semibold transition-all duration-200 disabled:opacity-50
-            ${
-              isLight
-                ? "bg-green-600 text-white hover:bg-green-500"
-                : "bg-green-500 text-black hover:bg-green-400"
-            }`}
+        {scanning && (
+          <div
+            className="
+              absolute
+              inset-0
+              bg-black/60
+              flex
+              flex-col
+              items-center
+              justify-center
+              text-white
+              gap-4
+            "
           >
-            {scanning ? "Processing..." : "SCAN RECEIPT"}
+            <div
+              className="
+                h-12
+                w-12
+                border-4
+                border-green-500
+                border-t-transparent
+                rounded-full
+                animate-spin
+              "
+            />
+
+            <p>
+              Scanning...
+              {progress}%
+            </p>
+
+            <div
+              className="
+                w-64
+                bg-gray-700
+                h-2
+                rounded-full
+                overflow-hidden
+              "
+            >
+              <div
+                className="
+                  h-full
+                  bg-green-500
+                  transition-all
+                "
+                style={{
+                  width: `${progress}%`,
+                }}
+              />
+            </div>
+          </div>
+        )}
+
+        <div
+          className="
+            absolute
+            bottom-4
+            left-1/2
+            -translate-x-1/2
+          "
+        >
+          <button
+            onClick={
+              captureAndScan
+            }
+            disabled={scanning}
+            className="
+              px-8
+              py-3
+              rounded-xl
+              bg-green-500
+              hover:bg-green-400
+              text-black
+              font-semibold
+              disabled:opacity-50
+            "
+          >
+            {scanning
+              ? "Scanning..."
+              : "Scan Receipt"}
           </button>
         </div>
       </div>
 
-      {/* Feature Indicators */}
       <div
-        className={`flex flex-wrap justify-center gap-4 sm:gap-6 mt-4 text-xs sm:text-sm
-        ${
-          isLight
-            ? "text-green-600"
-            : "text-green-400"
-        }`}
+        className="
+          flex
+          flex-wrap
+          justify-center
+          gap-4
+          mt-4
+          text-xs
+          sm:text-sm
+          text-green-500
+        "
       >
-        <span>✔ AUTO-FOCUS</span>
         <span>✔ OCR READY</span>
+        <span>✔ AUTO FOCUS</span>
         <span>✔ AI EXTRACTION</span>
       </div>
     </div>

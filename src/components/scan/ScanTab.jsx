@@ -1,13 +1,23 @@
 import { useDispatch, useSelector } from "react-redux";
-import { setMode, resetScan } from "../../redux/features/scanSlice";
+import {
+  setMode,
+  resetScan,
+} from "../../redux/features/scanSlice";
 
 export default function ScanTabs() {
   const dispatch = useDispatch();
-  const { mode } = useSelector((state) => state.scan);
-  const isLight = useSelector((state) => state.theme.isLight);
+
+  const { mode } = useSelector(
+    (state) => state.scan
+  );
+
+  const isLight = useSelector(
+    (state) => state.theme.isLight
+  );
 
   const switchMode = (newMode) => {
     if (newMode === mode) return;
+
     dispatch(resetScan());
     dispatch(setMode(newMode));
   };
@@ -15,11 +25,16 @@ export default function ScanTabs() {
   return (
     <div
       className={`
-        flex flex-wrap sm:flex-nowrap
-        w-full sm:w-fit
+        w-full
+        sm:w-fit
+
+        flex
+
         rounded-xl
         p-1
-        transition-all duration-300
+
+        transition-all
+
         ${
           isLight
             ? "bg-gray-200 border border-gray-300"
@@ -28,51 +43,71 @@ export default function ScanTabs() {
       `}
     >
       <button
-        onClick={() => switchMode("camera")}
+        onClick={() =>
+          switchMode("camera")
+        }
         className={`
-          flex-1 sm:flex-none
-          px-4 sm:px-6
-          py-2
+          flex-1
+
+          py-3
+          px-3
+          sm:px-6
+
           rounded-lg
+
+          text-sm
+          sm:text-base
+
           font-medium
-          text-sm sm:text-base
-          transition-all duration-300
+
+          transition-all
+
           ${
             mode === "camera"
               ? isLight
                 ? "bg-green-600 text-white shadow-md"
                 : "bg-green-500 text-black shadow-md"
               : isLight
-              ? "text-gray-600 hover:text-black hover:bg-white/50"
-              : "text-gray-400 hover:text-white hover:bg-white/10"
+              ? "text-gray-600 hover:bg-white/60"
+              : "text-gray-400 hover:bg-white/10 hover:text-white"
           }
         `}
       >
-        Live Camera
+        📷 Live Camera
       </button>
 
       <button
-        onClick={() => switchMode("upload")}
+        onClick={() =>
+          switchMode("upload")
+        }
         className={`
-          flex-1 sm:flex-none
-          px-4 sm:px-6
-          py-2
+          flex-1
+
+          py-3
+          px-3
+          sm:px-6
+
           rounded-lg
+
+          text-sm
+          sm:text-base
+
           font-medium
-          text-sm sm:text-base
-          transition-all duration-300
+
+          transition-all
+
           ${
             mode === "upload"
               ? isLight
                 ? "bg-green-600 text-white shadow-md"
                 : "bg-green-500 text-black shadow-md"
               : isLight
-              ? "text-gray-600 hover:text-black hover:bg-white/50"
-              : "text-gray-400 hover:text-white hover:bg-white/10"
+              ? "text-gray-600 hover:bg-white/60"
+              : "text-gray-400 hover:bg-white/10 hover:text-white"
           }
         `}
       >
-        File Upload
+        📁 File Upload
       </button>
     </div>
   );

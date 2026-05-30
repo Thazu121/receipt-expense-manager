@@ -44,7 +44,6 @@ export default function ExpenseFilters({
         "
       >
 
-        {/* ================= SEARCH ================= */}
 
         <div
           className="
@@ -114,7 +113,6 @@ export default function ExpenseFilters({
 
 
 
-        {/* ================= SORT ================= */}
 
         <div
           className="

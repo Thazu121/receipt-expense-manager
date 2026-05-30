@@ -1,5 +1,9 @@
-import { useSelector } from "react-redux";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
+
+import {
+  useSelector,
+  useDispatch,
+} from "react-redux";
 
 import Header from "../dashboard/Header";
 import StatCard from "../dashboard/StatCard";
@@ -7,24 +11,44 @@ import SpendingChart from "../dashboard/SpendingChart";
 import CategoriesCard from "../dashboard/CategoriesCard";
 import TransactionsTable from "../dashboard/TransactionTables";
 
+import {
+  getExpenses,
+} from "../../redux/features/expenseSlice";
+
 
 
 export default function Dashboard() {
 
+  const dispatch = useDispatch();
+
+
+
   const {
-    receipts = [],
+    expenses = [],
     loading,
     error,
   } = useSelector(
-    (state) => state.receipt || {}
+    (state) => state.expense || {}
   );
 
 
 
-  /* ================= ERROR ================= */
+
+  useEffect(() => {
+
+    dispatch(
+      getExpenses()
+    );
+
+  }, [dispatch]);
+
+
+
 
   if (error) {
+
     return (
+
       <div
         className="
           min-h-screen
@@ -33,75 +57,119 @@ export default function Dashboard() {
           justify-center
           px-4
           text-center
+          bg-[#F8FAFC]
+          dark:bg-[#0B1120]
         "
       >
-        <div>
-          <h2 className="text-xl font-bold text-red-500">
-            Failed to load dashboard
+
+        <div
+          className="
+            bg-white
+            dark:bg-[#0F1B22]
+
+            p-8
+
+            rounded-3xl
+
+            shadow-lg
+
+            border
+            border-red-200
+            dark:border-red-500/20
+
+            max-w-md
+            w-full
+          "
+        >
+
+          <h2
+            className="
+              text-2xl
+              font-bold
+              text-red-500
+            "
+          >
+            Failed to Load Dashboard
           </h2>
 
-          <p className="text-gray-500 mt-2">
+          <p
+            className="
+              text-gray-500
+              dark:text-gray-400
+              mt-3
+            "
+          >
             {error}
           </p>
+
         </div>
+
       </div>
     );
   }
 
 
 
-  /* ================= LOADING ================= */
 
   if (loading) {
+
     return (
+
       <div
         className="
           min-h-screen
           flex
           items-center
           justify-center
+          bg-[#F8FAFC]
+          dark:bg-[#0B1120]
         "
       >
+
         <div
           className="
-            h-14
-            w-14
+            h-16
+            w-16
+
             rounded-full
+
             border-4
             border-emerald-500
             border-t-transparent
+
             animate-spin
           "
         />
+
       </div>
     );
   }
 
 
 
-  /* ================= ANALYTICS ================= */
 
   const {
     totalBalance,
     monthlySpend,
     totalSavings,
-    pendingReceipts,
+    pendingExpenses,
+    verifiedExpenses,
   } = useMemo(() => {
 
-    const verifiedReceipts =
-      receipts.filter(
-        (r) =>
-          r.status?.toLowerCase() ===
+    const verified =
+      expenses.filter(
+        (e) =>
+          e.status?.toLowerCase() ===
           "verified"
       );
 
 
 
     const total =
-      verifiedReceipts.reduce(
-        (sum, r) =>
+      verified.reduce(
+        (sum, e) =>
           sum +
-          Number(r.amount || 0),
+          Number(e.amount || 0),
         0
       );
 
@@ -116,13 +184,13 @@ export default function Dashboard() {
 
 
     const monthly =
-      verifiedReceipts
-        .filter((r) => {
+      verified
+        .filter((e) => {
 
-          if (!r.date) return false;
+          if (!e.date) return false;
 
           const d =
-            new Date(r.date);
+            new Date(e.date);
 
           return (
             d.getMonth() ===
@@ -133,52 +201,60 @@ export default function Dashboard() {
         })
 
         .reduce(
-          (sum, r) =>
+          (sum, e) =>
             sum +
-            Number(r.amount || 0),
+            Number(e.amount || 0),
           0
         );
 
 
 
     const pending =
-      receipts.filter(
-        (r) =>
-          r.status?.toLowerCase() ===
+      expenses.filter(
+        (e) =>
+          e.status?.toLowerCase() ===
           "pending"
       ).length;
 
 
 
     return {
-      totalBalance: total,
 
-      monthlySpend: monthly,
+      totalBalance:
+        total,
+
+      monthlySpend:
+        monthly,
 
       totalSavings:
         total * 0.2,
 
-      pendingReceipts:
+      pendingExpenses:
         pending,
+
+      verifiedExpenses:
+        verified.length,
     };
 
-  }, [receipts]);
+  }, [expenses]);
 
 
 
-  /* ================= EMPTY STATE ================= */
 
   const isEmpty =
-    receipts.length === 0;
+    expenses.length === 0;
 
 
 
   return (
+
     <div
       className="
         min-h-screen
+
         bg-[#F8FAFC]
         dark:bg-[#0B1120]
+
         transition-colors
         duration-300
       "
@@ -199,40 +275,47 @@ export default function Dashboard() {
         "
       >
 
-        {/* ================= HEADER ================= */}
 
-        <div className="mb-6 sm:mb-8">
+        <div
+          className="
+            mb-6
+            sm:mb-8
+          "
+        >
           <Header />
         </div>
 
 
 
-        {/* ================= EMPTY ================= */}
 
         {isEmpty ? (
 
           <div
             className="
               rounded-3xl
+
               border
               border-dashed
               border-gray-300
               dark:border-white/10
 
               bg-white
-              dark:bg-white/5
+              dark:bg-[#0F1B22]
 
               py-20
               px-6
 
               text-center
+
+              shadow-sm
             "
           >
 
             <h2
               className="
-                text-2xl
+                text-3xl
                 font-bold
+
                 text-gray-800
                 dark:text-white
               "
@@ -242,13 +325,18 @@ export default function Dashboard() {
 
             <p
               className="
-                mt-3
+                mt-4
+
                 text-gray-500
                 dark:text-gray-400
+
+                max-w-md
+                mx-auto
               "
             >
-              Start adding expenses to
-              view your dashboard analytics.
+              Start adding expenses
+              to see spending insights,
+              analytics and reports.
             </p>
 
           </div>
@@ -256,7 +344,7 @@ export default function Dashboard() {
         ) : (
 
           <>
-            {/* ================= STATS ================= */}
+
 
             <div
               className="
@@ -264,7 +352,7 @@ export default function Dashboard() {
 
                 grid-cols-1
                 sm:grid-cols-2
-                xl:grid-cols-4
+                xl:grid-cols-5
 
                 gap-4
                 sm:gap-6
@@ -293,15 +381,20 @@ export default function Dashboard() {
               />
 
               <StatCard
-                title="Pending Receipts"
-                value={pendingReceipts}
+                title="Pending"
+                value={pendingExpenses}
+              />
+
+              <StatCard
+                title="Verified"
+                value={verifiedExpenses}
               />
 
             </div>
 
 
 
-            {/* ================= CHARTS ================= */}
+            {/* ================= CHART SECTION ================= */}
 
             <div
               className="
@@ -322,33 +415,42 @@ export default function Dashboard() {
                   min-w-0
                 "
               >
+
                 <SpendingChart
-                  receipts={receipts}
+                  expenses={expenses}
                 />
+
               </div>
 
+
+
               <div className="min-w-0">
+
                 <CategoriesCard
-                  receipts={receipts}
+                  expenses={expenses}
                 />
+
               </div>
 
             </div>
 
 
 
-            {/* ================= TABLE ================= */}
+            {/* ================= TRANSACTIONS ================= */}
 
             <div
               className="
-                overflow-x-auto
                 rounded-2xl
+                overflow-hidden
               "
             >
+
               <TransactionsTable
-                receipts={receipts}
+                expenses={expenses}
               />
+
             </div>
+
           </>
         )}
 
