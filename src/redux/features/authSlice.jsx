@@ -1,64 +1,195 @@
-import {
-  createSlice,
-  createAsyncThunk,
-} from "@reduxjs/toolkit";
-
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import API from "../../api/api";
 
 
-let storedUser = null;
-
-try {
-  storedUser = JSON.parse(localStorage.getItem("user"));
-} catch (e) {
-  storedUser = null;
-}
-
-const storedToken = localStorage.getItem("token");
-
-
-const authRequest = async (url, userData, thunkAPI) => {
+// --------------------
+// STORAGE HELPERS
+// --------------------
+const getUser = () => {
   try {
-    const response = await API.post(url, userData);
-
-    localStorage.setItem("token", response.data.token);
-    localStorage.setItem("user", JSON.stringify(response.data.user));
-
-    return response.data;
-
-  } catch (error) {
-    return thunkAPI.rejectWithValue(
-      error.response?.data?.message || "Something went wrong"
-    );
+    return JSON.parse(localStorage.getItem("user")) || null;
+  } catch {
+    return null;
   }
 };
 
-
-export const login = createAsyncThunk(
-  "auth/login",
-  async (userData, thunkAPI) => {
-    return authRequest("/auth/login", userData, thunkAPI);
-  }
-);
-
-export const signup = createAsyncThunk(
-  "auth/signup",
-  async (userData, thunkAPI) => {
-    return authRequest("/auth/register", userData, thunkAPI);
-  }
-);
+const getToken = () => localStorage.getItem("token") || null;
 
 
+// --------------------
+// INITIAL STATE
+// --------------------
 const initialState = {
-  user: storedUser || null,
-  token: storedToken || null,
-  isAuthenticated: !!storedToken,
+  user: getUser(),
+  token: getToken(),
+  isAuthenticated: !!getToken(),
   loading: false,
   error: null,
   success: null,
 };
 
 
+// --------------------
+// COMMON ERROR HANDLER
+// --------------------
+const handleError = (err, thunkAPI, msg) =>
+  thunkAPI.rejectWithValue(
+    err.response?.data?.message || msg
+  );
+
+
+// --------------------
+// LOGIN
+// --------------------
+export const login = createAsyncThunk(
+  "auth/login",
+  async (data, thunkAPI) => {
+    try {
+      const res = await API.post("/auth/login", data);
+
+      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("user", JSON.stringify(res.data.user));
+
+      return res.data;
+    } catch (err) {
+      return handleError(err, thunkAPI, "Login failed");
+    }
+  }
+);
+
+
+// --------------------
+// SIGNUP
+// --------------------
+export const signup = createAsyncThunk(
+  "auth/signup",
+  async (data, thunkAPI) => {
+    try {
+      const res = await API.post("/auth/register", data);
+
+      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("user", JSON.stringify(res.data.user));
+
+      return res.data;
+    } catch (err) {
+      return handleError(err, thunkAPI, "Signup failed");
+    }
+  }
+);
+
+
+// --------------------
+// UPDATE USERNAME
+// --------------------
+export const updateUsername = createAsyncThunk(
+  "auth/updateUsername",
+  async (name, thunkAPI) => {
+    try {
+      const res = await API.put("/auth/profile", { name });
+
+      localStorage.setItem(
+        "user",
+        JSON.stringify(res.data.user)
+      );
+
+      return res.data.user;
+    } catch (err) {
+      return handleError(err, thunkAPI, "Update failed");
+    }
+  }
+);
+
+
+// --------------------
+// CHANGE PASSWORD
+// --------------------
+export const changePassword = createAsyncThunk(
+  "auth/changePassword",
+  async (data, thunkAPI) => {
+    try {
+      const res = await API.put(
+        "/auth/change-password",
+        data
+      );
+
+      return res.data.message;
+    } catch (err) {
+      return handleError(
+        err,
+        thunkAPI,
+        "Password change failed"
+      );
+    }
+  }
+);
+
+
+// --------------------
+// PROFILE PHOTO
+// --------------------
+export const updateProfilePhoto = createAsyncThunk(
+  "auth/updateProfilePhoto",
+  async (file, thunkAPI) => {
+    try {
+      const formData = new FormData();
+      formData.append("photo", file);
+
+      const res = await API.put(
+        "/auth/profile-photo",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      localStorage.setItem(
+        "user",
+        JSON.stringify(res.data.user)
+      );
+
+      return res.data.user;
+    } catch (err) {
+      return handleError(
+        err,
+        thunkAPI,
+        "Photo upload failed"
+      );
+    }
+  }
+);
+
+
+// --------------------
+// DELETE ACCOUNT
+// --------------------
+export const deleteAccount = createAsyncThunk(
+  "auth/deleteAccount",
+  async (_, thunkAPI) => {
+    try {
+      const res = await API.delete(
+        "/auth/delete-account"
+      );
+
+      localStorage.removeItem("user");
+      localStorage.removeItem("token");
+
+      return res.data.message;
+    } catch (err) {
+      return handleError(
+        err,
+        thunkAPI,
+        "Delete failed"
+      );
+    }
+  }
+);
+
+
+// --------------------
+// SLICE
+// --------------------
 const authSlice = createSlice({
   name: "auth",
   initialState,
@@ -72,30 +203,20 @@ const authSlice = createSlice({
       state.error = null;
       state.success = null;
 
-      localStorage.removeItem("token");
       localStorage.removeItem("user");
+      localStorage.removeItem("token");
     },
 
     clearMessages: (state) => {
       state.error = null;
       state.success = null;
     },
-
-    updateProfilePhoto: (state, action) => {
-      if (state.user) {
-        state.user.profileImage = action.payload;
-
-        localStorage.setItem(
-          "user",
-          JSON.stringify(state.user)
-        );
-      }
-    },
   },
 
   extraReducers: (builder) => {
     builder
 
+      // LOGIN
       .addCase(login.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -112,7 +233,7 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
 
-
+      // SIGNUP
       .addCase(signup.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -127,15 +248,44 @@ const authSlice = createSlice({
       .addCase(signup.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+
+      // UPDATE USERNAME
+      .addCase(updateUsername.fulfilled, (state, action) => {
+        state.user = action.payload;
+        state.success = "Username updated";
+      })
+      .addCase(updateUsername.rejected, (state, action) => {
+        state.error = action.payload;
+      })
+
+      // CHANGE PASSWORD
+      .addCase(changePassword.fulfilled, (state, action) => {
+        state.success = action.payload;
+      })
+      .addCase(changePassword.rejected, (state, action) => {
+        state.error = action.payload;
+      })
+
+      .addCase(updateProfilePhoto.fulfilled, (state, action) => {
+        state.user = action.payload;
+        state.success = "Profile updated";
+      })
+      .addCase(updateProfilePhoto.rejected, (state, action) => {
+        state.error = action.payload;
+      })
+
+      .addCase(deleteAccount.fulfilled, (state, action) => {
+        state.user = null;
+        state.token = null;
+        state.isAuthenticated = false;
+        state.success = action.payload;
+      })
+      .addCase(deleteAccount.rejected, (state, action) => {
+        state.error = action.payload;
       });
   },
 });
 
-
-export const {
-  logout,
-  clearMessages,
-  updateProfilePhoto,
-} = authSlice.actions;
-
+export const { logout, clearMessages } = authSlice.actions;
 export default authSlice.reducer;

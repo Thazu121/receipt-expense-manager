@@ -1,48 +1,28 @@
 import { createSlice } from "@reduxjs/toolkit";
 
+const initialState = {
+  notificationsEnabled: true,
+  notifications: [],
 
-
-const getStoredSettings = () => {
-  try {
-    const raw = localStorage.getItem("settings");
-    const data = raw ? JSON.parse(raw) : null;
-
-    if (!data) {
-      return {
-        notificationsEnabled: true,
-        notifications: [],
-      };
-    }
-
-    return {
-      notificationsEnabled:
-        typeof data.notificationsEnabled === "boolean"
-          ? data.notificationsEnabled
-          : true,
-
-      notifications: Array.isArray(data.notifications)
-        ? data.notifications
-        : [],
-    };
-  } catch {
-    return {
-      notificationsEnabled: true,
-      notifications: [],
-    };
-  }
+  theme: "light", 
+  language: "en",
+  loading: false,
+  error: null,
 };
-
-const initialState = getStoredSettings();
-
-
 
 const settingsSlice = createSlice({
   name: "settings",
   initialState,
   reducers: {
+    setSettings: (state, action) => {
+      return {
+        ...state,
+        ...action.payload,
+      };
+    },
+
     toggleNotifications: (state) => {
       state.notificationsEnabled = !state.notificationsEnabled;
-      localStorage.setItem("settings", JSON.stringify(state));
     },
 
     addNotification: (state, action) => {
@@ -52,32 +32,42 @@ const settingsSlice = createSlice({
         id: Date.now(),
         message: action.payload,
         read: false,
+        createdAt: new Date().toISOString(),
       });
+    },
 
-      localStorage.setItem("settings", JSON.stringify(state));
+    markAsRead: (state, action) => {
+      const id = action.payload;
+
+      const notification = state.notifications.find(
+        (n) => n.id === id
+      );
+
+      if (notification) {
+        notification.read = true;
+      }
     },
 
     markAllRead: (state) => {
-      state.notifications = state.notifications.map((n) => ({
-        ...n,
-        read: true,
-      }));
+      state.notifications.forEach((n) => {
+        n.read = true;
+      });
+    },
 
-      localStorage.setItem("settings", JSON.stringify(state));
+    deleteNotification: (state, action) => {
+      state.notifications = state.notifications.filter(
+        (n) => n.id !== action.payload
+      );
     },
 
     clearNotifications: (state) => {
       state.notifications = [];
-      localStorage.setItem("settings", JSON.stringify(state));
     },
+
+    toggleTheme: (state) => {
+      state.theme = state.theme === "light" ? "dark" : "light";
+    },
+
+    resetSettings: () => initialState,
   },
 });
-
-export const {
-  toggleNotifications,
-  addNotification,
-  markAllRead,
-  clearNotifications,
-} = settingsSlice.actions;
-
-export default settingsSlice.reducer;

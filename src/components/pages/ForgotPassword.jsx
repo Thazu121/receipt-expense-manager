@@ -1,220 +1,222 @@
-// import { useState, useEffect } from "react";
-// import { Eye, EyeOff } from "lucide-react";
-// import { useSelector, useDispatch } from "react-redux";
-// import { resetPassword, clearMessages } from "../../redux/features/authSlice";
-// import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Eye, EyeOff } from "lucide-react";
+import { useSelector, useDispatch } from "react-redux";
+import {
+  forgotPassword,
+  resetPassword,
+  clearMessages,
+} from "../../redux/features/authSlice";
+import { useNavigate } from "react-router-dom";
 
-// export default function ForgotPassword() {
-//   const isLight = useSelector((state) => state.theme.isLight);
-//   const { error, success } = useSelector((state) => state.auth);
+export default function ForgotPassword() {
+  const isLight = useSelector((state) => state.theme.isLight);
+  const { error, success } = useSelector((state) => state.auth);
 
-//   const dispatch = useDispatch();
-//   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
-//   const [showNew, setShowNew] = useState(false);
-//   const [showConfirm, setShowConfirm] = useState(false);
+  const [step, setStep] = useState(1); 
+  // 1 = email, 2 = reset password
 
-//   const [form, setForm] = useState({
-//     email: "",
-//     newPassword: "",
-//     confirmPassword: "",
-//   });
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
-//   const [errors, setErrors] = useState({});
+  const [form, setForm] = useState({
+    email: "",
+    newPassword: "",
+    confirmPassword: "",
+    code: "",
+  });
 
-//   useEffect(() => {
-//     dispatch(clearMessages());
-//   }, [dispatch]);
+  const [errors, setErrors] = useState({});
 
-//   useEffect(() => {
-//     if (success) {
-//       const timer = setTimeout(() => {
-//         navigate("/login");
-//       }, 1500);
-//       return () => clearTimeout(timer);
-//     }
-//   }, [success, navigate]);
+  // ---------------- CLEAR ----------------
+  useEffect(() => {
+    dispatch(clearMessages());
+  }, [dispatch]);
 
+  // ---------------- REDIRECT ----------------
+  useEffect(() => {
+    if (success) {
+      const t = setTimeout(() => {
+        navigate("/login");
+      }, 1500);
+      return () => clearTimeout(t);
+    }
+  }, [success, navigate]);
 
-//   const validate = () => {
-//     let newErrors = {};
-//     const trimmedEmail = form.email.trim();
+  // ---------------- VALIDATE ----------------
+  const validate = () => {
+    let err = {};
 
-//     if (!trimmedEmail) {
-//       newErrors.email = "Email is required";
-//     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
-//       newErrors.email = "Enter valid email address";
-//     }
+    if (!form.email.trim()) {
+      err.email = "Email required";
+    }
 
-//     if (!form.newPassword) {
-//       newErrors.newPassword = "New password is required";
-//     } else if (form.newPassword.length < 8) {
-//       newErrors.newPassword =
-//         "Password must be at least 8 characters";
-//     }
+    if (step === 2) {
+      if (!form.newPassword || form.newPassword.length < 8) {
+        err.newPassword = "Min 8 characters";
+      }
 
-//     if (!form.confirmPassword) {
-//       newErrors.confirmPassword = "Confirm your password";
-//     } else if (form.newPassword !== form.confirmPassword) {
-//       newErrors.confirmPassword = "Passwords do not match";
-//     }
+      if (form.newPassword !== form.confirmPassword) {
+        err.confirmPassword = "Passwords do not match";
+      }
+    }
 
-//     setErrors(newErrors);
-//     return Object.keys(newErrors).length === 0;
-//   };
+    setErrors(err);
+    return Object.keys(err).length === 0;
+  };
 
-//   const handleChange = (e) => {
-//     const { name, value } = e.target;
+  // ---------------- HANDLE SUBMIT ----------------
+  const handleSubmit = (e) => {
+    e.preventDefault();
 
-//     setForm({
-//       ...form,
-//       [name]: value,
-//     });
+    if (!validate()) return;
 
-//     if (errors[name]) {
-//       setErrors({
-//         ...errors,
-//         [name]: "",
-//       });
-//     }
-//   };
+    if (step === 1) {
+      dispatch(forgotPassword({ email: form.email.trim() }));
+      setStep(2);
+    } else {
+      dispatch(
+        resetPassword({
+          email: form.email.trim(),
+          newPassword: form.newPassword,
+        })
+      );
+    }
+  };
 
-//   const handleSubmit = (e) => {
-//     e.preventDefault();
-//     if (!validate()) return;
+  const isFormValid =
+    form.email.trim() &&
+    (step === 1 ||
+      (form.newPassword.length >= 8 &&
+        form.newPassword === form.confirmPassword));
 
-//     dispatch(
-//       resetPassword({
-//         email: form.email.trim(),
-//         newPassword: form.newPassword,
-//       })
-//     );
-//   };
+  return (
+    <div className="min-h-screen flex items-center justify-center px-4">
 
-//   const isFormValid =
-//     form.email.trim() &&
-//     form.newPassword.length >= 8 &&
-//     form.newPassword === form.confirmPassword;
+      <div
+        className={`w-full max-w-md rounded-2xl p-8 transition ${
+          isLight
+            ? "bg-white shadow-xl"
+            : "bg-[#0b2a1a]/80 border border-white/10"
+        }`}
+      >
 
-//   return (
-//     <div className="min-h-screen flex items-center justify-center px-4">
-//       <div
-//         className={`w-full max-w-md rounded-2xl p-8 backdrop-blur-xl border transition-all duration-300 ${
-//           isLight
-//             ? "bg-white shadow-xl border-gray-200"
-//             : "bg-[#0b2a1a]/80 border-white/10 shadow-2xl"
-//         }`}
-//       >
-//         <h2 className="text-3xl font-bold text-center mb-2">
-//           Reset Password
-//         </h2>
+        <h2 className="text-3xl font-bold text-center mb-4">
+          Forgot Password
+        </h2>
 
-//         {error && (
-//           <p className="text-red-500 text-center mb-3">
-//             {error}
-//           </p>
-//         )}
+        {/* ERROR / SUCCESS */}
+        {error && (
+          <p className="text-red-500 text-center mb-3">
+            {error}
+          </p>
+        )}
 
-//         {success && (
-//           <p className="text-green-500 text-center mb-3">
-//             {success}
-//           </p>
-//         )}
+        {success && (
+          <p className="text-green-500 text-center mb-3">
+            {success}
+          </p>
+        )}
 
-//         <form className="space-y-4" onSubmit={handleSubmit}>
-          
-//           <div>
-//             <input
-//               type="email"
-//               name="email"
-//               placeholder="Email"
-//               value={form.email}
-//               onChange={handleChange}
-//               className={`w-full px-4 py-3 rounded-lg outline-none ${
-//                 isLight
-//                   ? "bg-gray-100 focus:ring-2 focus:ring-green-500"
-//                   : "bg-white/5 border border-white/10 focus:border-green-400"
-//               }`}
-//             />
-//             {errors.email && (
-//               <p className="text-red-500 text-sm mt-1">
-//                 {errors.email}
-//               </p>
-//             )}
-//           </div>
+        <form className="space-y-4" onSubmit={handleSubmit}>
 
-//           <div>
-//             <div className="relative">
-//               <input
-//                 type={showNew ? "text" : "password"}
-//                 name="newPassword"
-//                 placeholder="New Password"
-//                 value={form.newPassword}
-//                 onChange={handleChange}
-//                 className={`w-full px-4 py-3 rounded-lg outline-none ${
-//                   isLight
-//                     ? "bg-gray-100 focus:ring-2 focus:ring-green-500"
-//                     : "bg-white/5 border border-white/10 focus:border-green-400"
-//                 }`}
-//               />
-//               <button
-//                 type="button"
-//                 onClick={() => setShowNew(!showNew)}
-//                 className="absolute right-3 top-1/2 -translate-y-1/2"
-//               >
-//                 {showNew ? <EyeOff size={18} /> : <Eye size={18} />}
-//               </button>
-//             </div>
+          {/* STEP 1 EMAIL */}
+          <input
+            type="email"
+            placeholder="Enter email"
+            value={form.email}
+            disabled={step === 2}
+            onChange={(e) =>
+              setForm({ ...form, email: e.target.value })
+            }
+            className="w-full px-4 py-3 rounded-lg bg-gray-100"
+          />
 
-//             {errors.newPassword && (
-//               <p className="text-red-500 text-sm mt-1">
-//                 {errors.newPassword}
-//               </p>
-//             )}
-//           </div>
+          {errors.email && (
+            <p className="text-red-500 text-sm">
+              {errors.email}
+            </p>
+          )}
 
-//           <div>
-//             <div className="relative">
-//               <input
-//                 type={showConfirm ? "text" : "password"}
-//                 name="confirmPassword"
-//                 placeholder="Confirm Password"
-//                 value={form.confirmPassword}
-//                 onChange={handleChange}
-//                 className={`w-full px-4 py-3 rounded-lg outline-none ${
-//                   isLight
-//                     ? "bg-gray-100 focus:ring-2 focus:ring-green-500"
-//                     : "bg-white/5 border border-white/10 focus:border-green-400"
-//                 }`}
-//               />
-//               <button
-//                 type="button"
-//                 onClick={() => setShowConfirm(!showConfirm)}
-//                 className="absolute right-3 top-1/2 -translate-y-1/2"
-//               >
-//                 {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
-//               </button>
-//             </div>
+          {/* STEP 2 PASSWORD */}
+          {step === 2 && (
+            <>
+              <div className="relative">
+                <input
+                  type={showNew ? "text" : "password"}
+                  placeholder="New Password"
+                  value={form.newPassword}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      newPassword: e.target.value,
+                    })
+                  }
+                  className="w-full px-4 py-3 rounded-lg bg-gray-100"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowNew(!showNew)}
+                  className="absolute right-3 top-3"
+                >
+                  {showNew ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
 
-//             {errors.confirmPassword && (
-//               <p className="text-red-500 text-sm mt-1">
-//                 {errors.confirmPassword}
-//               </p>
-//             )}
-//           </div>
+              {errors.newPassword && (
+                <p className="text-red-500 text-sm">
+                  {errors.newPassword}
+                </p>
+              )}
 
-//           <button
-//             disabled={!isFormValid}
-//             className={`w-full py-3 rounded-lg font-semibold text-white ${
-//               !isFormValid
-//                 ? "bg-gray-400 cursor-not-allowed"
-//                 : "bg-green-500 hover:bg-green-600"
-//             }`}
-//           >
-//             Reset Password
-//           </button>
-//         </form>
-//       </div>
-//     </div>
-//   );
-// }
+              <div className="relative">
+                <input
+                  type={showConfirm ? "text" : "password"}
+                  placeholder="Confirm Password"
+                  value={form.confirmPassword}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      confirmPassword: e.target.value,
+                    })
+                  }
+                  className="w-full px-4 py-3 rounded-lg bg-gray-100"
+                />
+                <button
+                  type="button"
+                  onClick={() =>
+                    setShowConfirm(!showConfirm)
+                  }
+                  className="absolute right-3 top-3"
+                >
+                  {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+
+              {errors.confirmPassword && (
+                <p className="text-red-500 text-sm">
+                  {errors.confirmPassword}
+                </p>
+              )}
+            </>
+          )}
+
+          {/* BUTTON */}
+          <button
+            type="submit"
+            disabled={!isFormValid}
+            className={`w-full py-3 rounded-lg text-white font-semibold ${
+              !isFormValid
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-green-500 hover:bg-green-600"
+            }`}
+          >
+            {step === 1 ? "Send Reset Link" : "Reset Password"}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
