@@ -6,32 +6,13 @@ import {
 
 import API from "../../api/api";
 
-
-
-/* =========================================
-   GET TOKEN
-========================================= */
-
-const token =
-  localStorage.getItem("token");
-
-
-
-/* =========================================
-   AXIOS AUTH HEADER
-========================================= */
-
 const authConfig = () => ({
   headers: {
-    Authorization: `Bearer ${token}`,
+    Authorization: `Bearer ${localStorage.getItem(
+      "token"
+    )}`,
   },
 });
-
-
-
-/* =========================================
-   FETCH RECEIPTS
-========================================= */
 
 export const fetchReceipts =
   createAsyncThunk(
@@ -39,7 +20,6 @@ export const fetchReceipts =
 
     async (_, thunkAPI) => {
       try {
-
         const response =
           await API.get(
             "/receipts",
@@ -47,40 +27,29 @@ export const fetchReceipts =
           );
 
         return response.data.receipts;
-
       } catch (error) {
-
         return thunkAPI.rejectWithValue(
-          error.response?.data?.message ||
+          error.response?.data
+            ?.message ||
             "Failed to fetch receipts"
         );
       }
     }
   );
 
-
-
-/* =========================================
-   ADD RECEIPT
-========================================= */
-
 export const addReceipt =
   createAsyncThunk(
     "receipt/addReceipt",
 
-    async (receiptData, thunkAPI) => {
+    async (file, thunkAPI) => {
       try {
-
         const formData =
           new FormData();
 
-        Object.keys(receiptData)
-          .forEach((key) => {
-            formData.append(
-              key,
-              receiptData[key]
-            );
-          });
+        formData.append(
+          "receipt",
+          file
+        );
 
         const response =
           await API.post(
@@ -88,66 +57,25 @@ export const addReceipt =
             formData,
             {
               headers: {
-                Authorization:
-                  `Bearer ${token}`,
+                Authorization: `Bearer ${localStorage.getItem(
+                  "token"
+                )}`,
                 "Content-Type":
                   "multipart/form-data",
               },
             }
           );
 
-        return response.data.receipt;
-
+        return response.data;
       } catch (error) {
-
         return thunkAPI.rejectWithValue(
-          error.response?.data?.message ||
+          error.response?.data
+            ?.message ||
             "Failed to upload receipt"
         );
       }
     }
   );
-
-
-
-/* =========================================
-   UPDATE RECEIPT
-========================================= */
-
-export const updateReceipt =
-  createAsyncThunk(
-    "receipt/updateReceipt",
-
-    async (
-      { id, updates },
-      thunkAPI
-    ) => {
-      try {
-
-        const response =
-          await API.put(
-            `/receipts/${id}`,
-            updates,
-            authConfig()
-          );
-
-        return response.data.receipt;
-
-      } catch (error) {
-
-        return thunkAPI.rejectWithValue(
-          error.response?.data?.message ||
-            "Failed to update receipt"
-        );
-      }
-    }
-  );
-
-
-
-/* =========================================
-   DELETE RECEIPT
-========================================= */
 
 export const deleteReceipt =
   createAsyncThunk(
@@ -155,71 +83,21 @@ export const deleteReceipt =
 
     async (id, thunkAPI) => {
       try {
-
         await API.delete(
           `/receipts/${id}`,
           authConfig()
         );
 
         return id;
-
       } catch (error) {
-
         return thunkAPI.rejectWithValue(
-          error.response?.data?.message ||
+          error.response?.data
+            ?.message ||
             "Failed to delete receipt"
         );
       }
     }
   );
-
-
-
-/* =========================================
-   TOGGLE STATUS
-========================================= */
-
-export const toggleStatus =
-  createAsyncThunk(
-    "receipt/toggleStatus",
-
-    async (receipt, thunkAPI) => {
-      try {
-
-        let newStatus =
-          receipt.status === "Pending"
-            ? "Verified"
-            : receipt.status ===
-              "Verified"
-            ? "Rejected"
-            : "Pending";
-
-        const response =
-          await API.put(
-            `/receipts/${receipt._id}`,
-            {
-              status: newStatus,
-            },
-            authConfig()
-          );
-
-        return response.data.receipt;
-
-      } catch (error) {
-
-        return thunkAPI.rejectWithValue(
-          error.response?.data?.message ||
-            "Failed to update status"
-        );
-      }
-    }
-  );
-
-
-
-/* =========================================
-   SLICE
-========================================= */
 
 const receiptSlice =
   createSlice({
@@ -244,12 +122,15 @@ const receiptSlice =
     },
 
     reducers: {
-
-      clearError: (state) => {
+      clearError: (
+        state
+      ) => {
         state.error = null;
       },
 
-      clearSuccess: (state) => {
+      clearSuccess: (
+        state
+      ) => {
         state.success = null;
       },
 
@@ -286,15 +167,10 @@ const receiptSlice =
       },
     },
 
-
-
-    extraReducers: (builder) => {
-
+    extraReducers: (
       builder
-
-
-
-        /* FETCH */
+    ) => {
+      builder
 
         .addCase(
           fetchReceipts.pending,
@@ -306,8 +182,12 @@ const receiptSlice =
 
         .addCase(
           fetchReceipts.fulfilled,
-          (state, action) => {
+          (
+            state,
+            action
+          ) => {
             state.loading = false;
+
             state.receipts =
               action.payload;
           }
@@ -315,122 +195,95 @@ const receiptSlice =
 
         .addCase(
           fetchReceipts.rejected,
-          (state, action) => {
+          (
+            state,
+            action
+          ) => {
             state.loading = false;
+
             state.error =
               action.payload;
           }
         )
-
-
-
-        /* ADD */
 
         .addCase(
           addReceipt.pending,
           (state) => {
             state.loading = true;
+            state.error = null;
           }
         )
 
         .addCase(
           addReceipt.fulfilled,
-          (state, action) => {
+          (
+            state,
+            action
+          ) => {
             state.loading = false;
-
-            state.receipts.unshift(
-              action.payload
-            );
 
             state.success =
               "Receipt uploaded successfully";
+
+            if (
+              action.payload
+                .receipt
+            ) {
+              state.receipts.unshift(
+                action.payload
+                  .receipt
+              );
+            }
           }
         )
 
         .addCase(
           addReceipt.rejected,
-          (state, action) => {
+          (
+            state,
+            action
+          ) => {
             state.loading = false;
+
             state.error =
               action.payload;
           }
         )
 
-
-
-        /* UPDATE */
-
-        .addCase(
-          updateReceipt.fulfilled,
-          (state, action) => {
-
-            const index =
-              state.receipts.findIndex(
-                (r) =>
-                  r._id ===
-                  action.payload._id
-              );
-
-            if (index !== -1) {
-              state.receipts[index] =
-                action.payload;
-            }
-
-            state.success =
-              "Receipt updated successfully";
-          }
-        )
-
-
-
-        /* DELETE */
-
         .addCase(
           deleteReceipt.fulfilled,
-          (state, action) => {
-
+          (
+            state,
+            action
+          ) => {
             state.receipts =
               state.receipts.filter(
-                (r) =>
-                  r._id !==
+                (receipt) =>
+                  receipt._id !==
                   action.payload
               );
           }
         )
 
-
-
-        /* TOGGLE STATUS */
-
         .addCase(
-          toggleStatus.fulfilled,
-          (state, action) => {
-
-            const index =
-              state.receipts.findIndex(
-                (r) =>
-                  r._id ===
-                  action.payload._id
-              );
-
-            if (index !== -1) {
-              state.receipts[index] =
-                action.payload;
-            }
+          deleteReceipt.rejected,
+          (
+            state,
+            action
+          ) => {
+            state.error =
+              action.payload;
           }
         );
     },
   });
 
-
-
-/* =========================================
-   SELECTOR
-========================================= */
-
 export const selectFilteredReceipts =
   createSelector(
-    [(state) => state.receipt],
+    [
+      (state) =>
+        state.receipt,
+    ],
 
     ({
       receipts,
@@ -439,82 +292,95 @@ export const selectFilteredReceipts =
       categoryFilter,
       sortBy,
     }) => {
+      let filtered =
+        receipts.filter(
+          (receipt) => {
+            const matchesSearch =
+              !search ||
+              receipt.merchantName
+                ?.toLowerCase()
+                .includes(
+                  search.toLowerCase()
+                );
 
-      let data =
-        receipts.filter((r) => {
+            const matchesStatus =
+              statusFilter ===
+                "All" ||
+              receipt.ocrStatus ===
+                statusFilter;
 
-          const matchesSearch =
-            r.merchantName
-              ?.toLowerCase()
-              .includes(
-                search.toLowerCase()
-              );
+            const matchesCategory =
+              categoryFilter ===
+                "All" ||
+              receipt
+                .extractedData
+                ?.category ===
+                categoryFilter;
 
-          const matchesStatus =
-            statusFilter === "All" ||
-            r.status === statusFilter;
+            return (
+              matchesSearch &&
+              matchesStatus &&
+              matchesCategory
+            );
+          }
+        );
 
-          const matchesCategory =
-            categoryFilter === "All" ||
-            r.category ===
-              categoryFilter;
-
-          return (
-            matchesSearch &&
-            matchesStatus &&
-            matchesCategory
+      switch (sortBy) {
+        case "Newest":
+          filtered.sort(
+            (a, b) =>
+              new Date(
+                b.createdAt
+              ) -
+              new Date(
+                a.createdAt
+              )
           );
-        });
+          break;
 
+        case "Oldest":
+          filtered.sort(
+            (a, b) =>
+              new Date(
+                a.createdAt
+              ) -
+              new Date(
+                b.createdAt
+              )
+          );
+          break;
 
+        case "Amount High-Low":
+          filtered.sort(
+            (a, b) =>
+              (b.extractedData
+                ?.amount ||
+                0) -
+              (a.extractedData
+                ?.amount ||
+                0)
+          );
+          break;
 
-      if (sortBy === "Newest") {
-        data.sort(
-          (a, b) =>
-            new Date(
-              b.createdAt
-            ) -
-            new Date(a.createdAt)
-        );
+        case "Amount Low-High":
+          filtered.sort(
+            (a, b) =>
+              (a.extractedData
+                ?.amount ||
+                0) -
+              (b.extractedData
+                ?.amount ||
+                0)
+          );
+          break;
+
+        default:
+          break;
       }
 
-      if (sortBy === "Oldest") {
-        data.sort(
-          (a, b) =>
-            new Date(
-              a.createdAt
-            ) -
-            new Date(b.createdAt)
-        );
-      }
-
-      if (
-        sortBy ===
-        "Amount High-Low"
-      ) {
-        data.sort(
-          (a, b) =>
-            b.extractedAmount -
-            a.extractedAmount
-        );
-      }
-
-      if (
-        sortBy ===
-        "Amount Low-High"
-      ) {
-        data.sort(
-          (a, b) =>
-            a.extractedAmount -
-            b.extractedAmount
-        );
-      }
-
-      return data;
+      return filtered;
     }
   );
-
-
 
 export const {
   clearError,

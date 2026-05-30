@@ -7,18 +7,12 @@ import API from "../../api/api";
 
 
 
-/* =========================================
-   TOKEN
-========================================= */
 
 const getToken = () =>
   localStorage.getItem("token");
 
 
 
-/* =========================================
-   AUTH CONFIG
-========================================= */
 
 const authConfig = () => ({
   headers: {
@@ -28,9 +22,6 @@ const authConfig = () => ({
 
 
 
-/* =========================================
-   FETCH CATEGORIES
-========================================= */
 
 export const fetchCategories =
   createAsyncThunk(
@@ -59,9 +50,6 @@ export const fetchCategories =
 
 
 
-/* =========================================
-   GET SINGLE CATEGORY
-========================================= */
 
 export const getSingleCategory =
   createAsyncThunk(
@@ -90,9 +78,7 @@ export const getSingleCategory =
 
 
 
-/* =========================================
-   CREATE CATEGORY
-========================================= */
+
 
 export const createCategory =
   createAsyncThunk(
@@ -122,9 +108,6 @@ export const createCategory =
 
 
 
-/* =========================================
-   UPDATE CATEGORY
-========================================= */
 
 export const updateCategory =
   createAsyncThunk(
@@ -157,9 +140,6 @@ export const updateCategory =
 
 
 
-/* =========================================
-   DELETE CATEGORY
-========================================= */
 
 export const deleteCategory =
   createAsyncThunk(
@@ -187,9 +167,7 @@ export const deleteCategory =
 
 
 
-/* =========================================
-   INITIAL STATE
-========================================= */
+
 
 const initialState = {
 
@@ -206,9 +184,6 @@ const initialState = {
 
 
 
-/* =========================================
-   SLICE
-========================================= */
 
 const categorySlice =
   createSlice({
@@ -237,7 +212,6 @@ const categorySlice =
 
 
 
-        /* FETCH */
 
         .addCase(
           fetchCategories.pending,
@@ -269,7 +243,6 @@ const categorySlice =
 
 
 
-        /* SINGLE */
 
         .addCase(
           getSingleCategory.fulfilled,
@@ -282,7 +255,6 @@ const categorySlice =
 
 
 
-        /* CREATE */
 
         .addCase(
           createCategory.pending,
@@ -319,7 +291,6 @@ const categorySlice =
 
 
 
-        /* UPDATE */
 
         .addCase(
           updateCategory.fulfilled,
@@ -344,7 +315,6 @@ const categorySlice =
 
 
 
-        /* DELETE */
 
         .addCase(
           deleteCategory.fulfilled,

@@ -1,133 +1,297 @@
-import { useSelector } from "react-redux";
-import { useState, useEffect, useRef, useMemo } from "react";
-import { selectFilteredReceipts } from "../../redux/features/receiptSlice";
+import {
+  useDispatch,
+  useSelector,
+} from "react-redux";
+
+import {
+  useState,
+  useEffect,
+  useRef,
+  useMemo,
+} from "react";
+
+import {
+  fetchReceipts,
+} from "../../redux/features/receiptSlice";
+
 import PageGrid from "../receipt/ReceiptGrid";
-import GalleryFilters from "../receipt/ReceiptFilters"
+import GalleryFilters from "../receipt/ReceiptFilters";
 
 export default function GalleryPage() {
-  const isLight = useSelector(
-    (state) => state.theme.isLight
+  const dispatch =
+    useDispatch();
+
+  const isLight =
+    useSelector(
+      (state) =>
+        state.theme.isLight
+    );
+
+  const {
+    receipts,
+    loading,
+    error,
+  } = useSelector(
+    (state) =>
+      state.receipt
   );
-
-  const allReceiptsRaw = useSelector(selectFilteredReceipts);
-
-  const allReceipts = Array.isArray(allReceiptsRaw)
-    ? allReceiptsRaw
-    : [];
 
   const INITIAL_COUNT = 6;
   const LOAD_MORE_COUNT = 6;
 
   const [visibleCount, setVisibleCount] =
-    useState(INITIAL_COUNT);
+    useState(
+      INITIAL_COUNT
+    );
 
-  const [localError, setLocalError] =
-    useState(null);
+  const loaderRef =
+    useRef(null);
 
-  const loaderRef = useRef(null);
-
- 
   useEffect(() => {
-    setVisibleCount(INITIAL_COUNT);
-  }, [allReceiptsRaw]);
-
-  const merged = useMemo(() => {
-    const scanned = allReceipts.filter(
-      (r) => r?.source === "scan"
+    dispatch(
+      fetchReceipts()
     );
+  }, [dispatch]);
 
-    const manual = allReceipts.filter(
-      (r) => r?.source !== "scan"
+  useEffect(() => {
+    setVisibleCount(
+      INITIAL_COUNT
     );
+  }, [receipts]);
 
-    return [...scanned, ...manual];
-  }, [allReceipts]);
+  const merged =
+    useMemo(() => {
+      if (
+        !Array.isArray(
+          receipts
+        )
+      )
+        return [];
 
-  const visibleReceipts = merged.slice(
-    0,
-    visibleCount
-  );
+      const scanned =
+        receipts.filter(
+          (r) =>
+            r.source ===
+            "scan"
+        );
+
+      const manual =
+        receipts.filter(
+          (r) =>
+            r.source !==
+            "scan"
+        );
+
+      return [
+        ...scanned,
+        ...manual,
+      ];
+    }, [receipts]);
+
+  const visibleReceipts =
+    merged.slice(
+      0,
+      visibleCount
+    );
 
   const hasMore =
-    visibleCount < merged.length;
-
+    visibleCount <
+    merged.length;
 
   useEffect(() => {
-    if (!hasMore) return;
+    if (!hasMore)
+      return;
 
     const observer =
       new IntersectionObserver(
-        (entries) => {
-          if (entries[0].isIntersecting) {
-            setVisibleCount((prev) =>
-              prev + LOAD_MORE_COUNT
+        (
+          entries
+        ) => {
+          if (
+            entries[0]
+              .isIntersecting
+          ) {
+            setVisibleCount(
+              (
+                prev
+              ) =>
+                prev +
+                LOAD_MORE_COUNT
             );
           }
         },
-        { threshold: 1 }
+        {
+          threshold: 1,
+        }
       );
 
-    if (loaderRef.current) {
-      observer.observe(loaderRef.current);
+    if (
+      loaderRef.current
+    ) {
+      observer.observe(
+        loaderRef.current
+      );
     }
 
-    return () => observer.disconnect();
+    return () =>
+      observer.disconnect();
   }, [hasMore]);
-
- 
-  const pageBg = isLight
-    ? "bg-gray-50 text-gray-900"
-    : "bg-black text-white";
-
-  const emptyText = isLight
-    ? "text-gray-500"
-    : "text-gray-400";
-
-  const errorStyle = isLight
-    ? "bg-red-100 text-red-700"
-    : "bg-red-500/20 text-red-400";
 
   return (
     <div
-      className={`min-h-screen transition-colors duration-300 ${pageBg}`}
+      className={`min-h-screen transition-all duration-300 ${
+        isLight
+          ? "bg-gray-50 text-gray-900"
+          : "bg-black text-white"
+      }`}
     >
-      <div className="p-4 sm:p-6 md:p-8 max-w-7xl mx-auto">
-        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-6 md:mb-8">
-          Receipt Gallery
-        </h1>
+      <div
+        className="
+          max-w-7xl
+          mx-auto
+          px-4
+          sm:px-6
+          lg:px-8
+          py-6
+        "
+      >
+        <div className="mb-8">
+          <h1
+            className="
+              text-3xl
+              sm:text-4xl
+              font-bold
+            "
+          >
+            Receipt Gallery
+          </h1>
+
+          <p
+            className={`mt-2 ${
+              isLight
+                ? "text-gray-500"
+                : "text-gray-400"
+            }`}
+          >
+            View all scanned
+            and uploaded
+            receipts
+          </p>
+        </div>
 
         <GalleryFilters />
 
-        {localError && (
+        {loading && (
           <div
-            className={`p-4 rounded-lg text-sm mb-6 ${errorStyle}`}
+            className="
+              flex
+              justify-center
+              items-center
+              py-16
+            "
           >
-            {localError}
+            <div
+              className="
+                h-10
+                w-10
+                border-4
+                border-green-500
+                border-t-transparent
+                rounded-full
+                animate-spin
+              "
+            />
           </div>
         )}
 
-        {merged.length === 0 ? (
+        {error && (
           <div
-            className={`text-center mt-20 ${emptyText}`}
+            className="
+              mt-6
+              p-4
+              rounded-xl
+              bg-red-500/10
+              border
+              border-red-500/30
+              text-red-500
+            "
           >
-            No receipts found.
+            {error}
           </div>
-        ) : (
-          <>
-            <PageGrid receipts={visibleReceipts} />
+        )}
 
-            {hasMore && (
-              <div
-                ref={loaderRef}
-                className="h-20 flex items-center justify-center"
+        {!loading &&
+          merged.length ===
+            0 && (
+            <div
+              className={`
+                text-center
+                py-20
+                ${
+                  isLight
+                    ? "text-gray-500"
+                    : "text-gray-400"
+                }
+              `}
+            >
+              <h2
+                className="
+                  text-xl
+                  font-semibold
+                "
               >
-                <div className="animate-pulse opacity-60">
-                  Loading more...
+                No Receipts
+                Found
+              </h2>
+
+              <p className="mt-2">
+                Upload or
+                scan a
+                receipt to
+                get started.
+              </p>
+            </div>
+          )}
+
+        {!loading &&
+          merged.length >
+            0 && (
+            <>
+              <PageGrid
+                receipts={
+                  visibleReceipts
+                }
+              />
+
+              {hasMore && (
+                <div
+                  ref={
+                    loaderRef
+                  }
+                  className="
+                    h-20
+                    flex
+                    items-center
+                    justify-center
+                  "
+                >
+                  <div
+                    className={`
+                      animate-pulse
+                      ${
+                        isLight
+                          ? "text-gray-500"
+                          : "text-gray-400"
+                      }
+                    `}
+                  >
+                    Loading
+                    more...
+                  </div>
                 </div>
-              </div>
-            )}
-          </>
-        )}
+              )}
+            </>
+          )}
       </div>
     </div>
   );

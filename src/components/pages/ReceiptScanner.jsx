@@ -1,21 +1,29 @@
 import { useDispatch, useSelector } from "react-redux";
+import { useEffect } from "react";
+
 import { resetScan } from "../../redux/features/scanSlice";
-import ExtractedDetailsCard from "../scan/ExtractedDetailsCard";
+
+import ScanHeader from "../scan/ScanHeader";
 import ScanTabs from "../scan/ScanTab";
 import ScanCameraCard from "../scan/ScanCameraCard";
-import ScanHeader from "../scan/ScanHeader";
 import FileUploadCard from "../scan/FileUploadCard";
-import { useEffect } from "react";
+import ExtractedDetailsCard from "../scan/ExtractedDetailsCard";
 
 export default function ScanPage() {
   const dispatch = useDispatch();
-  const { mode } = useSelector((state) => state.scan);
-  const isLight = useSelector((state) => state.theme.isLight);
+
+  const { mode } = useSelector(
+    (state) => state.scan
+  );
+
+  const isLight = useSelector(
+    (state) => state.theme.isLight
+  );
 
   useEffect(() => {
     return () => {
       dispatch(resetScan());
-    }
+    };
   }, [dispatch]);
 
   return (
@@ -23,9 +31,16 @@ export default function ScanPage() {
       className={`
         min-h-screen
         w-full
-        transition-all duration-300
-        px-4 sm:px-6 lg:px-8
-        py-6 sm:py-8
+        transition-all
+        duration-300
+
+        px-3
+        sm:px-5
+        lg:px-8
+
+        py-5
+        sm:py-8
+
         ${
           isLight
             ? "bg-gray-100 text-black"
@@ -33,20 +48,53 @@ export default function ScanPage() {
         }
       `}
     >
-      <div className="max-w-7xl mx-auto">
-
-        <div className="text-center mb-6 sm:mb-8">
+      <div
+        className="
+          max-w-7xl
+          mx-auto
+        "
+      >
+        {/* Header */}
+        <div
+          className="
+            text-center
+            mb-6
+            sm:mb-8
+          "
+        >
           <ScanHeader />
         </div>
 
         {/* Tabs */}
-        <div className="flex justify-center md:justify-start mb-6">
+        <div
+          className="
+            flex
+            justify-center
+            mb-6
+            sm:mb-8
+          "
+        >
           <ScanTabs />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
-          
-          <div className="w-full">
+        {/* Main Content */}
+        <div
+          className="
+            grid
+            grid-cols-1
+            xl:grid-cols-2
+            gap-6
+            lg:gap-8
+            items-start
+          "
+        >
+          {/* Scanner Section */}
+          <div
+            className="
+              w-full
+              order-1
+            "
+          >
             {mode === "camera" ? (
               <ScanCameraCard />
             ) : (
@@ -54,10 +102,15 @@ export default function ScanPage() {
             )}
           </div>
 
-          <div className="w-full">
+          {/* Extracted Details */}
+          <div
+            className="
+              w-full
+              order-2
+            "
+          >
             <ExtractedDetailsCard />
           </div>
-
         </div>
       </div>
     </div>

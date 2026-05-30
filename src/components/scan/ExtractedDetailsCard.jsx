@@ -1,6 +1,11 @@
-import { useDispatch, useSelector } from "react-redux";
-import { addReceipt } from "../../redux/features/receiptSlice";
-import { resetScan } from "../../redux/features/scanSlice";
+import {
+  useDispatch,
+  useSelector,
+} from "react-redux";
+
+import {
+  resetScan,
+} from "../../redux/features/scanSlice";
 
 export default function ExtractedDetailsCard() {
   const dispatch = useDispatch();
@@ -8,153 +13,147 @@ export default function ExtractedDetailsCard() {
   const {
     extracted,
     confidence,
-    image,
-    warnings,
-    isValid,
-  } = useSelector((state) => state.scan);
+  } = useSelector(
+    (state) => state.scan
+  );
 
-  const receiptError = useSelector((state) => state.receipt.error);
-  const isLight = useSelector((state) => state.theme.isLight);
+  const isLight = useSelector(
+    (state) => state.theme.isLight
+  );
 
-  if (!image) return null;
-
-  const { merchant, date, amount, category } = extracted;
-
-  const cleanAmount = (value) => {
-    if (!value) return "";
-    return String(value).replace(/[^\d.]/g, "").trim();
-  };
-
-  const handleSave = () => {
-    const cleanedAmount = String(amount)
-      .replace(/[^\d.]/g, "")
-      .trim();
-
-    const finalDate =
-      date && !isNaN(Date.parse(date))
-        ? date
-        : new Date().toISOString().split("T")[0];
-
-    dispatch(
-      addReceipt({
-        store: merchant || "Unknown Store",
-        date: finalDate,
-        amount: cleanedAmount,
-        category: category || "Other",
-        image,
-        status: "Pending",
-        source: "scan",
-      })
-    );
-
-    dispatch(resetScan());
-  };
-
-  const confidencePercent =
-    confidence <= 1
-      ? Math.round(confidence * 100)
-      : Math.round(confidence);
+  if (
+    !extracted?.merchant &&
+    !extracted?.amount
+  ) {
+    return null;
+  }
 
   return (
     <div
-      className={`p-6 sm:p-8 rounded-2xl space-y-6 shadow-xl transition-all duration-300
-        ${
-          isLight
-            ? "bg-white border border-gray-200 text-black"
-            : "bg-zinc-900 border border-zinc-700 text-white"
-        }`}
+      className={`w-full mt-6 rounded-2xl p-4 sm:p-6 shadow-lg border
+      ${
+        isLight
+          ? "bg-white border-gray-200"
+          : "bg-zinc-900 border-zinc-700 text-white"
+      }`}
     >
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-        <h2 className="text-lg sm:text-xl font-semibold">
+      <div className="flex flex-col sm:flex-row justify-between gap-2 mb-5">
+        <h2 className="text-lg sm:text-xl font-bold">
           Extracted Details
         </h2>
 
         <span
-          className={`font-medium text-sm sm:text-base ${
-            confidencePercent >= 80
+          className={`font-semibold
+          ${
+            confidence >= 80
               ? "text-green-500"
-              : confidencePercent >= 60
+              : confidence >= 60
               ? "text-yellow-500"
               : "text-red-500"
           }`}
         >
-          {confidencePercent}% Confidence
+          {Math.round(
+            confidence
+          )}
+          % Confidence
         </span>
       </div>
 
-      <div
-        className={`rounded-xl overflow-hidden border ${
-          isLight ? "border-gray-200" : "border-zinc-700"
-        }`}
-      >
-        <img
-          src={image}
-          alt="Receipt Preview"
-          className="w-full h-48 sm:h-60 object-cover"
-        />
-      </div>
-
-      {warnings?.length > 0 && (
-        <div className="bg-yellow-500/10 border border-yellow-500/40 p-4 rounded-xl text-yellow-600 dark:text-yellow-300 text-sm space-y-1">
-          {warnings.map((w, i) => (
-            <p key={i}>⚠ {w}</p>
-          ))}
-        </div>
-      )}
-
-      {receiptError && (
-        <div className="bg-red-500/10 border border-red-500/40 p-4 rounded-xl text-red-500 text-sm">
-          ❌ {receiptError}
-        </div>
-      )}
-
-      <div className="grid sm:grid-cols-2 gap-4">
-        <Detail label="Merchant" value={merchant} isLight={isLight} />
-        <Detail label="Date" value={date} isLight={isLight} />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Detail
-          label="Amount"
-          value={cleanAmount(amount)}
+          label="Merchant"
+          value={
+            extracted.merchant
+          }
           isLight={isLight}
         />
-        <Detail label="Category" value={category} isLight={isLight} />
+
+        <Detail
+          label="Amount"
+          value={`₹${extracted.amount}`}
+          isLight={isLight}
+        />
+
+        <Detail
+          label="Date"
+          value={extracted.date}
+          isLight={isLight}
+        />
+
+        <Detail
+          label="Category"
+          value={
+            extracted.category
+          }
+          isLight={isLight}
+        />
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-4 pt-4">
-        <button
-          onClick={handleSave}
-          disabled={!isValid}
-          className="flex-1 bg-green-500 hover:bg-green-400 text-black py-3 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition"
-        >
-          Save Expense
-        </button>
+      {extracted.rawText && (
+        <div className="mt-6">
+          <h3 className="font-semibold mb-2">
+            OCR Text
+          </h3>
 
-        <button
-          onClick={() => dispatch(resetScan())}
-          className={`flex-1 py-3 rounded-xl border transition ${
-            isLight
-              ? "border-gray-300 hover:bg-gray-100"
-              : "border-zinc-600 hover:bg-zinc-800"
-          }`}
-        >
-          Retake
-        </button>
-      </div>
+          <div
+            className={`p-3 rounded-xl text-sm max-h-52 overflow-y-auto
+            ${
+              isLight
+                ? "bg-gray-100"
+                : "bg-zinc-800"
+            }`}
+          >
+            <pre className="whitespace-pre-wrap break-words">
+              {
+                extracted.rawText
+              }
+            </pre>
+          </div>
+        </div>
+      )}
+
+      <button
+        onClick={() =>
+          dispatch(
+            resetScan()
+          )
+        }
+        className="w-full mt-6 py-3 rounded-xl bg-green-500 hover:bg-green-400 text-black font-semibold transition"
+      >
+        Scan Another Receipt
+      </button>
     </div>
   );
 }
 
-function Detail({ label, value, isLight }) {
+function Detail({
+  label,
+  value,
+  isLight,
+}) {
   return (
-    <div>
+    <div
+      className={`p-4 rounded-xl
+      ${
+        isLight
+          ? "bg-gray-50"
+          : "bg-zinc-800"
+      }`}
+    >
       <p
-        className={`text-sm ${
-          isLight ? "text-gray-500" : "text-zinc-400"
+        className={`text-sm mb-1
+        ${
+          isLight
+            ? "text-gray-500"
+            : "text-zinc-400"
         }`}
       >
         {label}
       </p>
-      <p className="text-base sm:text-lg font-semibold">
-        {value || "Not detected"}
+
+      <p className="font-semibold break-words">
+        {value ||
+          "Not detected"}
       </p>
     </div>
   );

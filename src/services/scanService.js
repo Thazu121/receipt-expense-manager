@@ -1,30 +1,19 @@
-import axios from "axios";
+import API from "../api/api";
 
-const API_URL =
-  "http://localhost:5000/api/scan";
+export const uploadReceipt = async (file) => {
+  const formData = new FormData();
 
-export const uploadReceipt =
-  async (file) => {
+  formData.append("receipt", file);
 
-    const formData =
-      new FormData();
+  const response = await API.post(
+    "/scan/receipt",
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }
+  );
 
-    formData.append(
-      "receipt",
-      file
-    );
-
-    const response =
-      await axios.post(
-        API_URL,
-        formData,
-        {
-          headers: {
-            "Content-Type":
-              "multipart/form-data",
-          },
-        }
-      );
-
-    return response.data;
-  };
+  return response.data;
+};
