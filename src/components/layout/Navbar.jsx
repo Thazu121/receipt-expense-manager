@@ -8,6 +8,7 @@ import {
   Upload,
   Bell,
 } from "lucide-react";
+
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { toggleTheme } from "../../redux/features/themeSlice";
@@ -16,6 +17,7 @@ import {
   markAllRead,
   clearNotifications,
 } from "../../redux/features/settingSlice";
+
 import { useState, useRef, useEffect } from "react";
 
 export default function Navbar() {
@@ -59,10 +61,16 @@ export default function Navbar() {
       document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    document.body.style.overflow = mobileOpen ? "hidden" : "auto";
+  }, [mobileOpen]);
+
   const handleLogout = () => {
     dispatch(logout());
-    navigate("/login");
+    navigate("/login", { replace: true });
   };
+
+  const closeMobile = () => setMobileOpen(false);
 
   const linkStyle = (path) =>
     `text-sm font-medium transition ${
@@ -75,7 +83,7 @@ export default function Navbar() {
 
   return (
     <header
-      className={`relative px-6 h-16 flex items-center justify-between border-b transition ${
+      className={`relative px-4 md:px-6 h-16 flex items-center justify-between border-b transition ${
         isLight
           ? "bg-white border-gray-200"
           : "bg-[#0f172a] border-gray-800"
@@ -93,17 +101,17 @@ export default function Navbar() {
         <Link to="/dashboard" className={linkStyle("dashboard")}>
           Dashboard
         </Link>
-
         <Link to="/dashboard/expense" className={linkStyle("expense")}>
           Expense
         </Link>
-
         <Link to="/dashboard/report" className={linkStyle("report")}>
           Insights
         </Link>
       </nav>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3 md:gap-4">
+
+        {/* SCAN BUTTON */}
         <button
           onClick={() => navigate("/dashboard/scanner")}
           className="hidden md:flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
@@ -125,9 +133,7 @@ export default function Navbar() {
           <button
             onClick={() => {
               setNotificationOpen(!notificationOpen);
-              if (!notificationOpen) {
-                dispatch(markAllRead());
-              }
+              if (!notificationOpen) dispatch(markAllRead());
             }}
             className={`relative p-2 rounded-lg transition ${
               isLight ? "bg-gray-100" : "bg-[#1E293B]"
@@ -136,7 +142,7 @@ export default function Navbar() {
             <Bell size={18} />
 
             {notifications?.some((n) => !n.read) && (
-              <span className="absolute top-1 right-1 w-2 h-2 bg-emerald-500 rounded-full"></span>
+              <span className="absolute top-1 right-1 w-2 h-2 bg-emerald-500 rounded-full" />
             )}
           </button>
 
@@ -148,19 +154,12 @@ export default function Navbar() {
                   : "bg-[#1E293B] border-gray-700"
               }`}
             >
-              <div
-                className={`flex justify-between items-center px-4 py-3 border-b text-sm font-semibold ${
-                  isLight ? "text-gray-800" : "text-gray-200"
-                }`}
-              >
+              <div className="flex justify-between px-4 py-3 border-b text-sm font-semibold">
                 Notifications
-
                 {notifications.length > 0 && (
                   <button
-                    onClick={() =>
-                      dispatch(clearNotifications())
-                    }
-                    className="text-xs text-red-500 hover:underline"
+                    onClick={() => dispatch(clearNotifications())}
+                    className="text-xs text-red-500"
                   >
                     Clear
                   </button>
@@ -169,21 +168,17 @@ export default function Navbar() {
 
               <div className="max-h-64 overflow-y-auto">
                 {notifications.length === 0 ? (
-                  <div className="px-4 py-6 text-sm text-gray-400 text-center">
+                  <p className="p-4 text-sm text-center text-gray-400">
                     No notifications
-                  </div>
+                  </p>
                 ) : (
-                  notifications.map((item) => (
-                    <div
-                      key={item.id}
-                      className={`px-4 py-3 text-sm border-b ${
-                        isLight
-                          ? "hover:bg-gray-50 text-gray-700"
-                          : "hover:bg-gray-800 text-gray-300"
-                      } ${!item.read ? "font-semibold" : ""}`}
+                  notifications.map((n) => (
+                    <p
+                      key={n.id}
+                      className="px-4 py-3 text-sm border-b"
                     >
-                      {item.message}
-                    </div>
+                      {n.message}
+                    </p>
                   ))
                 )}
               </div>
@@ -203,7 +198,7 @@ export default function Navbar() {
                 className="w-full h-full object-cover"
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center bg-emerald-500 text-white font-semibold">
+              <div className="w-full h-full flex items-center justify-center bg-emerald-500 text-white">
                 {username?.charAt(0)?.toUpperCase() || "U"}
               </div>
             )}
@@ -217,20 +212,12 @@ export default function Navbar() {
                   : "bg-[#1E293B] border-gray-700"
               }`}
             >
-              <div
-                className={`px-4 py-3 border-b text-sm font-medium ${
-                  isLight ? "text-gray-700" : "text-gray-200"
-                }`}
-              >
-                {username || "User"}
-              </div>
-
               <button
                 onClick={() => {
                   navigate("/dashboard/settings");
                   setProfileOpen(false);
                 }}
-                className="flex items-center gap-3 w-full px-4 py-3 text-sm hover:bg-emerald-100 transition"
+                className="flex items-center gap-3 w-full px-4 py-3 text-sm hover:bg-emerald-100"
               >
                 <Settings size={16} />
                 Settings
@@ -238,7 +225,7 @@ export default function Navbar() {
 
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-3 w-full px-4 py-3 text-sm text-red-500 hover:bg-red-50 transition"
+                className="flex items-center gap-3 w-full px-4 py-3 text-sm text-red-500 hover:bg-red-50"
               >
                 <LogOut size={16} />
                 Logout
@@ -257,50 +244,42 @@ export default function Navbar() {
 
       {mobileOpen && (
         <div
-          className={`absolute top-16 left-0 w-full border-t md:hidden ${
-            isLight
-              ? "bg-white border-gray-200"
-              : "bg-[#0f172a] border-gray-800"
-          }`}
-        >
-          <nav className="flex flex-col p-6 gap-4">
-            <Link
-              to="/dashboard"
-              className={linkStyle("dashboard")}
-              onClick={() => setMobileOpen(false)}
-            >
-              Dashboard
-            </Link>
-
-            <Link
-              to="/dashboard/expense"
-              className={linkStyle("expense")}
-              onClick={() => setMobileOpen(false)}
-            >
-              Expense
-            </Link>
-
-            <Link
-              to="/dashboard/report"
-              className={linkStyle("report")}
-              onClick={() => setMobileOpen(false)}
-            >
-              Insights
-            </Link>
-
-            <button
-              onClick={() => {
-                navigate("/dashboard/scanner");
-                setMobileOpen(false);
-              }}
-              className="flex items-center gap-2 bg-emerald-500 text-white px-4 py-2 rounded-lg text-sm font-medium"
-            >
-              <Upload size={16} />
-              Scan Receipt
-            </button>
-          </nav>
-        </div>
+          onClick={closeMobile}
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm md:hidden z-40"
+        />
       )}
+
+      <div
+        className={`fixed top-0 right-0 h-full w-4/5 max-w-sm md:hidden z-50 transform transition-transform duration-300 ${
+          mobileOpen ? "translate-x-0" : "translate-x-full"
+        } ${
+          isLight
+            ? "bg-white text-black"
+            : "bg-[#0f172a] text-white"
+        }`}
+      >
+        <div className="p-6 space-y-5">
+          <Link onClick={closeMobile} to="/dashboard">
+            Dashboard
+          </Link>
+          <Link onClick={closeMobile} to="/dashboard/expense">
+            Expense
+          </Link>
+          <Link onClick={closeMobile} to="/dashboard/report">
+            Insights
+          </Link>
+
+          <button
+            onClick={() => {
+              navigate("/dashboard/scanner");
+              closeMobile();
+            }}
+            className="w-full bg-emerald-500 text-white px-4 py-2 rounded-lg"
+          >
+            Scan Receipt
+          </button>
+        </div>
+      </div>
     </header>
   );
 }

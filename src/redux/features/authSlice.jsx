@@ -1,291 +1,566 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import {
+  createSlice,
+  createAsyncThunk,
+} from "@reduxjs/toolkit";
+
 import API from "../../api/api";
 
-
-// --------------------
-// STORAGE HELPERS
-// --------------------
 const getUser = () => {
   try {
-    return JSON.parse(localStorage.getItem("user")) || null;
+    return (
+      JSON.parse(
+        localStorage.getItem("user")
+      ) || null
+    );
   } catch {
     return null;
   }
 };
 
-const getToken = () => localStorage.getItem("token") || null;
+const getToken = () =>
+  localStorage.getItem("token") ||
+  null;
 
-
-// --------------------
-// INITIAL STATE
-// --------------------
 const initialState = {
   user: getUser(),
   token: getToken(),
-  isAuthenticated: !!getToken(),
+  isAuthenticated:
+    !!getToken(),
+
   loading: false,
+
   error: null,
   success: null,
 };
 
-
-// --------------------
-// COMMON ERROR HANDLER
-// --------------------
-const handleError = (err, thunkAPI, msg) =>
+const handleError = (
+  err,
+  thunkAPI,
+  msg
+) =>
   thunkAPI.rejectWithValue(
-    err.response?.data?.message || msg
+    err.response?.data?.message ||
+      msg
   );
 
+export const login =
+  createAsyncThunk(
+    "auth/login",
 
-// --------------------
-// LOGIN
-// --------------------
-export const login = createAsyncThunk(
-  "auth/login",
-  async (data, thunkAPI) => {
-    try {
-      const res = await API.post("/auth/login", data);
+    async (data, thunkAPI) => {
+      try {
+        const res =
+          await API.post(
+            "/auth/login",
+            data
+          );
 
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("user", JSON.stringify(res.data.user));
+        localStorage.setItem(
+          "token",
+          res.data.token
+        );
 
-      return res.data;
-    } catch (err) {
-      return handleError(err, thunkAPI, "Login failed");
+        localStorage.setItem(
+          "user",
+          JSON.stringify(
+            res.data.user
+          )
+        );
+
+        return res.data;
+      } catch (err) {
+        return handleError(
+          err,
+          thunkAPI,
+          "Login failed"
+        );
+      }
     }
-  }
-);
+  );
 
+export const signup =
+  createAsyncThunk(
+    "auth/signup",
 
-// --------------------
-// SIGNUP
-// --------------------
-export const signup = createAsyncThunk(
-  "auth/signup",
-  async (data, thunkAPI) => {
-    try {
-      const res = await API.post("/auth/register", data);
+    async (data, thunkAPI) => {
+      try {
+        const res =
+          await API.post(
+            "/auth/register",
+            data
+          );
 
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("user", JSON.stringify(res.data.user));
+        localStorage.setItem(
+          "token",
+          res.data.token
+        );
 
-      return res.data;
-    } catch (err) {
-      return handleError(err, thunkAPI, "Signup failed");
+        localStorage.setItem(
+          "user",
+          JSON.stringify(
+            res.data.user
+          )
+        );
+
+        return res.data;
+      } catch (err) {
+        return handleError(
+          err,
+          thunkAPI,
+          "Signup failed"
+        );
+      }
     }
-  }
-);
+  );
 
+export const forgotPassword =
+  createAsyncThunk(
+    "auth/forgotPassword",
 
-// --------------------
-// UPDATE USERNAME
-// --------------------
-export const updateUsername = createAsyncThunk(
-  "auth/updateUsername",
-  async (name, thunkAPI) => {
-    try {
-      const res = await API.put("/auth/profile", { name });
+    async (data, thunkAPI) => {
+      try {
+        const res =
+          await API.post(
+            "/auth/forgot-password",
+            data
+          );
 
-      localStorage.setItem(
-        "user",
-        JSON.stringify(res.data.user)
-      );
-
-      return res.data.user;
-    } catch (err) {
-      return handleError(err, thunkAPI, "Update failed");
+        return res.data.message;
+      } catch (err) {
+        return handleError(
+          err,
+          thunkAPI,
+          "Forgot password failed"
+        );
+      }
     }
-  }
-);
+  );
 
+export const resetPassword =
+  createAsyncThunk(
+    "auth/resetPassword",
 
-// --------------------
-// CHANGE PASSWORD
-// --------------------
-export const changePassword = createAsyncThunk(
-  "auth/changePassword",
-  async (data, thunkAPI) => {
-    try {
-      const res = await API.put(
-        "/auth/change-password",
-        data
-      );
+    async (data, thunkAPI) => {
+      try {
+        const res =
+          await API.post(
+            "/auth/reset-password",
+            data
+          );
 
-      return res.data.message;
-    } catch (err) {
-      return handleError(
-        err,
-        thunkAPI,
-        "Password change failed"
-      );
+        return res.data.message;
+      } catch (err) {
+        return handleError(
+          err,
+          thunkAPI,
+          "Reset password failed"
+        );
+      }
     }
-  }
-);
+  );
 
+export const updateUsername =
+  createAsyncThunk(
+    "auth/updateUsername",
 
-// --------------------
-// PROFILE PHOTO
-// --------------------
-export const updateProfilePhoto = createAsyncThunk(
-  "auth/updateProfilePhoto",
-  async (file, thunkAPI) => {
-    try {
-      const formData = new FormData();
-      formData.append("photo", file);
+    async (
+      name,
+      thunkAPI
+    ) => {
+      try {
+        const res =
+          await API.put(
+            "/auth/profile",
+            { name }
+          );
 
-      const res = await API.put(
-        "/auth/profile-photo",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+        localStorage.setItem(
+          "user",
+          JSON.stringify(
+            res.data.user
+          )
+        );
 
-      localStorage.setItem(
-        "user",
-        JSON.stringify(res.data.user)
-      );
-
-      return res.data.user;
-    } catch (err) {
-      return handleError(
-        err,
-        thunkAPI,
-        "Photo upload failed"
-      );
+        return res.data.user;
+      } catch (err) {
+        return handleError(
+          err,
+          thunkAPI,
+          "Update failed"
+        );
+      }
     }
-  }
-);
+  );
 
+export const changePassword =
+  createAsyncThunk(
+    "auth/changePassword",
 
-// --------------------
-// DELETE ACCOUNT
-// --------------------
-export const deleteAccount = createAsyncThunk(
-  "auth/deleteAccount",
-  async (_, thunkAPI) => {
-    try {
-      const res = await API.delete(
-        "/auth/delete-account"
-      );
+    async (
+      data,
+      thunkAPI
+    ) => {
+      try {
+        const res =
+          await API.put(
+            "/auth/change-password",
+            data
+          );
 
-      localStorage.removeItem("user");
-      localStorage.removeItem("token");
-
-      return res.data.message;
-    } catch (err) {
-      return handleError(
-        err,
-        thunkAPI,
-        "Delete failed"
-      );
+        return res.data.message;
+      } catch (err) {
+        return handleError(
+          err,
+          thunkAPI,
+          "Password change failed"
+        );
+      }
     }
-  }
-);
+  );
 
+export const updateProfilePhoto =
+  createAsyncThunk(
+    "auth/updateProfilePhoto",
 
-// --------------------
-// SLICE
-// --------------------
-const authSlice = createSlice({
-  name: "auth",
-  initialState,
+    async (
+      file,
+      thunkAPI
+    ) => {
+      try {
+        const formData =
+          new FormData();
 
-  reducers: {
-    logout: (state) => {
-      state.user = null;
-      state.token = null;
-      state.isAuthenticated = false;
-      state.loading = false;
-      state.error = null;
-      state.success = null;
+        formData.append(
+          "photo",
+          file
+        );
 
-      localStorage.removeItem("user");
-      localStorage.removeItem("token");
-    },
+        const res =
+          await API.put(
+            "/auth/profile-photo",
+            formData,
+            {
+              headers: {
+                "Content-Type":
+                  "multipart/form-data",
+              },
+            }
+          );
 
-    clearMessages: (state) => {
-      state.error = null;
-      state.success = null;
-    },
-  },
+        localStorage.setItem(
+          "user",
+          JSON.stringify(
+            res.data.user
+          )
+        );
 
-  extraReducers: (builder) => {
-    builder
+        return res.data.user;
+      } catch (err) {
+        return handleError(
+          err,
+          thunkAPI,
+          "Photo upload failed"
+        );
+      }
+    }
+  );
 
-      // LOGIN
-      .addCase(login.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(login.fulfilled, (state, action) => {
-        state.loading = false;
-        state.user = action.payload.user;
-        state.token = action.payload.token;
-        state.isAuthenticated = true;
-        state.success = action.payload.message;
-      })
-      .addCase(login.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
+export const deleteAccount =
+  createAsyncThunk(
+    "auth/deleteAccount",
 
-      // SIGNUP
-      .addCase(signup.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(signup.fulfilled, (state, action) => {
-        state.loading = false;
-        state.user = action.payload.user;
-        state.token = action.payload.token;
-        state.isAuthenticated = true;
-        state.success = action.payload.message;
-      })
-      .addCase(signup.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
+    async (
+      _,
+      thunkAPI
+    ) => {
+      try {
+        const res =
+          await API.delete(
+            "/auth/delete-account"
+          );
 
-      // UPDATE USERNAME
-      .addCase(updateUsername.fulfilled, (state, action) => {
-        state.user = action.payload;
-        state.success = "Username updated";
-      })
-      .addCase(updateUsername.rejected, (state, action) => {
-        state.error = action.payload;
-      })
+        localStorage.removeItem(
+          "user"
+        );
 
-      // CHANGE PASSWORD
-      .addCase(changePassword.fulfilled, (state, action) => {
-        state.success = action.payload;
-      })
-      .addCase(changePassword.rejected, (state, action) => {
-        state.error = action.payload;
-      })
+        localStorage.removeItem(
+          "token"
+        );
 
-      .addCase(updateProfilePhoto.fulfilled, (state, action) => {
-        state.user = action.payload;
-        state.success = "Profile updated";
-      })
-      .addCase(updateProfilePhoto.rejected, (state, action) => {
-        state.error = action.payload;
-      })
+        return res.data.message;
+      } catch (err) {
+        return handleError(
+          err,
+          thunkAPI,
+          "Delete failed"
+        );
+      }
+    }
+  );
 
-      .addCase(deleteAccount.fulfilled, (state, action) => {
+const authSlice =
+  createSlice({
+    name: "auth",
+
+    initialState,
+
+    reducers: {
+      logout: (state) => {
         state.user = null;
         state.token = null;
-        state.isAuthenticated = false;
-        state.success = action.payload;
-      })
-      .addCase(deleteAccount.rejected, (state, action) => {
-        state.error = action.payload;
-      });
-  },
-});
 
-export const { logout, clearMessages } = authSlice.actions;
+        state.isAuthenticated =
+          false;
+
+        state.loading = false;
+        state.error = null;
+        state.success = null;
+
+        localStorage.removeItem(
+          "user"
+        );
+
+        localStorage.removeItem(
+          "token"
+        );
+      },
+
+      clearMessages: (
+        state
+      ) => {
+        state.error = null;
+        state.success = null;
+      },
+    },
+
+    extraReducers: (
+      builder
+    ) => {
+      builder
+
+        .addCase(
+          login.pending,
+          (state) => {
+            state.loading = true;
+            state.error = null;
+          }
+        )
+
+        .addCase(
+          login.fulfilled,
+          (
+            state,
+            action
+          ) => {
+            state.loading =
+              false;
+
+            state.user =
+              action.payload.user;
+
+            state.token =
+              action.payload.token;
+
+            state.isAuthenticated =
+              true;
+
+            state.success =
+              action.payload.message;
+          }
+        )
+
+        .addCase(
+          login.rejected,
+          (
+            state,
+            action
+          ) => {
+            state.loading =
+              false;
+
+            state.error =
+              action.payload;
+          }
+        )
+
+        .addCase(
+          signup.pending,
+          (state) => {
+            state.loading = true;
+            state.error = null;
+          }
+        )
+
+        .addCase(
+          signup.fulfilled,
+          (
+            state,
+            action
+          ) => {
+            state.loading =
+              false;
+
+            state.user =
+              action.payload.user;
+
+            state.token =
+              action.payload.token;
+
+            state.isAuthenticated =
+              true;
+
+            state.success =
+              action.payload.message;
+          }
+        )
+
+        .addCase(
+          signup.rejected,
+          (
+            state,
+            action
+          ) => {
+            state.loading =
+              false;
+
+            state.error =
+              action.payload;
+          }
+        )
+
+        .addCase(
+          forgotPassword.pending,
+          (state) => {
+            state.loading = true;
+            state.error = null;
+          }
+        )
+
+        .addCase(
+          forgotPassword.fulfilled,
+          (
+            state,
+            action
+          ) => {
+            state.loading =
+              false;
+
+            state.success =
+              action.payload;
+          }
+        )
+
+        .addCase(
+          forgotPassword.rejected,
+          (
+            state,
+            action
+          ) => {
+            state.loading =
+              false;
+
+            state.error =
+              action.payload;
+          }
+        )
+
+        .addCase(
+          resetPassword.pending,
+          (state) => {
+            state.loading = true;
+            state.error = null;
+          }
+        )
+
+        .addCase(
+          resetPassword.fulfilled,
+          (
+            state,
+            action
+          ) => {
+            state.loading =
+              false;
+
+            state.success =
+              action.payload;
+          }
+        )
+
+        .addCase(
+          resetPassword.rejected,
+          (
+            state,
+            action
+          ) => {
+            state.loading =
+              false;
+
+            state.error =
+              action.payload;
+          }
+        )
+
+        .addCase(
+          updateUsername.fulfilled,
+          (
+            state,
+            action
+          ) => {
+            state.user =
+              action.payload;
+
+            state.success =
+              "Username updated";
+          }
+        )
+
+        .addCase(
+          changePassword.fulfilled,
+          (
+            state,
+            action
+          ) => {
+            state.success =
+              action.payload;
+          }
+        )
+
+        .addCase(
+          updateProfilePhoto.fulfilled,
+          (
+            state,
+            action
+          ) => {
+            state.user =
+              action.payload;
+
+            state.success =
+              "Profile updated";
+          }
+        )
+
+        .addCase(
+          deleteAccount.fulfilled,
+          (
+            state,
+            action
+          ) => {
+            state.user = null;
+            state.token = null;
+
+            state.isAuthenticated =
+              false;
+
+            state.success =
+              action.payload;
+          }
+        );
+    },
+  });
+
+export const {
+  logout,
+  clearMessages,
+} = authSlice.actions;
+
 export default authSlice.reducer;

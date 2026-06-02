@@ -1,109 +1,68 @@
-import {
-  useSelector,
-} from "react-redux";
-
-import {
-  useMemo,
-} from "react";
+import { useSelector } from "react-redux";
+import { useMemo } from "react";
 
 export default function ExpenseStats() {
+  const expenses = useSelector(
+    (state) => state.expense.expenses
+  );
 
-  const receipts =
-    useSelector(
-      (state) =>
-        state.receipt.receipts
-    );
-
-  const isLight =
-    useSelector(
-      (state) =>
-        state.theme.isLight
-    );
-
-
-
-  const total = useMemo(() => {
-
-    return receipts.reduce(
-
-      (sum, r) =>
-
-        sum +
-        Math.abs(
-          Number(
-            r.amount || 0
-          )
-        ),
-
-      0
-    );
-
-  }, [receipts]);
-
-
+  const isLight = useSelector(
+    (state) => state.theme.isLight
+  );
 
   const {
+    totalAmount,
+    totalExpenses,
     topCategory,
-    activeBudgets,
   } = useMemo(() => {
-
-    if (!receipts.length) {
-
+    if (!expenses?.length) {
       return {
+        totalAmount: 0,
+        totalExpenses: 0,
         topCategory: "N/A",
-        activeBudgets: 0,
       };
     }
 
     const categoryMap = {};
 
-    receipts.forEach((r) => {
+    let totalAmount = 0;
+
+    expenses.forEach((expense) => {
+      const amount = Number(
+        expense.amount || 0
+      );
+
+      totalAmount += amount;
 
       const category =
-        r.category || "Other";
+        expense.categoryId?.name ||
+        expense.category ||
+        "Other";
 
-      const amount =
-        Math.abs(
-          Number(
-            r.amount || 0
-          )
-        );
-
-      if (!categoryMap[category]) {
-
-        categoryMap[category] = 0;
-      }
-
-      categoryMap[category] += amount;
+      categoryMap[category] =
+        (categoryMap[category] || 0) +
+        amount;
     });
 
     const sortedCategories =
-      Object.entries(
-        categoryMap
-      ).sort(
+      Object.entries(categoryMap).sort(
         (a, b) => b[1] - a[1]
       );
 
     return {
-
+      totalAmount,
+      totalExpenses:
+        expenses.length,
       topCategory:
-        sortedCategories[0][0],
-
-      activeBudgets:
-        Object.keys(
-          categoryMap
-        ).length,
+        sortedCategories[0]?.[0] ||
+        "N/A",
     };
-
-  }, [receipts]);
-
+  }, [expenses]);
 
   return (
-
     <div
       className="
         grid
-
         grid-cols-1
         sm:grid-cols-2
         xl:grid-cols-3
@@ -116,52 +75,35 @@ export default function ExpenseStats() {
         sm:mb-8
       "
     >
-
       <StatCard
-
         title="Total Spending"
-
-        value={`₹${total.toFixed(2)}`}
-
+        value={`₹${totalAmount.toFixed(
+          2
+        )}`}
         isLight={isLight}
-
       />
 
       <StatCard
-
-        title="Active Categories"
-
-        value={activeBudgets}
-
+        title="Total Expenses"
+        value={totalExpenses}
         isLight={isLight}
-
       />
 
       <StatCard
-
         title="Top Category"
-
         value={topCategory}
-
         isLight={isLight}
-
       />
-
     </div>
   );
 }
-
-
-
 
 function StatCard({
   title,
   value,
   isLight,
 }) {
-
   return (
-
     <div
       className={`
         rounded-2xl
@@ -193,15 +135,10 @@ function StatCard({
         }
       `}
     >
-
-      {/* TITLE */}
-
       <p
         className={`
           text-sm
           sm:text-base
-
-          truncate
 
           ${
             isLight
@@ -210,13 +147,8 @@ function StatCard({
           }
         `}
       >
-
         {title}
-
       </p>
-
-
-      {/* VALUE */}
 
       <h2
         className="
@@ -231,11 +163,8 @@ function StatCard({
           break-words
         "
       >
-
         {value}
-
       </h2>
-
     </div>
   );
 }

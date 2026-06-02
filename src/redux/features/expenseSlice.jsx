@@ -6,18 +6,13 @@ import {
 
 import API from "../../api/api";
 
-const getToken = () =>
-  localStorage.getItem("token");
-
-
-
-
 const authConfig = () => ({
   headers: {
-    Authorization: `Bearer ${getToken()}`,
+    Authorization: `Bearer ${localStorage.getItem(
+      "token"
+    )}`,
   },
 });
-
 
 export const fetchExpenses =
   createAsyncThunk(
@@ -25,7 +20,6 @@ export const fetchExpenses =
 
     async (params = {}, thunkAPI) => {
       try {
-
         const response =
           await API.get(
             "/expenses",
@@ -36,9 +30,7 @@ export const fetchExpenses =
           );
 
         return response.data;
-
       } catch (error) {
-
         return thunkAPI.rejectWithValue(
           error.response?.data?.message ||
             "Failed to fetch expenses"
@@ -47,16 +39,12 @@ export const fetchExpenses =
     }
   );
 
-
-
-
 export const getSingleExpense =
   createAsyncThunk(
     "expense/getSingleExpense",
 
     async (id, thunkAPI) => {
       try {
-
         const response =
           await API.get(
             `/expenses/${id}`,
@@ -64,9 +52,7 @@ export const getSingleExpense =
           );
 
         return response.data.expense;
-
       } catch (error) {
-
         return thunkAPI.rejectWithValue(
           error.response?.data?.message ||
             "Failed to fetch expense"
@@ -75,16 +61,12 @@ export const getSingleExpense =
     }
   );
 
-
-
-
 export const createExpense =
   createAsyncThunk(
     "expense/createExpense",
 
     async (expenseData, thunkAPI) => {
       try {
-
         const response =
           await API.post(
             "/expenses",
@@ -93,9 +75,7 @@ export const createExpense =
           );
 
         return response.data.expense;
-
       } catch (error) {
-
         return thunkAPI.rejectWithValue(
           error.response?.data?.message ||
             "Failed to create expense"
@@ -103,9 +83,6 @@ export const createExpense =
       }
     }
   );
-
-
-
 
 export const updateExpense =
   createAsyncThunk(
@@ -116,7 +93,6 @@ export const updateExpense =
       thunkAPI
     ) => {
       try {
-
         const response =
           await API.put(
             `/expenses/${id}`,
@@ -125,9 +101,7 @@ export const updateExpense =
           );
 
         return response.data.expense;
-
       } catch (error) {
-
         return thunkAPI.rejectWithValue(
           error.response?.data?.message ||
             "Failed to update expense"
@@ -136,25 +110,19 @@ export const updateExpense =
     }
   );
 
-
-
-
 export const deleteExpense =
   createAsyncThunk(
     "expense/deleteExpense",
 
     async (id, thunkAPI) => {
       try {
-
         await API.delete(
           `/expenses/${id}`,
           authConfig()
         );
 
         return id;
-
       } catch (error) {
-
         return thunkAPI.rejectWithValue(
           error.response?.data?.message ||
             "Failed to delete expense"
@@ -163,16 +131,12 @@ export const deleteExpense =
     }
   );
 
-
-
-
 export const toggleFavoriteExpense =
   createAsyncThunk(
     "expense/toggleFavoriteExpense",
 
     async (id, thunkAPI) => {
       try {
-
         const response =
           await API.put(
             `/expenses/${id}/favourite`,
@@ -181,9 +145,7 @@ export const toggleFavoriteExpense =
           );
 
         return response.data.expense;
-
       } catch (error) {
-
         return thunkAPI.rejectWithValue(
           error.response?.data?.message ||
             "Failed to update favorite"
@@ -192,16 +154,12 @@ export const toggleFavoriteExpense =
     }
   );
 
-
-
-
 export const searchExpenses =
   createAsyncThunk(
     "expense/searchExpenses",
 
     async (query, thunkAPI) => {
       try {
-
         const response =
           await API.get(
             `/expenses/search?q=${query}`,
@@ -209,9 +167,7 @@ export const searchExpenses =
           );
 
         return response.data.expenses;
-
       } catch (error) {
-
         return thunkAPI.rejectWithValue(
           error.response?.data?.message ||
             "Search failed"
@@ -220,16 +176,12 @@ export const searchExpenses =
     }
   );
 
-
-
-
 export const fetchRecentExpenses =
   createAsyncThunk(
     "expense/fetchRecentExpenses",
 
     async (_, thunkAPI) => {
       try {
-
         const response =
           await API.get(
             "/expenses/recent",
@@ -237,9 +189,7 @@ export const fetchRecentExpenses =
           );
 
         return response.data.expenses;
-
       } catch (error) {
-
         return thunkAPI.rejectWithValue(
           error.response?.data?.message ||
             "Failed to fetch recent expenses"
@@ -248,16 +198,12 @@ export const fetchRecentExpenses =
     }
   );
 
-
-
-
 export const duplicateExpense =
   createAsyncThunk(
     "expense/duplicateExpense",
 
     async (id, thunkAPI) => {
       try {
-
         const response =
           await API.post(
             `/expenses/${id}/duplicate`,
@@ -267,9 +213,7 @@ export const duplicateExpense =
 
         return response.data
           .duplicatedExpense;
-
       } catch (error) {
-
         return thunkAPI.rejectWithValue(
           error.response?.data?.message ||
             "Failed to duplicate expense"
@@ -278,33 +222,21 @@ export const duplicateExpense =
     }
   );
 
-
-
-
-
 const initialState = {
   expenses: [],
-
   recentExpenses: [],
-
   selectedExpense: null,
 
   loading: false,
-
   error: null,
-
   success: null,
 
   totalExpenses: 0,
-
   totalPages: 1,
-
   currentPage: 1,
-
   count: 0,
 
   search: "",
-
   sort: "latest",
 
   filters: {
@@ -316,9 +248,6 @@ const initialState = {
   },
 };
 
-
-
-
 const expenseSlice =
   createSlice({
     name: "expense",
@@ -326,7 +255,6 @@ const expenseSlice =
     initialState,
 
     reducers: {
-
       clearExpenseError:
         (state) => {
           state.error = null;
@@ -369,14 +297,8 @@ const expenseSlice =
         },
     },
 
-
-
     extraReducers: (builder) => {
-
       builder
-
-
-
 
         .addCase(
           fetchExpenses.pending,
@@ -417,32 +339,34 @@ const expenseSlice =
           }
         )
 
-
-
-
         .addCase(
-          getSingleExpense.fulfilled,
-          (state, action) => {
-            state.selectedExpense =
-              action.payload;
-          }
-        )
-
-
-
-
-        .addCase(
-          createExpense.pending,
+          getSingleExpense.pending,
           (state) => {
             state.loading = true;
           }
         )
 
         .addCase(
-          createExpense.fulfilled,
+          getSingleExpense.fulfilled,
           (state, action) => {
             state.loading = false;
+            state.selectedExpense =
+              action.payload;
+          }
+        )
 
+        .addCase(
+          getSingleExpense.rejected,
+          (state, action) => {
+            state.loading = false;
+            state.error =
+              action.payload;
+          }
+        )
+
+        .addCase(
+          createExpense.fulfilled,
+          (state, action) => {
             state.expenses.unshift(
               action.payload
             );
@@ -453,21 +377,8 @@ const expenseSlice =
         )
 
         .addCase(
-          createExpense.rejected,
-          (state, action) => {
-            state.loading = false;
-            state.error =
-              action.payload;
-          }
-        )
-
-
-
-
-        .addCase(
           updateExpense.fulfilled,
           (state, action) => {
-
             const index =
               state.expenses.findIndex(
                 (expense) =>
@@ -479,38 +390,24 @@ const expenseSlice =
               state.expenses[index] =
                 action.payload;
             }
-
-            state.success =
-              "Expense updated successfully";
           }
         )
-
-
-
 
         .addCase(
           deleteExpense.fulfilled,
           (state, action) => {
-
             state.expenses =
               state.expenses.filter(
                 (expense) =>
                   expense._id !==
                   action.payload
               );
-
-            state.success =
-              "Expense deleted successfully";
           }
         )
-
-
-
 
         .addCase(
           toggleFavoriteExpense.fulfilled,
           (state, action) => {
-
             const index =
               state.expenses.findIndex(
                 (expense) =>
@@ -524,9 +421,6 @@ const expenseSlice =
             }
           }
         )
-
-
-
 
         .addCase(
           searchExpenses.fulfilled,
@@ -536,9 +430,6 @@ const expenseSlice =
           }
         )
 
-
-
-
         .addCase(
           fetchRecentExpenses.fulfilled,
           (state, action) => {
@@ -547,34 +438,87 @@ const expenseSlice =
           }
         )
 
-
-
-
         .addCase(
           duplicateExpense.fulfilled,
           (state, action) => {
-
             state.expenses.unshift(
               action.payload
             );
-
-            state.success =
-              "Expense duplicated successfully";
           }
         );
     },
   });
 
+export const selectFilteredExpenses =
+  createSelector(
+    [(state) => state.expense],
 
+    ({
+      expenses,
+      search,
+      sort,
+    }) => {
+      let filtered =
+        [...expenses];
 
+      if (search) {
+        filtered =
+          filtered.filter(
+            (expense) =>
+              expense.title
+                ?.toLowerCase()
+                .includes(
+                  search.toLowerCase()
+                ) ||
+              expense.note
+                ?.toLowerCase()
+                .includes(
+                  search.toLowerCase()
+                )
+          );
+      }
+
+      switch (sort) {
+        case "highest":
+          filtered.sort(
+            (a, b) =>
+              b.amount - a.amount
+          );
+          break;
+
+        case "lowest":
+          filtered.sort(
+            (a, b) =>
+              a.amount - b.amount
+          );
+          break;
+
+        case "oldest":
+          filtered.sort(
+            (a, b) =>
+              new Date(a.date) -
+              new Date(b.date)
+          );
+          break;
+
+        default:
+          filtered.sort(
+            (a, b) =>
+              new Date(b.date) -
+              new Date(a.date)
+          );
+      }
+
+      return filtered;
+    }
+  );
 
 export const selectExpenseStats =
   createSelector(
     [(state) => state.expense.expenses],
 
-    (expenses) => {
-
-      const totalAmount =
+    (expenses) => ({
+      totalAmount:
         expenses.reduce(
           (sum, expense) =>
             sum +
@@ -582,31 +526,24 @@ export const selectExpenseStats =
               expense.amount || 0
             ),
           0
-        );
+        ),
 
-      const favoriteExpenses =
+      totalExpenses:
+        expenses.length,
+
+      favoriteExpenses:
         expenses.filter(
           (expense) =>
             expense.favorite
-        ).length;
+        ).length,
 
-      const recurringExpenses =
+      recurringExpenses:
         expenses.filter(
           (expense) =>
             expense.isRecurring
-        ).length;
-
-      return {
-        totalAmount,
-        totalExpenses:
-          expenses.length,
-        favoriteExpenses,
-        recurringExpenses,
-      };
-    }
+        ).length,
+    })
   );
-
-
 
 export const {
   clearExpenseError,

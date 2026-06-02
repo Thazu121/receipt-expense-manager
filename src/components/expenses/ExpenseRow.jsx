@@ -1,29 +1,20 @@
 import { useSelector } from "react-redux";
 
 export default function ExpenseRow({
-  receipt,
+  expense,
 }) {
-
-  const isLight =
-    useSelector(
-      (state) => state.theme.isLight
-    );
+  const isLight = useSelector(
+    (state) => state.theme.isLight
+  );
 
   return (
-
     <div
       className={`
         w-full
-
-        px-3
-        sm:px-4
-        lg:px-6
-
+        px-3 sm:px-4 lg:px-6
         py-4
-
         transition-all
         duration-200
-
         overflow-hidden
 
         ${
@@ -42,76 +33,49 @@ export default function ExpenseRow({
       `}
     >
 
-
       <div
         className="
           hidden
           md:grid
-
-          md:grid-cols-4
-
+          md:grid-cols-5
           gap-4
           items-center
         "
       >
-
-
-        <div
-          className="
-            font-semibold
-
-            truncate
-          "
-        >
-          {receipt.merchant || "Unknown"}
+        <div className="font-semibold truncate">
+          {expense.title || "Untitled"}
         </div>
 
-
-
         <div
-          className={`
-            text-sm
-
-            ${
-              isLight
-                ? "text-gray-500"
-                : "text-gray-400"
-            }
-          `}
+          className={`text-sm ${
+            isLight
+              ? "text-gray-500"
+              : "text-gray-400"
+          }`}
         >
-
-          {receipt.date
+          {expense.date
             ? new Date(
-                receipt.date
+                expense.date
               ).toLocaleDateString()
             : "-"}
-
         </div>
 
-
-
         <div>
-
           <span
             className={`
               inline-flex
               items-center
-
               px-3
               py-1
-
               rounded-full
-
               text-xs
               font-medium
-
-              whitespace-nowrap
 
               ${
                 isLight
                   ? `
                     bg-emerald-100
-                    text-emerald-600
+                    text-emerald-700
                   `
                   : `
                     bg-emerald-500/20
@@ -120,149 +84,100 @@ export default function ExpenseRow({
               }
             `}
           >
-
-            {receipt.category || "General"}
-
+            {expense.category ||
+              "General"}
           </span>
-
         </div>
-
-
-        {/* AMOUNT */}
 
         <div
-          className={`
-            font-bold
-            text-base
-
-            ${
-              isLight
-                ? "text-emerald-600"
-                : "text-emerald-400"
-            }
-          `}
+          className={`text-sm ${
+            isLight
+              ? "text-gray-500"
+              : "text-gray-400"
+          }`}
         >
-
-          ₹
-          {Number(
-            receipt.amount || 0
-          ).toFixed(2)}
-
+          {expense.paymentMethod ||
+            "Cash"}
         </div>
 
+        <div
+          className={`font-bold ${
+            isLight
+              ? "text-emerald-600"
+              : "text-emerald-400"
+          }`}
+        >
+          ₹
+          {Number(
+            expense.amount || 0
+          ).toFixed(2)}
+        </div>
       </div>
 
-
-      {/*  */}
+      {/* Mobile */}
 
       <div
         className="
           md:hidden
-
           flex
           flex-col
-
           gap-3
         "
       >
-
-
         <div
           className="
             flex
-            items-start
             justify-between
-
+            items-start
             gap-3
           "
         >
-
-          <div
-            className="
-              flex-1
-              min-w-0
-            "
-          >
-
+          <div className="flex-1 min-w-0">
             <h3
               className="
                 font-semibold
-                text-sm
-                sm:text-base
-
                 truncate
               "
             >
-              {receipt.merchant ||
-                "Unknown"}
+              {expense.title ||
+                "Untitled"}
             </h3>
 
             <p
-              className={`
-                text-xs
-                mt-1
-
-                ${
-                  isLight
-                    ? "text-gray-500"
-                    : "text-gray-400"
-                }
-              `}
+              className={`text-xs mt-1 ${
+                isLight
+                  ? "text-gray-500"
+                  : "text-gray-400"
+              }`}
             >
-
-              {receipt.date
+              {expense.date
                 ? new Date(
-                    receipt.date
+                    expense.date
                   ).toLocaleDateString()
                 : "-"}
-
             </p>
-
           </div>
-
-
-          {/* AMOUNT */}
 
           <div
-            className={`
-              font-bold
-              text-sm
-              sm:text-base
-
-              whitespace-nowrap
-
-              ${
-                isLight
-                  ? "text-emerald-600"
-                  : "text-emerald-400"
-              }
-            `}
+            className={`font-bold whitespace-nowrap ${
+              isLight
+                ? "text-emerald-600"
+                : "text-emerald-400"
+            }`}
           >
-
             ₹
             {Number(
-              receipt.amount || 0
+              expense.amount || 0
             ).toFixed(2)}
-
           </div>
-
         </div>
 
-
-        {/* CATEGORY */}
-
-        <div>
-
+        <div className="flex items-center justify-between">
           <span
             className={`
-              inline-flex
-              items-center
-
               px-3
               py-1
-
               rounded-full
-
               text-xs
               font-medium
 
@@ -270,7 +185,7 @@ export default function ExpenseRow({
                 isLight
                   ? `
                     bg-emerald-100
-                    text-emerald-600
+                    text-emerald-700
                   `
                   : `
                     bg-emerald-500/20
@@ -279,15 +194,22 @@ export default function ExpenseRow({
               }
             `}
           >
-
-            {receipt.category || "General"}
-
+            {expense.category ||
+              "General"}
           </span>
 
+          <span
+            className={`text-xs ${
+              isLight
+                ? "text-gray-500"
+                : "text-gray-400"
+            }`}
+          >
+            {expense.paymentMethod ||
+              "Cash"}
+          </span>
         </div>
-
       </div>
-
     </div>
   );
 }

@@ -6,8 +6,7 @@
   "type": "module",
   "scripts": {
     "predeploy": "npm run build",
-"deploy": "gh-pages -d dist",
-
+    "deploy": "gh-pages -d dist",
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
@@ -25,6 +24,7 @@
     "react-router-dom": "^7.13.0",
     "react-webcam": "^7.2.0",
     "recharts": "^3.7.0",
+    "socket.io-client": "^4.8.3",
     "tesseract.js": "^4.1.4"
   },
   "devDependencies": {

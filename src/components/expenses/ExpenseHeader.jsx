@@ -1,11 +1,14 @@
 import { Plus } from "lucide-react";
-
 import { Link } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 export default function ExpenseHeader() {
+  const { count, loading } =
+    useSelector(
+      (state) => state.expense
+    );
 
   return (
-
     <div
       className="
         flex
@@ -22,15 +25,7 @@ export default function ExpenseHeader() {
         sm:mb-10
       "
     >
-
-      {/* ================= LEFT ================= */}
-
-      <div
-        className="
-          w-full
-        "
-      >
-
+      <div className="w-full">
         <h1
           className="
             text-2xl
@@ -62,15 +57,24 @@ export default function ExpenseHeader() {
           personal spending with ease.
         </p>
 
+        {!loading && (
+          <p
+            className="
+              mt-2
+              text-xs
+              sm:text-sm
+
+              text-emerald-600
+              dark:text-emerald-400
+            "
+          >
+            Total Expenses: {count}
+          </p>
+        )}
       </div>
 
-
-      {/* ================= BUTTON ================= */}
-
       <Link
-
         to="/dashboard/add-expense"
-
         className="
           w-full
           sm:w-auto
@@ -105,13 +109,9 @@ export default function ExpenseHeader() {
           hover:shadow-lg
         "
       >
-
         <Plus size={18} />
-
         Add Expense
-
       </Link>
-
     </div>
   );
 }

@@ -1,19 +1,24 @@
 import API from "../api/api";
 
-export const uploadReceipt = async (file) => {
-  const formData = new FormData();
+/**
+ * Upload receipt for OCR scanning
+ */
+export const scanReceipt = async (file) => {
+  try {
+    const formData = new FormData();
+    formData.append("receipt", file)
 
-  formData.append("receipt", file);
+    const response = await API.post(
+      "/scan/receipt", 
+      formData
+    );
 
-  const response = await API.post(
-    "/scan/receipt",
-    formData,
-    {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    }
-  );
-
-  return response.data;
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      error?.response?.data?.message ||
+        error?.message ||
+        "OCR scan failed"
+    );
+  }
 };

@@ -3,20 +3,18 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 
-// AUTH
 import {
   updateUsername,
   changePassword,
   logout,
   deleteAccount,
-  clearMessages,
   updateProfilePhoto,
 } from "../../redux/features/authSlice";
 
 import {
   toggleNotifications,
   toggleTheme,
-} from "../../redux/features/settingsSlice";
+} from "../../redux/features/settingSlice";
 
 export default function Settings() {
   const dispatch = useDispatch();
@@ -45,7 +43,8 @@ export default function Settings() {
   const card = dark ? "bg-[#081f17]" : "bg-white";
   const input = dark ? "bg-[#0e2d22] text-white" : "bg-gray-100";
 
-    const strengthCheck = (pass) => {
+  // ---------------- PASSWORD STRENGTH ----------------
+  const strengthCheck = (pass) => {
     let s = 0;
     if (pass.length >= 8) s++;
     if (/[A-Z]/.test(pass)) s++;
@@ -57,31 +56,42 @@ export default function Settings() {
     return { label: "Strong", color: "bg-green-500", width: "100%" };
   };
 
-  const strength = strengthCheck(newPassword)
+  const strength = strengthCheck(newPassword);
 
-    const strengthCheck = (pass) => {
-    let s = 0;
-    if (pass.length >= 8) s++;
-    if (/[A-Z]/.test(pass)) s++;
-    if (/[0-9]/.test(pass)) s++;
-    if (/[^A-Za-z0-9]/.test(pass)) s++;
-
-    if (s <= 1) return { label: "Weak", color: "bg-red-500", width: "33%" };
-    if (s <= 3) return { label: "Medium", color: "bg-yellow-500", width: "66%" };
-    return { label: "Strong", color: "bg-green-500", width: "100%" };
-  };
-
-  const strength = strengthCheck(newPassword)
-
-
-    const message = localError || error || success;
+  const message = localError || error || success;
   const isError = !!(localError || error);
+
+  // ---------------- HANDLERS ----------------
+  const handlePhoto = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      dispatch(updateProfilePhoto(file));
+    }
+  };
+
+  const handleUpdateUsername = () => {
+    dispatch(updateUsername(username));
+  };
+
+  const handleUpdatePassword = () => {
+    if (newPassword !== confirmPassword) {
+      setLocalError("Passwords do not match");
+      return;
+    }
+
+    dispatch(
+      changePassword({
+        currentPassword,
+        newPassword,
+      })
+    );
+  };
 
   return (
     <div className={`min-h-screen p-4 md:p-6 ${bg}`}>
       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-        {/* LEFT SIDE */}
+        {/* LEFT */}
         <div className="space-y-6 order-2 lg:order-1">
 
           {/* PROFILE */}
@@ -114,7 +124,7 @@ export default function Settings() {
             />
           </div>
 
-          {/* SETTINGS BUTTONS */}
+          {/* SETTINGS */}
           <div className={`p-6 rounded-3xl ${card} space-y-3`}>
             <button
               onClick={() => dispatch(toggleTheme())}
@@ -152,7 +162,8 @@ export default function Settings() {
           </div>
         </div>
 
-                <div className="lg:col-span-2 space-y-6 order-1 lg:order-2">
+        {/* RIGHT */}
+        <div className="lg:col-span-2 space-y-6 order-1 lg:order-2">
 
           {/* USERNAME */}
           <div className={`p-6 rounded-3xl ${card}`}>
@@ -163,7 +174,7 @@ export default function Settings() {
             />
 
             <button
-              onClick={updateProfile}
+              onClick={handleUpdateUsername}
               disabled={loading}
               className="mt-4 bg-green-600 text-white px-6 py-2 rounded-xl w-full md:w-auto"
             >
@@ -211,7 +222,7 @@ export default function Settings() {
             />
 
             <button
-              onClick={updatePass}
+              onClick={handleUpdatePassword}
               disabled={loading}
               className="mt-4 bg-green-600 text-white px-6 py-2 rounded-xl w-full"
             >

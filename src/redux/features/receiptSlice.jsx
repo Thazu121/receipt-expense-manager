@@ -29,8 +29,7 @@ export const fetchReceipts =
         return response.data.receipts;
       } catch (error) {
         return thunkAPI.rejectWithValue(
-          error.response?.data
-            ?.message ||
+          error.response?.data?.message ||
             "Failed to fetch receipts"
         );
       }
@@ -66,11 +65,10 @@ export const addReceipt =
             }
           );
 
-        return response.data;
+        return response.data.receipt;
       } catch (error) {
         return thunkAPI.rejectWithValue(
-          error.response?.data
-            ?.message ||
+          error.response?.data?.message ||
             "Failed to upload receipt"
         );
       }
@@ -91,9 +89,31 @@ export const deleteReceipt =
         return id;
       } catch (error) {
         return thunkAPI.rejectWithValue(
-          error.response?.data
-            ?.message ||
+          error.response?.data?.message ||
             "Failed to delete receipt"
+        );
+      }
+    }
+  );
+
+export const toggleStatus =
+  createAsyncThunk(
+    "receipt/toggleStatus",
+
+    async (receiptId, thunkAPI) => {
+      try {
+        const response =
+          await API.put(
+            `/receipts/${receiptId}/verify`,
+            {},
+            authConfig()
+          );
+
+        return response.data.receipt;
+      } catch (error) {
+        return thunkAPI.rejectWithValue(
+          error.response?.data?.message ||
+            "Failed to verify receipt"
         );
       }
     }
@@ -105,19 +125,13 @@ const receiptSlice =
 
     initialState: {
       receipts: [],
-
       loading: false,
-
       error: null,
-
       success: null,
 
       search: "",
-
       statusFilter: "All",
-
       categoryFilter: "All",
-
       sortBy: "Newest",
     },
 
@@ -172,6 +186,8 @@ const receiptSlice =
     ) => {
       builder
 
+        // FETCH
+
         .addCase(
           fetchReceipts.pending,
           (state) => {
@@ -187,7 +203,6 @@ const receiptSlice =
             action
           ) => {
             state.loading = false;
-
             state.receipts =
               action.payload;
           }
@@ -200,11 +215,12 @@ const receiptSlice =
             action
           ) => {
             state.loading = false;
-
             state.error =
               action.payload;
           }
         )
+
+        // ADD
 
         .addCase(
           addReceipt.pending,
@@ -222,18 +238,16 @@ const receiptSlice =
           ) => {
             state.loading = false;
 
-            state.success =
-              "Receipt uploaded successfully";
-
             if (
               action.payload
-                .receipt
             ) {
               state.receipts.unshift(
                 action.payload
-                  .receipt
               );
             }
+
+            state.success =
+              "Receipt uploaded successfully";
           }
         )
 
@@ -244,11 +258,12 @@ const receiptSlice =
             action
           ) => {
             state.loading = false;
-
             state.error =
               action.payload;
           }
         )
+
+        // DELETE
 
         .addCase(
           deleteReceipt.fulfilled,
@@ -271,6 +286,56 @@ const receiptSlice =
             state,
             action
           ) => {
+            state.error =
+              action.payload;
+          }
+        )
+
+        // VERIFY
+
+        .addCase(
+          toggleStatus.pending,
+          (state) => {
+            state.loading = true;
+          }
+        )
+
+        .addCase(
+          toggleStatus.fulfilled,
+          (
+            state,
+            action
+          ) => {
+            state.loading = false;
+
+            const index =
+              state.receipts.findIndex(
+                (receipt) =>
+                  receipt._id ===
+                  action.payload._id
+              );
+
+            if (
+              index !== -1
+            ) {
+              state.receipts[
+                index
+              ] =
+                action.payload;
+            }
+
+            state.success =
+              "Receipt verified successfully";
+          }
+        )
+
+        .addCase(
+          toggleStatus.rejected,
+          (
+            state,
+            action
+          ) => {
+            state.loading = false;
             state.error =
               action.payload;
           }
@@ -325,7 +390,9 @@ export const selectFilteredReceipts =
           }
         );
 
-      switch (sortBy) {
+      switch (
+        sortBy
+      ) {
         case "Newest":
           filtered.sort(
             (a, b) =>
@@ -353,10 +420,12 @@ export const selectFilteredReceipts =
         case "Amount High-Low":
           filtered.sort(
             (a, b) =>
-              (b.extractedData
+              (b
+                .extractedData
                 ?.amount ||
                 0) -
-              (a.extractedData
+              (a
+                .extractedData
                 ?.amount ||
                 0)
           );
@@ -365,10 +434,12 @@ export const selectFilteredReceipts =
         case "Amount Low-High":
           filtered.sort(
             (a, b) =>
-              (a.extractedData
+              (a
+                .extractedData
                 ?.amount ||
                 0) -
-              (b.extractedData
+              (b
+                .extractedData
                 ?.amount ||
                 0)
           );

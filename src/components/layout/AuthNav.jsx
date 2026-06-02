@@ -15,6 +15,7 @@ export default function AuthNav() {
   const isSignup = location.pathname === "/signup";
   const isSignin = location.pathname === "/login";
 
+  // close on outside click
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) {
@@ -22,16 +23,24 @@ export default function AuthNav() {
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    return () =>
+      document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // lock scroll when menu open
+  useEffect(() => {
+    document.body.style.overflow = isOpen ? "hidden" : "auto";
+  }, [isOpen]);
+
   return (
-    <div className="absolute top-6 left-6 right-6 md:left-10 md:right-10 z-50">
-      
+    <header className="absolute top-4 left-4 right-4 md:top-6 md:left-10 md:right-10 z-50">
       <div className="flex items-center justify-between">
 
-        {/* Logo */}
-        <Link to="/" className="flex items-center gap-2 text-xl font-semibold">
+        {/* LOGO */}
+        <Link
+          to="/"
+          className="flex items-center gap-2 text-lg md:text-xl font-semibold"
+        >
           <Wallet size={22} className="text-emerald-500" />
           <span className="text-emerald-500">Spend</span>
           <span className={isLight ? "text-gray-900" : "text-white"}>
@@ -39,17 +48,21 @@ export default function AuthNav() {
           </span>
         </Link>
 
-        <div className="hidden md:flex items-center gap-6">
-          <Link to="/" className="text-emerald-500 font-medium hover:text-emerald-400 transition">
+        {/* DESKTOP MENU */}
+        <nav className="hidden md:flex items-center gap-6">
+          <Link
+            to="/"
+            className="text-emerald-500 font-medium hover:opacity-80"
+          >
             Home
           </Link>
 
           {isSignin && (
             <>
-              <span className={isLight ? "text-gray-700" : "text-gray-300"}>
+              <span className={isLight ? "text-gray-600" : "text-gray-300"}>
                 New here?
               </span>
-              <Link to="/signup" className="text-emerald-500 hover:text-emerald-400 transition">
+              <Link to="/signup" className="text-emerald-500 hover:opacity-80">
                 Create account
               </Link>
             </>
@@ -57,70 +70,71 @@ export default function AuthNav() {
 
           {isSignup && (
             <>
-              <span className={isLight ? "text-gray-700" : "text-gray-300"}>
+              <span className={isLight ? "text-gray-600" : "text-gray-300"}>
                 Already registered?
               </span>
-              <Link to="/login" className="text-emerald-500 hover:text-emerald-400 transition">
+              <Link to="/login" className="text-emerald-500 hover:opacity-80">
                 Sign in
               </Link>
             </>
           )}
 
+          {/* THEME BUTTON */}
           <button
             onClick={() => dispatch(toggleTheme())}
-            className={`w-11 h-11 flex items-center justify-center rounded-full border transition hover:scale-105 ${
+            className={`w-10 h-10 flex items-center justify-center rounded-full border transition ${
               isLight
-                ? "bg-white border-gray-300 hover:bg-gray-100"
-                : "bg-white/10 border-white/20 hover:bg-white/20 backdrop-blur-md"
+                ? "bg-white border-gray-300"
+                : "bg-white/10 border-white/20"
             }`}
           >
             {isLight ? (
-              <Moon size={20} className="text-gray-700" />
+              <Moon size={18} />
             ) : (
-              <Sun size={20} className="text-yellow-400" />
+              <Sun size={18} className="text-yellow-400" />
             )}
           </button>
-        </div>
+        </nav>
 
+        {/* MOBILE BUTTON */}
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className={`md:hidden p-2 rounded-full transition-all duration-300 ${
-            isLight ? "bg-emerald-100" : "bg-white/10 backdrop-blur-md"
-          }`}
+          className="md:hidden p-2 rounded-full bg-emerald-100 dark:bg-white/10 z-50"
         >
-          <div className={`transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}>
-            {isOpen ? (
-              <X size={24} className="text-emerald-500" />
-            ) : (
-              <Menu size={24} className="text-emerald-500" />
-            )}
-          </div>
+          {isOpen ? (
+            <X size={22} className="text-emerald-600" />
+          ) : (
+            <Menu size={22} className="text-emerald-600" />
+          )}
         </button>
       </div>
 
+      {/* BACKDROP */}
       {isOpen && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm md:hidden"></div>
+        <div
+          onClick={() => setIsOpen(false)}
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm md:hidden z-40"
+        />
       )}
 
+      {/* MOBILE MENU */}
       <div
         ref={menuRef}
-        className={`absolute right-0 mt-4 w-full md:hidden transform transition-all duration-300 ${
-          isOpen
-            ? "opacity-100 translate-y-0"
-            : "opacity-0 -translate-y-4 pointer-events-none"
+        className={`fixed top-0 right-0 h-full w-[80%] max-w-sm z-50 md:hidden transform transition-transform duration-300 ${
+          isOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
         <div
-          className={`p-6 rounded-2xl shadow-2xl space-y-4 ${
+          className={`h-full p-6 space-y-6 ${
             isLight
               ? "bg-white text-gray-900"
-              : "bg-[#0b2a1a] text-white border border-emerald-500/20"
+              : "bg-[#0b2a1a] text-white"
           }`}
         >
           <Link
             to="/"
             onClick={() => setIsOpen(false)}
-            className="block text-emerald-500 font-medium hover:text-emerald-400 transition"
+            className="block text-emerald-500 font-medium"
           >
             Home
           </Link>
@@ -129,7 +143,7 @@ export default function AuthNav() {
             <Link
               to="/signup"
               onClick={() => setIsOpen(false)}
-              className="block text-emerald-500 hover:text-emerald-400 transition"
+              className="block text-emerald-500"
             >
               Create account
             </Link>
@@ -139,19 +153,19 @@ export default function AuthNav() {
             <Link
               to="/login"
               onClick={() => setIsOpen(false)}
-              className="block text-emerald-500 hover:text-emerald-400 transition"
+              className="block text-emerald-500"
             >
               Sign in
             </Link>
           )}
 
-          <div className="border-t border-emerald-500/30 pt-4">
+          <div className="border-t pt-4 border-emerald-500/30">
             <button
               onClick={() => {
                 dispatch(toggleTheme());
                 setIsOpen(false);
               }}
-              className="flex items-center gap-2 text-emerald-500 hover:text-emerald-400 transition"
+              className="flex items-center gap-2 text-emerald-500"
             >
               {isLight ? <Moon size={18} /> : <Sun size={18} />}
               Toggle Theme
@@ -159,6 +173,6 @@ export default function AuthNav() {
           </div>
         </div>
       </div>
-    </div>
+    </header>
   );
 }
