@@ -8,219 +8,181 @@ import API from "../../api/api";
 
 const authConfig = () => ({
   headers: {
-    Authorization: `Bearer ${localStorage.getItem(
-      "token"
-    )}`,
+    Authorization: `Bearer ${localStorage.getItem("token")}`,
   },
 });
 
-export const fetchExpenses =
-  createAsyncThunk(
-    "expense/fetchExpenses",
+/* =========================
+   THUNKS
+========================= */
 
-    async (params = {}, thunkAPI) => {
-      try {
-        const response =
-          await API.get(
-            "/expenses",
-            {
-              ...authConfig(),
-              params,
-            }
-          );
+export const fetchExpenses = createAsyncThunk(
+  "expense/fetchExpenses",
+  async (params = {}, thunkAPI) => {
+    try {
+      const response = await API.get("/expenses", {
+        ...authConfig(),
+        params,
+      });
 
-        return response.data;
-      } catch (error) {
-        return thunkAPI.rejectWithValue(
-          error.response?.data?.message ||
-            "Failed to fetch expenses"
-        );
-      }
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error.response?.data?.message || "Failed to fetch expenses"
+      );
     }
-  );
+  }
+);
 
-export const getSingleExpense =
-  createAsyncThunk(
-    "expense/getSingleExpense",
+export const getSingleExpense = createAsyncThunk(
+  "expense/getSingleExpense",
+  async (id, thunkAPI) => {
+    try {
+      const response = await API.get(
+        `/expenses/${id}`,
+        authConfig()
+      );
 
-    async (id, thunkAPI) => {
-      try {
-        const response =
-          await API.get(
-            `/expenses/${id}`,
-            authConfig()
-          );
-
-        return response.data.expense;
-      } catch (error) {
-        return thunkAPI.rejectWithValue(
-          error.response?.data?.message ||
-            "Failed to fetch expense"
-        );
-      }
+      return response.data.expense;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error.response?.data?.message || "Failed to fetch expense"
+      );
     }
-  );
+  }
+);
 
-export const createExpense =
-  createAsyncThunk(
-    "expense/createExpense",
+export const createExpense = createAsyncThunk(
+  "expense/createExpense",
+  async (expenseData, thunkAPI) => {
+    try {
+      const response = await API.post(
+        "/expenses",
+        expenseData,
+        authConfig()
+      );
 
-    async (expenseData, thunkAPI) => {
-      try {
-        const response =
-          await API.post(
-            "/expenses",
-            expenseData,
-            authConfig()
-          );
-
-        return response.data.expense;
-      } catch (error) {
-        return thunkAPI.rejectWithValue(
-          error.response?.data?.message ||
-            "Failed to create expense"
-        );
-      }
+      return response.data.expense;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error.response?.data?.message || "Failed to create expense"
+      );
     }
-  );
+  }
+);
 
-export const updateExpense =
-  createAsyncThunk(
-    "expense/updateExpense",
+export const updateExpense = createAsyncThunk(
+  "expense/updateExpense",
+  async ({ id, updates }, thunkAPI) => {
+    try {
+      const response = await API.put(
+        `/expenses/${id}`,
+        updates,
+        authConfig()
+      );
 
-    async (
-      { id, updates },
-      thunkAPI
-    ) => {
-      try {
-        const response =
-          await API.put(
-            `/expenses/${id}`,
-            updates,
-            authConfig()
-          );
-
-        return response.data.expense;
-      } catch (error) {
-        return thunkAPI.rejectWithValue(
-          error.response?.data?.message ||
-            "Failed to update expense"
-        );
-      }
+      return response.data.expense;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error.response?.data?.message || "Failed to update expense"
+      );
     }
-  );
+  }
+);
 
-export const deleteExpense =
-  createAsyncThunk(
-    "expense/deleteExpense",
-
-    async (id, thunkAPI) => {
-      try {
-        await API.delete(
-          `/expenses/${id}`,
-          authConfig()
-        );
-
-        return id;
-      } catch (error) {
-        return thunkAPI.rejectWithValue(
-          error.response?.data?.message ||
-            "Failed to delete expense"
-        );
-      }
+export const deleteExpense = createAsyncThunk(
+  "expense/deleteExpense",
+  async (id, thunkAPI) => {
+    try {
+      await API.delete(`/expenses/${id}`, authConfig());
+      return id;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error.response?.data?.message || "Failed to delete expense"
+      );
     }
-  );
+  }
+);
 
-export const toggleFavoriteExpense =
-  createAsyncThunk(
-    "expense/toggleFavoriteExpense",
+export const toggleFavoriteExpense = createAsyncThunk(
+  "expense/toggleFavoriteExpense",
+  async (id, thunkAPI) => {
+    try {
+      const response = await API.put(
+        `/expenses/${id}/favorite`, // FIXED (was favourite)
+        {},
+        authConfig()
+      );
 
-    async (id, thunkAPI) => {
-      try {
-        const response =
-          await API.put(
-            `/expenses/${id}/favourite`,
-            {},
-            authConfig()
-          );
-
-        return response.data.expense;
-      } catch (error) {
-        return thunkAPI.rejectWithValue(
-          error.response?.data?.message ||
-            "Failed to update favorite"
-        );
-      }
+      return response.data.expense;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error.response?.data?.message || "Failed to update favorite"
+      );
     }
-  );
+  }
+);
 
-export const searchExpenses =
-  createAsyncThunk(
-    "expense/searchExpenses",
+export const searchExpenses = createAsyncThunk(
+  "expense/searchExpenses",
+  async (query, thunkAPI) => {
+    try {
+      const response = await API.get(
+        `/expenses/search?q=${query}`,
+        authConfig()
+      );
 
-    async (query, thunkAPI) => {
-      try {
-        const response =
-          await API.get(
-            `/expenses/search?q=${query}`,
-            authConfig()
-          );
-
-        return response.data.expenses;
-      } catch (error) {
-        return thunkAPI.rejectWithValue(
-          error.response?.data?.message ||
-            "Search failed"
-        );
-      }
+      return response.data.expenses;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error.response?.data?.message || "Search failed"
+      );
     }
-  );
+  }
+);
 
-export const fetchRecentExpenses =
-  createAsyncThunk(
-    "expense/fetchRecentExpenses",
+export const fetchRecentExpenses = createAsyncThunk(
+  "expense/fetchRecentExpenses",
+  async (_, thunkAPI) => {
+    try {
+      const response = await API.get(
+        "/expenses/recent",
+        authConfig()
+      );
 
-    async (_, thunkAPI) => {
-      try {
-        const response =
-          await API.get(
-            "/expenses/recent",
-            authConfig()
-          );
-
-        return response.data.expenses;
-      } catch (error) {
-        return thunkAPI.rejectWithValue(
-          error.response?.data?.message ||
-            "Failed to fetch recent expenses"
-        );
-      }
+      return response.data.expenses;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error.response?.data?.message ||
+          "Failed to fetch recent expenses"
+      );
     }
-  );
+  }
+);
 
-export const duplicateExpense =
-  createAsyncThunk(
-    "expense/duplicateExpense",
+export const duplicateExpense = createAsyncThunk(
+  "expense/duplicateExpense",
+  async (id, thunkAPI) => {
+    try {
+      const response = await API.post(
+        `/expenses/${id}/duplicate`,
+        {},
+        authConfig()
+      );
 
-    async (id, thunkAPI) => {
-      try {
-        const response =
-          await API.post(
-            `/expenses/${id}/duplicate`,
-            {},
-            authConfig()
-          );
-
-        return response.data
-          .duplicatedExpense;
-      } catch (error) {
-        return thunkAPI.rejectWithValue(
-          error.response?.data?.message ||
-            "Failed to duplicate expense"
-        );
-      }
+      return response.data.duplicatedExpense;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error.response?.data?.message ||
+          "Failed to duplicate expense"
+      );
     }
-  );
+  }
+);
+
+/* =========================
+   STATE
+========================= */
 
 const initialState = {
   expenses: [],
@@ -248,302 +210,172 @@ const initialState = {
   },
 };
 
-const expenseSlice =
-  createSlice({
-    name: "expense",
+/* =========================
+   SLICE
+========================= */
 
-    initialState,
+const expenseSlice = createSlice({
+  name: "expense",
+  initialState,
 
-    reducers: {
-      clearExpenseError:
-        (state) => {
-          state.error = null;
-        },
-
-      clearExpenseSuccess:
-        (state) => {
-          state.success = null;
-        },
-
-      setExpenseSearch:
-        (state, action) => {
-          state.search =
-            action.payload;
-        },
-
-      setExpenseSort:
-        (state, action) => {
-          state.sort =
-            action.payload;
-        },
-
-      setExpenseFilters:
-        (state, action) => {
-          state.filters = {
-            ...state.filters,
-            ...action.payload,
-          };
-        },
-
-      clearExpenseFilters:
-        (state) => {
-          state.filters = {
-            categoryId: "",
-            paymentMethod: "",
-            favorite: false,
-            startDate: "",
-            endDate: "",
-          };
-        },
+  reducers: {
+    clearExpenseError: (state) => {
+      state.error = null;
     },
 
-    extraReducers: (builder) => {
-      builder
+    clearExpenseSuccess: (state) => {
+      state.success = null;
+    },
 
-        .addCase(
-          fetchExpenses.pending,
-          (state) => {
-            state.loading = true;
-            state.error = null;
-          }
-        )
+    setExpenseSearch: (state, action) => {
+      state.search = action.payload;
+    },
 
-        .addCase(
-          fetchExpenses.fulfilled,
-          (state, action) => {
-            state.loading = false;
+    setExpenseSort: (state, action) => {
+      state.sort = action.payload;
+    },
 
-            state.expenses =
-              action.payload.expenses;
+    setExpenseFilters: (state, action) => {
+      state.filters = {
+        ...state.filters,
+        ...action.payload,
+      };
+    },
 
-            state.totalExpenses =
-              action.payload.totalExpenses;
+    clearExpenseFilters: (state) => {
+      state.filters = initialState.filters;
+    },
+  },
 
-            state.totalPages =
-              action.payload.totalPages;
+  extraReducers: (builder) => {
+    builder
 
-            state.currentPage =
-              action.payload.currentPage;
+      .addCase(fetchExpenses.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
 
-            state.count =
-              action.payload.count;
-          }
-        )
+      .addCase(fetchExpenses.fulfilled, (state, action) => {
+        state.loading = false;
+        state.expenses = action.payload.expenses;
+        state.totalExpenses = action.payload.totalExpenses;
+        state.totalPages = action.payload.totalPages;
+        state.currentPage = action.payload.currentPage;
+        state.count = action.payload.count;
+      })
 
-        .addCase(
-          fetchExpenses.rejected,
-          (state, action) => {
-            state.loading = false;
-            state.error =
-              action.payload;
-          }
-        )
+      .addCase(fetchExpenses.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
 
-        .addCase(
-          getSingleExpense.pending,
-          (state) => {
-            state.loading = true;
-          }
-        )
+      .addCase(createExpense.fulfilled, (state, action) => {
+        state.expenses.unshift(action.payload);
+        state.success = "Expense created successfully";
+      })
 
-        .addCase(
-          getSingleExpense.fulfilled,
-          (state, action) => {
-            state.loading = false;
-            state.selectedExpense =
-              action.payload;
-          }
-        )
-
-        .addCase(
-          getSingleExpense.rejected,
-          (state, action) => {
-            state.loading = false;
-            state.error =
-              action.payload;
-          }
-        )
-
-        .addCase(
-          createExpense.fulfilled,
-          (state, action) => {
-            state.expenses.unshift(
-              action.payload
-            );
-
-            state.success =
-              "Expense created successfully";
-          }
-        )
-
-        .addCase(
-          updateExpense.fulfilled,
-          (state, action) => {
-            const index =
-              state.expenses.findIndex(
-                (expense) =>
-                  expense._id ===
-                  action.payload._id
-              );
-
-            if (index !== -1) {
-              state.expenses[index] =
-                action.payload;
-            }
-          }
-        )
-
-        .addCase(
-          deleteExpense.fulfilled,
-          (state, action) => {
-            state.expenses =
-              state.expenses.filter(
-                (expense) =>
-                  expense._id !==
-                  action.payload
-              );
-          }
-        )
-
-        .addCase(
-          toggleFavoriteExpense.fulfilled,
-          (state, action) => {
-            const index =
-              state.expenses.findIndex(
-                (expense) =>
-                  expense._id ===
-                  action.payload._id
-              );
-
-            if (index !== -1) {
-              state.expenses[index] =
-                action.payload;
-            }
-          }
-        )
-
-        .addCase(
-          searchExpenses.fulfilled,
-          (state, action) => {
-            state.expenses =
-              action.payload;
-          }
-        )
-
-        .addCase(
-          fetchRecentExpenses.fulfilled,
-          (state, action) => {
-            state.recentExpenses =
-              action.payload;
-          }
-        )
-
-        .addCase(
-          duplicateExpense.fulfilled,
-          (state, action) => {
-            state.expenses.unshift(
-              action.payload
-            );
-          }
+      .addCase(updateExpense.fulfilled, (state, action) => {
+        const index = state.expenses.findIndex(
+          (e) => e._id === action.payload._id
         );
-    },
-  });
 
-export const selectFilteredExpenses =
-  createSelector(
-    [(state) => state.expense],
+        if (index !== -1) {
+          state.expenses[index] = action.payload;
+        }
+      })
 
-    ({
-      expenses,
-      search,
-      sort,
-    }) => {
-      let filtered =
-        [...expenses];
+      .addCase(deleteExpense.fulfilled, (state, action) => {
+        state.expenses = state.expenses.filter(
+          (e) => e._id !== action.payload
+        );
+      })
 
-      if (search) {
-        filtered =
-          filtered.filter(
-            (expense) =>
-              expense.title
-                ?.toLowerCase()
-                .includes(
-                  search.toLowerCase()
-                ) ||
-              expense.note
-                ?.toLowerCase()
-                .includes(
-                  search.toLowerCase()
-                )
-          );
-      }
+      .addCase(toggleFavoriteExpense.fulfilled, (state, action) => {
+        const index = state.expenses.findIndex(
+          (e) => e._id === action.payload._id
+        );
 
-      switch (sort) {
-        case "highest":
-          filtered.sort(
-            (a, b) =>
-              b.amount - a.amount
-          );
-          break;
+        if (index !== -1) {
+          state.expenses[index] = action.payload;
+        }
+      })
 
-        case "lowest":
-          filtered.sort(
-            (a, b) =>
-              a.amount - b.amount
-          );
-          break;
+      .addCase(searchExpenses.fulfilled, (state, action) => {
+        // FIXED: do NOT overwrite main list permanently
+        state.filteredResults = action.payload;
+      })
 
-        case "oldest":
-          filtered.sort(
-            (a, b) =>
-              new Date(a.date) -
-              new Date(b.date)
-          );
-          break;
+      .addCase(fetchRecentExpenses.fulfilled, (state, action) => {
+        state.recentExpenses = action.payload;
+      })
 
-        default:
-          filtered.sort(
-            (a, b) =>
-              new Date(b.date) -
-              new Date(a.date)
-          );
-      }
+      .addCase(duplicateExpense.fulfilled, (state, action) => {
+        state.expenses.unshift(action.payload);
+      });
+  },
+});
 
-      return filtered;
+/* =========================
+   SELECTORS (FIXED)
+========================= */
+
+export const selectFilteredExpenses = createSelector(
+  [(state) => state.expense],
+  ({ expenses, search, sort }) => {
+    let filtered = [...expenses];
+
+    if (search) {
+      filtered = filtered.filter(
+        (expense) =>
+          expense.title?.toLowerCase().includes(search.toLowerCase()) ||
+          expense.notes?.toLowerCase().includes(search.toLowerCase()) ||
+          expense.merchant?.toLowerCase().includes(search.toLowerCase())
+      );
     }
-  );
 
-export const selectExpenseStats =
-  createSelector(
-    [(state) => state.expense.expenses],
+    switch (sort) {
+      case "highest":
+        filtered.sort((a, b) => b.amount - a.amount);
+        break;
 
-    (expenses) => ({
-      totalAmount:
-        expenses.reduce(
-          (sum, expense) =>
-            sum +
-            Number(
-              expense.amount || 0
-            ),
-          0
-        ),
+      case "lowest":
+        filtered.sort((a, b) => a.amount - b.amount);
+        break;
 
-      totalExpenses:
-        expenses.length,
+      case "oldest":
+        filtered.sort(
+          (a, b) =>
+            new Date(a.expenseDate) - new Date(b.expenseDate)
+        );
+        break;
 
-      favoriteExpenses:
-        expenses.filter(
-          (expense) =>
-            expense.favorite
-        ).length,
+      default:
+        filtered.sort(
+          (a, b) =>
+            new Date(b.expenseDate) - new Date(a.expenseDate)
+        );
+    }
 
-      recurringExpenses:
-        expenses.filter(
-          (expense) =>
-            expense.isRecurring
-        ).length,
-    })
-  );
+    return filtered;
+  }
+);
+
+export const selectExpenseStats = createSelector(
+  [(state) => state.expense.expenses],
+  (expenses) => ({
+    totalAmount: expenses.reduce(
+      (sum, e) => sum + Number(e.amount || 0),
+      0
+    ),
+    totalExpenses: expenses.length,
+    favoriteExpenses: expenses.filter((e) => e.favorite).length,
+    recurringExpenses: expenses.filter((e) => e.isRecurring).length,
+  })
+);
+
+/* =========================
+   EXPORTS
+========================= */
 
 export const {
   clearExpenseError,

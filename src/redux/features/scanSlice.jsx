@@ -1,16 +1,11 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { scanReceipt as scanReceiptService } from "../../services/scanService";
 
-/**
- * Scan receipt thunk
- */
 export const scanReceipt = createAsyncThunk(
   "scan/scanReceipt",
   async (file, { rejectWithValue }) => {
     try {
       const response = await scanReceiptService(file);
-
-      // backend already returns data directly
       return response;
     } catch (error) {
       return rejectWithValue(
@@ -23,11 +18,9 @@ export const scanReceipt = createAsyncThunk(
 );
 
 const initialState = {
-  mode: "camera", // camera | upload
-
+  mode: "camera",
   scanning: false,
   progress: 0,
-
   error: null,
 
   image: null,
@@ -41,9 +34,7 @@ const initialState = {
   },
 
   confidence: 0,
-
   warnings: [],
-
   isValid: false,
 
   history: [],
@@ -83,7 +74,12 @@ const scanSlice = createSlice({
       state.error = null;
     },
 
-    resetScan: () => initialState,
+    resetScan: (state) => {
+      return {
+        ...initialState,
+        history: state.history, // keep history (IMPORTANT FIX)
+      };
+    },
   },
 
   extraReducers: (builder) => {
@@ -105,7 +101,11 @@ const scanSlice = createSlice({
         state.scanning = false;
         state.progress = 100;
 
-        const data = action.payload?.data || action.payload;
+        const response = action.payload;
+        const data = response?.data || response;
+
+        const confidence =
+          response?.confidence ?? data?.confidence ?? 0;
 
         state.extracted = {
           merchant: data?.merchant || "",
@@ -115,7 +115,7 @@ const scanSlice = createSlice({
           rawText: data?.rawText || "",
         };
 
-        state.confidence = Math.round(action.payload?.confidence ?? 0);
+        state.confidence = Math.round(confidence);
 
         state.isValid =
           !!data?.amount &&
@@ -124,12 +124,15 @@ const scanSlice = createSlice({
 
         state.warnings = data?.warnings || [];
 
-        // limit history to 50 items
-        state.history.unshift({
-          ...data,
-          scannedAt: new Date().toISOString(),
-        });
+        // add history safely
+        if (data && (data.merchant || data.amount)) {
+          state.history.unshift({
+            ...data,
+            scannedAt: new Date().toISOString(),
+          });
+        }
 
+        // limit history
         if (state.history.length > 50) {
           state.history.pop();
         }
@@ -141,9 +144,7 @@ const scanSlice = createSlice({
       .addCase(scanReceipt.rejected, (state, action) => {
         state.scanning = false;
         state.progress = 0;
-
-        state.error =
-          action.payload || "Scan failed";
+        state.error = action.payload || "Scan failed";
       });
   },
 });

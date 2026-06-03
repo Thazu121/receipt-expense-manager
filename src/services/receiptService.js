@@ -1,13 +1,4 @@
-import API from "../api/api";
-
-export const saveReceipt = async (data) => {
-  const response = await API.post(
-    "/receipts",
-    data
-  );
-
-  return response.data;
-};
+import API from "../../api/api";
 
 export const getReceipts = async () => {
   const response =

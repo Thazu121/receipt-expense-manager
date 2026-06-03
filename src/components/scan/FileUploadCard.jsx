@@ -19,7 +19,6 @@ export default function FileUploadCard() {
   const {
     scanning,
     error,
-    extracted,
   } = useSelector(
     (state) => state.scan
   );
@@ -114,7 +113,7 @@ export default function FileUploadCard() {
           "
         >
           <div>
-            <p className="font-medium">
+            <p className="font-medium text-lg">
               Upload Receipt
             </p>
 
@@ -136,16 +135,30 @@ export default function FileUploadCard() {
 
       {preview && (
         <div className="space-y-4">
-          <img
-            src={preview}
-            alt="Receipt Preview"
+          <div
             className="
               w-full
+              bg-gray-100
+              border
               rounded-xl
-              max-h-[400px]
-              object-contain
+              p-2
+              overflow-hidden
             "
-          />
+          >
+            <img
+              src={preview}
+              alt="Receipt Preview"
+              className="
+                w-full
+                h-auto
+                max-h-[500px]
+                object-contain
+                rounded-lg
+                block
+                mx-auto
+              "
+            />
+          </div>
 
           <button
             onClick={
@@ -158,6 +171,7 @@ export default function FileUploadCard() {
               hover:bg-red-600
               text-white
               rounded-lg
+              transition
             "
           >
             Remove
@@ -203,66 +217,6 @@ export default function FileUploadCard() {
           "
         >
           {error}
-        </div>
-      )}
-
-      {extracted?.merchant && (
-        <div
-          className="
-            mt-6
-            p-4
-            rounded-xl
-            border
-            bg-gray-50
-          "
-        >
-          <h3
-            className="
-              font-semibold
-              mb-3
-            "
-          >
-            Extracted Details
-          </h3>
-
-          <div className="space-y-2">
-            <p>
-              <strong>
-                Merchant:
-              </strong>{" "}
-              {
-                extracted.merchant
-              }
-            </p>
-
-            <p>
-              <strong>
-                Amount:
-              </strong>{" "}
-              ₹
-              {
-                extracted.amount
-              }
-            </p>
-
-            <p>
-              <strong>
-                Date:
-              </strong>{" "}
-              {
-                extracted.date
-              }
-            </p>
-
-            <p>
-              <strong>
-                Category:
-              </strong>{" "}
-              {
-                extracted.category
-              }
-            </p>
-          </div>
         </div>
       )}
     </div>
