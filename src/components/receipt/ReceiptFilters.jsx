@@ -18,47 +18,45 @@ export default function GalleryFilters() {
     error,
   } = useSelector((state) => state.receipt);
 
-  const isLight = useSelector(
-    (state) => state.theme.isLight
-  );
+  const isLight = useSelector((state) => state.theme.isLight);
 
-  const baseStyle = `p-3 rounded-lg border transition ${
-    isLight
+  const baseStyle =
+    `w-full md:w-auto p-3 rounded-lg border transition outline-none ` +
+    (isLight
       ? "bg-white border-gray-300 text-gray-800"
-      : "bg-gray-900 border-gray-700 text-white"
-  }`;
+      : "bg-zinc-900 border-zinc-700 text-white");
 
   return (
     <div className="space-y-4 mb-6">
+
       {error && (
-        <div
-          className={`p-3 rounded-lg flex justify-between text-sm ${
-            isLight
-              ? "bg-red-100 text-red-700"
-              : "bg-red-500/20 text-red-400"
-          }`}
-        >
+        <div className={`flex justify-between items-center p-3 rounded-lg text-sm ${
+          isLight
+            ? "bg-red-100 text-red-700"
+            : "bg-red-500/20 text-red-400"
+        }`}>
           <span>{error}</span>
           <button
             onClick={() => dispatch(clearError())}
-            className="underline text-xs"
+            className="text-xs underline"
           >
             Dismiss
           </button>
         </div>
       )}
 
-      <div className="flex flex-col md:flex-row gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+
+        {/* SEARCH */}
         <input
           type="text"
           placeholder="Search merchant..."
           value={search}
-          onChange={(e) =>
-            dispatch(setSearch(e.target.value))
-          }
-          className={`flex-1 ${baseStyle}`}
+          onChange={(e) => dispatch(setSearch(e.target.value))}
+          className={baseStyle}
         />
 
+        {/* CATEGORY */}
         <select
           value={categoryFilter}
           onChange={(e) =>
@@ -72,9 +70,11 @@ export default function GalleryFilters() {
           <option value="Transport">Transport</option>
           <option value="Shopping">Shopping</option>
           <option value="Utilities">Utilities</option>
-          <option value="Other">General</option>
+          <option value="Medical">Medical</option>
+          <option value="Other">Other</option>
         </select>
 
+        {/* STATUS (FIXED LOGIC) */}
         <select
           value={statusFilter}
           onChange={(e) =>
@@ -83,23 +83,22 @@ export default function GalleryFilters() {
           className={baseStyle}
         >
           <option value="All">All Status</option>
-          <option value="Pending">Pending</option>
           <option value="Verified">Verified</option>
-          <option value="Rejected">Rejected</option>
+          <option value="Pending">Pending</option>
         </select>
 
+        {/* SORT */}
         <select
           value={sortBy}
-          onChange={(e) =>
-            dispatch(setSortBy(e.target.value))
-          }
+          onChange={(e) => dispatch(setSortBy(e.target.value))}
           className={baseStyle}
         >
-          <option>Newest</option>
-          <option>Oldest</option>
-          <option>Amount High-Low</option>
-          <option>Amount Low-High</option>
+          <option value="Newest">Newest</option>
+          <option value="Oldest">Oldest</option>
+          <option value="Amount High-Low">Amount High-Low</option>
+          <option value="Amount Low-High">Amount Low-High</option>
         </select>
+
       </div>
     </div>
   );

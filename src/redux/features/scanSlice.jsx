@@ -22,8 +22,8 @@ const initialState = {
   scanning: false,
   progress: 0,
   error: null,
-
   image: null,
+  receiptId: null,
 
   extracted: {
     merchant: "",
@@ -36,7 +36,6 @@ const initialState = {
   confidence: 0,
   warnings: [],
   isValid: false,
-
   history: [],
 };
 
@@ -53,6 +52,10 @@ const scanSlice = createSlice({
       state.image = action.payload;
     },
 
+    setReceiptId: (state, action) => {
+      state.receiptId = action.payload;
+    },
+
     setProgress: (state, action) => {
       state.progress = action.payload;
     },
@@ -66,81 +69,87 @@ const scanSlice = createSlice({
     },
 
     clearScanData: (state) => {
-      state.extracted = initialState.extracted;
+      state.extracted = {
+        merchant: "",
+        amount: "",
+        date: "",
+        category: "",
+        rawText: "",
+      };
       state.confidence = 0;
-      state.isValid = false;
-      state.warnings = [];
       state.progress = 0;
       state.error = null;
+      state.warnings = [];
+      state.isValid = false;
     },
 
+    // ✅ FINAL FIXED RESET (MOST IMPORTANT)
     resetScan: (state) => {
-      return {
-        ...initialState,
-        history: state.history, // keep history (IMPORTANT FIX)
+      state.mode = "camera";
+      state.scanning = false;
+      state.progress = 0;
+      state.error = null;
+      state.image = null;
+      state.receiptId = null;
+
+      state.extracted = {
+        merchant: "",
+        amount: "",
+        date: "",
+        category: "",
+        rawText: "",
       };
+
+      state.confidence = 0;
+      state.warnings = [];
+      state.isValid = false;
+      state.history = [];
     },
   },
 
   extraReducers: (builder) => {
     builder
-
-      // =====================
-      // PENDING
-      // =====================
       .addCase(scanReceipt.pending, (state) => {
         state.scanning = true;
-        state.error = null;
         state.progress = 10;
+        state.error = null;
       })
 
-      // =====================
-      // SUCCESS
-      // =====================
       .addCase(scanReceipt.fulfilled, (state, action) => {
         state.scanning = false;
         state.progress = 100;
 
-        const response = action.payload;
-        const data = response?.data || response;
-
-        const confidence =
-          response?.confidence ?? data?.confidence ?? 0;
+        const data = action.payload?.data || action.payload || {};
 
         state.extracted = {
-          merchant: data?.merchant || "",
-          amount: data?.amount || "",
-          date: data?.date || "",
-          category: data?.category || "",
-          rawText: data?.rawText || "",
+          merchant: data.merchant || "",
+          amount: data.amount || "",
+          date: data.date || "",
+          category: data.category || "",
+          rawText: data.rawText || "",
         };
 
-        state.confidence = Math.round(confidence);
-
+        state.confidence = Math.round(data.confidence || 0);
+        state.warnings = data.warnings || [];
         state.isValid =
-          !!data?.amount &&
-          !!data?.merchant &&
-          state.confidence > 50;
+          !!data.merchant && !!data.amount && state.confidence > 50;
 
-        state.warnings = data?.warnings || [];
-
-        // add history safely
-        if (data && (data.merchant || data.amount)) {
+        if (data.merchant || data.amount) {
           state.history.unshift({
-            ...data,
+            merchant: data.merchant,
+            amount: data.amount,
+            date: data.date,
+            category: data.category,
+            confidence: data.confidence,
             scannedAt: new Date().toISOString(),
           });
         }
 
-        // limit history
         if (state.history.length > 50) {
           state.history.pop();
         }
       })
 
-      // =====================
-      // ERROR
-      // =====================
       .addCase(scanReceipt.rejected, (state, action) => {
         state.scanning = false;
         state.progress = 0;
@@ -152,6 +161,7 @@ const scanSlice = createSlice({
 export const {
   setMode,
   setImage,
+  setReceiptId,
   setProgress,
   setError,
   clearError,

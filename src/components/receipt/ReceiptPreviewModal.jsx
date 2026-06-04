@@ -7,99 +7,146 @@ export default function ReceiptPreviewModal({ receipt, onClose }) {
   const dispatch = useDispatch();
 
   const [formData, setFormData] = useState({
-    store: receipt.store || "",
-    date: receipt.date || "",
-    amount: receipt.amount || "",
-    category: receipt.category || "",
+    store: "",
+    date: "",
+    amount: "",
+    category: "",
   });
 
+  useEffect(() => {
+    if (receipt) {
+      setFormData({
+        store: receipt.store || "",
+        date: receipt.date || "",
+        amount: receipt.amount || "",
+        category: receipt.category || "",
+      });
+    }
+  }, [receipt]);
+
+  // ESC close
   useEffect(() => {
     const handleEsc = (e) => {
       if (e.key === "Escape") onClose();
     };
+
     window.addEventListener("keydown", handleEsc);
     return () => window.removeEventListener("keydown", handleEsc);
   }, [onClose]);
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
+    setFormData((prev) => ({
+      ...prev,
       [e.target.name]: e.target.value,
-    });
+    }));
   };
 
   const handleSave = () => {
     dispatch(
       updateReceipt({
-        id: receipt.id,
-        updates: formData,
+        id: receipt._id,
+        updates: {
+          merchantName: formData.store,
+          extractedAmount: formData.amount,
+          extractedDate: formData.date,
+          category: formData.category,
+        },
       })
     );
+
     onClose();
   };
 
+  const inputStyle = `w-full mt-1 p-3 rounded-lg border text-sm outline-none transition ${
+    isLight
+      ? "bg-white border-gray-300 text-black"
+      : "bg-zinc-800 border-zinc-700 text-white"
+  }`;
+
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/70 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className={`w-full max-w-5xl rounded-2xl overflow-hidden shadow-2xl
-          ${isLight ? "bg-white text-gray-800" : "bg-zinc-900 text-white"}`}
+        className={`w-full max-w-5xl max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl ${
+          isLight ? "bg-white text-gray-800" : "bg-zinc-900 text-white"
+        }`}
       >
-        <div className="flex justify-between items-center px-6 py-4 border-b border-gray-300 dark:border-zinc-700">
-          <h2 className="text-lg font-semibold">
+        {/* HEADER */}
+        <div className="flex justify-between items-center px-4 sm:px-6 py-4 border-b">
+          <h2 className="text-base sm:text-lg font-semibold">
             Edit Receipt
           </h2>
-          <button onClick={onClose}>✕</button>
+          <button
+            onClick={onClose}
+            className="text-lg font-bold hover:opacity-70"
+          >
+            ✕
+          </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 max-h-[85vh] overflow-y-auto">
-          <img
-            src={receipt.image}
-            alt="receipt"
-            className="w-full max-h-[450px] object-contain rounded-xl"
-          />
+        {/* BODY */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6 p-4 sm:p-6">
 
-          <div className="space-y-4">
-            <Input
-              label="Store"
-              name="store"
-              value={formData.store}
-              onChange={handleChange}
+          {/* IMAGE */}
+          <div className="flex justify-center items-start">
+            <img
+              src={receipt.image}
+              alt="receipt"
+              className="w-full max-h-[350px] md:max-h-[500px] object-contain rounded-xl border"
             />
+          </div>
 
-            <Input
-              label="Date"
-              name="date"
-              type="date"
-              value={formData.date}
-              onChange={handleChange}
-            />
+          {/* FORM */}
+          <div className="space-y-4 sm:space-y-5">
 
-            <Input
-              label="Amount"
-              name="amount"
-              type="number"
-              value={formData.amount}
-              onChange={handleChange}
-            />
-
+            {/* STORE */}
             <div>
-              <label className="text-sm text-gray-400">
-                Category
-              </label>
+              <label className="text-sm text-gray-400">Store</label>
+              <input
+                name="store"
+                value={formData.store}
+                onChange={handleChange}
+                className={inputStyle}
+                placeholder="Enter store name"
+              />
+            </div>
+
+            {/* DATE */}
+            <div>
+              <label className="text-sm text-gray-400">Date</label>
+              <input
+                type="date"
+                name="date"
+                value={formData.date}
+                onChange={handleChange}
+                className={inputStyle}
+              />
+            </div>
+
+            {/* AMOUNT */}
+            <div>
+              <label className="text-sm text-gray-400">Amount</label>
+              <input
+                type="number"
+                name="amount"
+                value={formData.amount}
+                onChange={handleChange}
+                className={inputStyle}
+                placeholder="Enter amount"
+              />
+            </div>
+
+            {/* CATEGORY */}
+            <div>
+              <label className="text-sm text-gray-400">Category</label>
               <select
                 name="category"
                 value={formData.category}
                 onChange={handleChange}
-                className={`w-full mt-1 p-2 rounded-lg border
-                  ${
-                    isLight
-                      ? "bg-white border-gray-300"
-                      : "bg-zinc-800 border-zinc-700"
-                  }`}
+                className={inputStyle}
               >
                 <option value="">Select Category</option>
                 <option value="Grocery">Grocery</option>
@@ -111,44 +158,22 @@ export default function ReceiptPreviewModal({ receipt, onClose }) {
               </select>
             </div>
 
+            {/* STATUS */}
             <div>
               <p className="text-sm text-gray-400">Status</p>
-              <p className="font-semibold">{receipt.status}</p>
+              <p className="font-semibold capitalize">
+                {receipt.status || "pending"}
+              </p>
             </div>
-
             <button
               onClick={handleSave}
-              className="w-full mt-4 py-2 rounded-lg bg-green-500 text-white font-semibold hover:bg-green-600 transition"
+              className="w-full mt-4 py-3 rounded-lg bg-green-500 text-white font-semibold hover:bg-green-600 transition"
             >
               Save Changes
             </button>
           </div>
         </div>
       </div>
-    </div>
-  );
-}
-
-function Input({ label, name, value, onChange, type = "text" }) {
-  const isLight = useSelector((state) => state.theme.isLight);
-
-  return (
-    <div>
-      <label className="text-sm text-gray-400">
-        {label}
-      </label>
-      <input
-        type={type}
-        name={name}
-        value={value}
-        onChange={onChange}
-        className={`w-full mt-1 p-2 rounded-lg border
-          ${
-            isLight
-              ? "bg-white border-gray-300"
-              : "bg-zinc-800 border-zinc-700"
-          }`}
-      />
     </div>
   );
 }

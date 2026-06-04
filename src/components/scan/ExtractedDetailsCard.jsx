@@ -3,22 +3,21 @@ import { useDispatch, useSelector } from "react-redux";
 import { resetScan } from "../../redux/features/scanSlice";
 import API from "../../api/api";
 
-/**
- * SAFE OCR DATE PARSER
- */
+
 const parseDate = (dateStr) => {
   if (!dateStr) return null;
 
   dateStr = dateStr.trim();
 
-  // ISO / normal JS date
   const direct = new Date(dateStr);
+
   if (!isNaN(direct.getTime())) {
     return direct;
   }
 
-  // DD/MM/YYYY or DD-MM-YYYY
-  const match = dateStr.match(/^(\d{2})[\/.-](\d{2})[\/.-](\d{2,4})$/);
+  const match = dateStr.match(
+    /^(\d{2})[\/.-](\d{2})[\/.-](\d{2,4})$/
+  );
 
   if (match) {
     let [, d, m, y] = match;
@@ -35,67 +34,98 @@ const parseDate = (dateStr) => {
 
 export default function ExtractedDetailsCard() {
   const dispatch = useDispatch();
+  
 
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState(null);
   const [error, setError] = useState(null);
 
-  const { extracted, confidence } = useSelector((state) => state.scan);
-  const isLight = useSelector((state) => state.theme.isLight);
+  const {
+    extracted,
+    confidence,
+    receiptId,
+  } = useSelector((state) => state.scan);
 
-  // ✅ RESET UI WHEN NEW OCR ARRIVES
+  const isLight = useSelector(
+    (state) => state.theme.isLight
+  );
+
   useEffect(() => {
     setMessage(null);
     setError(null);
   }, [extracted]);
 
-  if (!extracted?.merchant && !extracted?.amount) {
+  if (
+    !extracted?.merchant &&
+    !extracted?.amount
+  ) {
     return null;
   }
+
 const handleSaveExpense = async () => {
-  if (saving) return;
-
-  setError(null);
-
   try {
     setSaving(true);
 
-    await API.post("/expenses", {
-      title: extracted.merchant || "Receipt Expense",
-      amount: Number(extracted.amount) || 0,
-      category: extracted.category || "General",
-      expenseDate: parseDate(extracted.date) || new Date(),
-      notes: "Added from OCR receipt scan",
-      source: "ocr",
-    });
+    const expenseRes =
+      await API.post("/expenses", {
+        title:
+          extracted.merchant ||
+          "Receipt Expense",
 
-    // STEP 1: show message
-    setMessage("Expense saved successfully ✅");
+        amount:
+          Number(
+            extracted.amount
+          ) || 0,
 
-    // STEP 2: WAIT FOR RENDER FIRST
-    requestAnimationFrame(() => {
-      setTimeout(() => {
-        dispatch(resetScan());
-      }, 1200);
-    });
+        category:
+          extracted.category ||
+          "General",
+
+        expenseDate:
+          parseDate(
+            extracted.date
+          ) || new Date(),
+
+        source: "ocr",
+      });
+
+    if (receiptId) {
+      await API.put(
+        `/receipts/${receiptId}/link-expense`,
+        {
+          expenseId:
+            expenseRes.data
+              .expense._id,
+        }
+      );
+    }
+
+    setMessage(
+      "Expense saved successfully ✅"
+    );
 
   } catch (err) {
-    setError(err?.response?.data?.message || "Failed to save expense ❌");
+    setError(
+      err?.response?.data
+        ?.message ||
+        "Save failed"
+    );
   } finally {
     setSaving(false);
   }
 };
+
   return (
     <div
-      className={`w-full mt-6 rounded-2xl p-4 sm:p-6 shadow-lg border transition-all ${
+      className={`w-full mt-6 rounded-2xl p-4 sm:p-6 shadow-lg border ${
         isLight
           ? "bg-white border-gray-200"
           : "bg-zinc-900 border-zinc-700 text-white"
       }`}
     >
-      {/* HEADER */}
-      <div className="flex flex-col sm:flex-row justify-between gap-2 mb-5">
-        <h2 className="text-lg sm:text-xl font-bold">
+      {/* Header */}
+      <div className="flex justify-between items-center mb-5">
+        <h2 className="text-xl font-bold">
           Extracted Details
         </h2>
 
@@ -108,55 +138,76 @@ const handleSaveExpense = async () => {
               : "text-red-500"
           }`}
         >
-          {Math.round(confidence || 0)}% Confidence
+          {Math.round(confidence)}%
+          Confidence
         </span>
       </div>
 
-      {/* SUCCESS / ERROR */}
+      {/* Success */}
       {message && (
-        <div className="mb-4 p-3 rounded-xl bg-green-100 text-green-700 text-sm">
+        <div className="mb-4 p-3 rounded-xl bg-green-100 text-green-700">
           {message}
         </div>
       )}
 
+      {/* Error */}
       {error && (
-        <div className="mb-4 p-3 rounded-xl bg-red-100 text-red-700 text-sm">
+        <div className="mb-4 p-3 rounded-xl bg-red-100 text-red-700">
           {error}
         </div>
       )}
 
-      {/* LOW CONFIDENCE WARNING */}
+      {/* Warning */}
       {confidence < 60 && (
-        <div className="mb-4 p-3 rounded-xl bg-yellow-100 text-yellow-700 text-sm">
-          Low OCR confidence. Please upload a clearer receipt.
+        <div className="mb-4 p-3 rounded-xl bg-yellow-100 text-yellow-700">
+          OCR confidence is low.
+          Please verify before saving.
         </div>
       )}
 
-      {/* DETAILS */}
+      {/* Details */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Detail label="Merchant" value={extracted.merchant} isLight={isLight} />
+        <Detail
+          label="Merchant"
+          value={extracted.merchant}
+          isLight={isLight}
+        />
 
         <Detail
           label="Amount"
           value={
-            extracted.amount ? `₹${extracted.amount}` : "Not detected"
+            extracted.amount
+              ? `₹${extracted.amount}`
+              : "Not detected"
           }
           isLight={isLight}
         />
 
-        <Detail label="Date" value={extracted.date} isLight={isLight} />
+        <Detail
+          label="Date"
+          value={extracted.date}
+          isLight={isLight}
+        />
 
-        <Detail label="Category" value={extracted.category} isLight={isLight} />
+        <Detail
+          label="Category"
+          value={extracted.category}
+          isLight={isLight}
+        />
       </div>
 
-      {/* OCR TEXT */}
+      {/* OCR Text */}
       {extracted.rawText && (
         <div className="mt-6">
-          <h3 className="font-semibold mb-2">OCR Text</h3>
+          <h3 className="font-semibold mb-2">
+            OCR Text
+          </h3>
 
           <div
             className={`p-3 rounded-xl text-sm max-h-52 overflow-y-auto ${
-              isLight ? "bg-gray-100" : "bg-zinc-800"
+              isLight
+                ? "bg-gray-100"
+                : "bg-zinc-800"
             }`}
           >
             <pre className="whitespace-pre-wrap break-words">
@@ -166,23 +217,23 @@ const handleSaveExpense = async () => {
         </div>
       )}
 
-      {/* BUTTONS */}
+      {/* Buttons */}
       <div className="mt-6 flex flex-col sm:flex-row gap-3">
         <button
           onClick={handleSaveExpense}
           disabled={saving}
-          className="w-full py-3 rounded-xl bg-blue-500 hover:bg-blue-400 text-white font-semibold transition disabled:opacity-50"
+          className="w-full py-3 rounded-xl bg-blue-500 hover:bg-blue-400 text-white font-semibold disabled:opacity-50"
         >
-          {saving ? "Saving..." : "Save as Expense"}
+          {saving
+            ? "Saving..."
+            : "Save "}
         </button>
 
         <button
           onClick={() => {
-            setMessage(null);
-            setError(null);
             dispatch(resetScan());
           }}
-          className="w-full py-3 rounded-xl bg-green-500 hover:bg-green-400 text-black font-semibold transition"
+          className="w-full py-3 rounded-xl bg-green-500 hover:bg-green-400 text-black font-semibold"
         >
           Scan Another Receipt
         </button>
@@ -191,25 +242,30 @@ const handleSaveExpense = async () => {
   );
 }
 
-/**
- * DETAIL COMPONENT
- */
-function Detail({ label, value, isLight }) {
+function Detail({
+  label,
+  value,
+  isLight,
+}) {
   return (
     <div
-      className={`p-4 rounded-xl transition ${
-        isLight ? "bg-gray-50" : "bg-zinc-800"
+      className={`p-4 rounded-xl ${
+        isLight
+          ? "bg-gray-50"
+          : "bg-zinc-800"
       }`}
     >
       <p
-        className={`text-xs sm:text-sm mb-1 ${
-          isLight ? "text-gray-500" : "text-zinc-400"
+        className={`text-sm mb-1 ${
+          isLight
+            ? "text-gray-500"
+            : "text-zinc-400"
         }`}
       >
         {label}
       </p>
 
-      <p className="font-semibold break-words text-sm sm:text-base">
+      <p className="font-semibold break-words">
         {value || "Not detected"}
       </p>
     </div>

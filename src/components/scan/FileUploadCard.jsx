@@ -1,111 +1,120 @@
-import {
-  useDispatch,
-  useSelector,
-} from "react-redux";
+import { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+
+import API from "../../api/api";
 
 import {
   scanReceipt,
   resetScan,
+  setReceiptId,
 } from "../../redux/features/scanSlice";
-
-import {
-  useState,
-  useEffect,
-} from "react";
 
 export default function FileUploadCard() {
   const dispatch = useDispatch();
 
-  const {
-    scanning,
-    error,
-  } = useSelector(
+  const { scanning, error } = useSelector(
     (state) => state.scan
   );
 
-  const [preview, setPreview] =
+  const [preview, setPreview] = useState(null);
+  const [uploadError, setUploadError] =
     useState(null);
 
   useEffect(() => {
     return () => {
       if (preview) {
-        URL.revokeObjectURL(
-          preview
-        );
+        URL.revokeObjectURL(preview);
       }
     };
   }, [preview]);
 
-  const handleUpload = (e) => {
-    const file =
-      e.target.files?.[0];
+const handleUpload = async (e) => {
+  const file = e.target.files?.[0];
 
-    if (!file) return;
+  if (!file) return;
 
-    if (
-      !file.type.startsWith(
-        "image/"
-      )
-    ) {
-      alert(
-        "Please upload an image file"
-      );
-      return;
-    }
-
-    if (
-      file.size >
-      5 * 1024 * 1024
-    ) {
-      alert(
-        "Image must be less than 5MB"
-      );
-      return;
-    }
-
-    const imageUrl =
+  try {
+    const previewUrl =
       URL.createObjectURL(file);
 
-    setPreview(imageUrl);
+    setPreview(previewUrl);
+
+    const formData = new FormData();
+
+    formData.append(
+      "receipt",
+      file
+    );
+
+    const uploadRes =
+      await API.post(
+        "/receipts/upload",
+        formData,
+        {
+          headers: {
+            "Content-Type":
+              "multipart/form-data",
+          },
+        }
+      );
+
+    dispatch(
+      setReceiptId(
+        uploadRes.data.receipt._id
+      )
+    );
 
     dispatch(
       scanReceipt(file)
     );
-  };
+
+  } catch (err) {
+    console.log(err);
+
+    setUploadError(
+      err?.response?.data
+        ?.message ||
+        "Upload failed"
+    );
+  }
+};
 
   const handleRemove = () => {
     if (preview) {
-      URL.revokeObjectURL(
-        preview
-      );
+      URL.revokeObjectURL(preview);
     }
 
     setPreview(null);
+    setUploadError(null);
 
-    dispatch(
-      resetScan()
-    );
+    dispatch(resetScan());
   };
 
   return (
     <div
       className="
-        p-6
+        w-full
+        bg-white
         rounded-2xl
         border
-        bg-white
         shadow-sm
+        p-4
+        sm:p-6
       "
     >
       {!preview && (
         <label
           className="
-            block
+            flex
+            flex-col
+            items-center
+            justify-center
             border-2
             border-dashed
             border-gray-300
-            rounded-xl
-            p-10
+            rounded-2xl
+            min-h-[240px]
+            p-6
             text-center
             cursor-pointer
             hover:border-emerald-500
@@ -113,21 +122,27 @@ export default function FileUploadCard() {
           "
         >
           <div>
-            <p className="font-medium text-lg">
+            <div className="text-5xl mb-3">
+              📄
+            </div>
+
+            <h3 className="text-lg sm:text-xl font-semibold">
               Upload Receipt
+            </h3>
+
+            <p className="text-gray-500 text-sm mt-2">
+              JPG, PNG, WEBP
             </p>
 
-            <p className="text-sm text-gray-500 mt-2">
-              JPG, PNG, WEBP
+            <p className="text-gray-400 text-xs mt-1">
+              Maximum file size: 5MB
             </p>
           </div>
 
           <input
             type="file"
             accept="image/*"
-            onChange={
-              handleUpload
-            }
+            onChange={handleUpload}
             className="hidden"
           />
         </label>
@@ -140,8 +155,7 @@ export default function FileUploadCard() {
               w-full
               bg-gray-100
               border
-              rounded-xl
-              p-2
+              rounded-2xl
               overflow-hidden
             "
           >
@@ -153,7 +167,6 @@ export default function FileUploadCard() {
                 h-auto
                 max-h-[500px]
                 object-contain
-                rounded-lg
                 block
                 mx-auto
               "
@@ -161,21 +174,39 @@ export default function FileUploadCard() {
           </div>
 
           <button
-            onClick={
-              handleRemove
-            }
+            onClick={handleRemove}
+            type="button"
             className="
-              px-4
-              py-2
+              w-full
+              sm:w-auto
+              px-5
+              py-3
+              rounded-xl
               bg-red-500
               hover:bg-red-600
               text-white
-              rounded-lg
+              font-medium
               transition
             "
           >
-            Remove
+            Remove Receipt
           </button>
+        </div>
+      )}
+
+      {uploadError && (
+        <div
+          className="
+            mt-4
+            p-3
+            rounded-xl
+            bg-red-100
+            text-red-600
+            border
+            border-red-200
+          "
+        >
+          {uploadError}
         </div>
       )}
 
@@ -186,6 +217,9 @@ export default function FileUploadCard() {
             flex
             items-center
             gap-3
+            p-3
+            rounded-xl
+            bg-emerald-50
           "
         >
           <div
@@ -200,7 +234,7 @@ export default function FileUploadCard() {
             "
           />
 
-          <span>
+          <span className="font-medium">
             Scanning Receipt...
           </span>
         </div>
@@ -211,9 +245,11 @@ export default function FileUploadCard() {
           className="
             mt-4
             p-3
-            rounded-lg
+            rounded-xl
             bg-red-100
             text-red-600
+            border
+            border-red-200
           "
         >
           {error}
