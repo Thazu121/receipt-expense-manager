@@ -12,9 +12,7 @@ const authConfig = () => ({
   },
 });
 
-/* =========================
-   THUNKS
-========================= */
+
 
 export const fetchExpenses = createAsyncThunk(
   "expense/fetchExpenses",

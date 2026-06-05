@@ -47,7 +47,6 @@ export default function GalleryFilters() {
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
 
-        {/* SEARCH */}
         <input
           type="text"
           placeholder="Search merchant..."
@@ -56,7 +55,6 @@ export default function GalleryFilters() {
           className={baseStyle}
         />
 
-        {/* CATEGORY */}
         <select
           value={categoryFilter}
           onChange={(e) =>
@@ -66,15 +64,17 @@ export default function GalleryFilters() {
         >
           <option value="All">All Categories</option>
           <option value="Food">Food</option>
-          <option value="Grocery">Grocery</option>
-          <option value="Transport">Transport</option>
-          <option value="Shopping">Shopping</option>
-          <option value="Utilities">Utilities</option>
-          <option value="Medical">Medical</option>
-          <option value="Other">Other</option>
+                <option value="Transport">Transport</option>
+                <option value="Shopping">Shopping</option>
+                <option value="Bills">Bills</option>
+                <option value="Health"> Health</option>
+                <option value="Education"> Education</option>
+                <option value="Entertainment">Entertainment</option>
+                <option value="Travel"> Travel</option>
+                <option value="Salary">Salary</option>
+                <option value="General"> General</option>
         </select>
 
-        {/* STATUS (FIXED LOGIC) */}
         <select
           value={statusFilter}
           onChange={(e) =>
@@ -87,7 +87,6 @@ export default function GalleryFilters() {
           <option value="Pending">Pending</option>
         </select>
 
-        {/* SORT */}
         <select
           value={sortBy}
           onChange={(e) => dispatch(setSortBy(e.target.value))}

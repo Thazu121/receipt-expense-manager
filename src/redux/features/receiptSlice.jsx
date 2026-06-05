@@ -6,9 +6,7 @@ import {
 
 import API from "../../api/api";
 
-/* =========================
-   AUTH HEADER
-========================= */
+
 
 const auth = () => ({
   headers: {
@@ -16,41 +14,35 @@ const auth = () => ({
   },
 });
 
-/* =========================
-   NORMALIZER (CRITICAL FIX)
-========================= */
-
 const normalizeReceipt = (r) => ({
   _id: r._id,
 
   image: r.imageUrl || "",
 
-  store: r.store || r.merchantName || "Unknown Store",
+  store: r.merchantName || "Unknown Store",
 
-  amount: r.amount ?? r.extractedAmount ?? 0,
+  amount: r.extractedAmount ?? 0,
 
-  date: r.date
-    ? new Date(r.date).toISOString().split("T")[0]
-    : r.extractedDate
-    ? new Date(r.extractedDate).toISOString().split("T")[0]
+  date: r.extractedDate
+    ? new Date(r.extractedDate)
+        .toISOString()
+        .split("T")[0]
     : "",
 
-  status: (r.status || r.ocrStatus || "pending")
-    .toString()
-    .toLowerCase(),
-
-  category: r.category || "Other",
+  category: r.category || "General",
 
   createdAt: r.createdAt,
 
   confidence: r.confidenceScore || 0,
 
-  verified: r.isVerified || false,
+  isVerified: r.isVerified || false,
+
+  status: r.isVerified
+    ? "Verified"
+    : "Pending",
 });
 
-/* =========================
-   FETCH RECEIPTS
-========================= */
+
 
 export const fetchReceipts = createAsyncThunk(
   "receipt/fetchReceipts",
@@ -65,8 +57,6 @@ export const fetchReceipts = createAsyncThunk(
     }
   }
 );
-
-
 
 export const addReceipt = createAsyncThunk(
   "receipt/addReceipt",
@@ -91,8 +81,6 @@ export const addReceipt = createAsyncThunk(
   }
 );
 
-
-
 export const deleteReceipt = createAsyncThunk(
   "receipt/deleteReceipt",
   async (id, thunkAPI) => {
@@ -106,7 +94,6 @@ export const deleteReceipt = createAsyncThunk(
     }
   }
 );
-
 
 export const updateReceipt = createAsyncThunk(
   "receipt/updateReceipt",
@@ -122,9 +109,6 @@ export const updateReceipt = createAsyncThunk(
   }
 );
 
-/* =========================
-   INITIAL STATE
-========================= */
 
 const initialState = {
   receipts: [],
@@ -137,9 +121,7 @@ const initialState = {
   sortBy: "Newest",
 };
 
-/* =========================
-   SLICE
-========================= */
+
 
 const receiptSlice = createSlice({
   name: "receipt",
@@ -170,28 +152,23 @@ const receiptSlice = createSlice({
   extraReducers: (builder) => {
     builder
 
-      /* FETCH */
       .addCase(fetchReceipts.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-
       .addCase(fetchReceipts.fulfilled, (state, action) => {
         state.loading = false;
         state.receipts = (action.payload || []).map(normalizeReceipt);
       })
-
       .addCase(fetchReceipts.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
 
-      /* ADD */
       .addCase(addReceipt.fulfilled, (state, action) => {
         state.receipts.unshift(normalizeReceipt(action.payload));
       })
 
-      /* UPDATE */
       .addCase(updateReceipt.fulfilled, (state, action) => {
         const updated = normalizeReceipt(action.payload);
 
@@ -200,14 +177,10 @@ const receiptSlice = createSlice({
         );
 
         if (index !== -1) {
-          state.receipts[index] = {
-            ...state.receipts[index],
-            ...updated,
-          };
+          state.receipts[index] = updated;
         }
       })
 
-      /* DELETE */
       .addCase(deleteReceipt.fulfilled, (state, action) => {
         state.receipts = state.receipts.filter(
           (r) => r._id !== action.payload
@@ -216,64 +189,46 @@ const receiptSlice = createSlice({
   },
 });
 
-/* =========================
-   FILTERED SELECTOR (FIXED)
-========================= */
+
 
 export const selectFilteredReceipts = createSelector(
   [(state) => state.receipt],
   ({ receipts, search, statusFilter, categoryFilter, sortBy }) => {
     let list = [...receipts];
 
-    /* SEARCH FIX */
     if (search) {
       const q = search.toLowerCase();
-
       list = list.filter((r) =>
         [r.store, r.category, r.status]
-          .filter(Boolean)
           .join(" ")
           .toLowerCase()
           .includes(q)
       );
     }
 
-    /* STATUS FILTER */
     if (statusFilter !== "All") {
-      list = list.filter(
-        (r) =>
-          (r.status || "").toLowerCase() === statusFilter.toLowerCase()
-      );
+      list = list.filter((r) => r.status === statusFilter);
     }
 
-    /* CATEGORY FILTER */
     if (categoryFilter !== "All") {
-      list = list.filter(
-        (r) =>
-          (r.category || "").toLowerCase() === categoryFilter.toLowerCase()
-      );
+      list = list.filter((r) => r.category === categoryFilter);
     }
 
-    /* SORT */
     switch (sortBy) {
       case "Newest":
-        list.sort(
-          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-        );
+        list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         break;
 
       case "Oldest":
-        list.sort(
-          (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
-        );
+        list.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
         break;
 
       case "Amount High-Low":
-        list.sort((a, b) => (b.amount || 0) - (a.amount || 0));
+        list.sort((a, b) => b.amount - a.amount);
         break;
 
       case "Amount Low-High":
-        list.sort((a, b) => (a.amount || 0) - (b.amount || 0));
+        list.sort((a, b) => a.amount - b.amount);
         break;
     }
 
@@ -281,9 +236,7 @@ export const selectFilteredReceipts = createSelector(
   }
 );
 
-/* =========================
-   EXPORTS
-========================= */
+
 
 export const {
   setSearch,

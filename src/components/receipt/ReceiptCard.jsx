@@ -18,7 +18,7 @@ export default function ReceiptCard({ receipt, onClick }) {
       updateReceipt({
         id: receipt._id,
         updates: {
-          isVerified: !receipt.verified,
+          isVerified: !receipt.isVerified,   
         },
       })
     );
@@ -33,7 +33,6 @@ export default function ReceiptCard({ receipt, onClick }) {
           : "bg-zinc-900 border border-zinc-700 shadow-lg"
       }`}
     >
-      {/* IMAGE */}
       {receipt.image && (
         <img
           src={receipt.image}
@@ -42,7 +41,6 @@ export default function ReceiptCard({ receipt, onClick }) {
         />
       )}
 
-      {/* STORE */}
       <h3
         className={`font-semibold truncate ${
           isLight ? "text-gray-800" : "text-white"
@@ -51,33 +49,29 @@ export default function ReceiptCard({ receipt, onClick }) {
         {receipt.store || "Unknown Store"}
       </h3>
 
-      {/* DATE */}
       <p className={`text-xs ${isLight ? "text-gray-500" : "text-gray-400"}`}>
         {receipt.date
           ? new Date(receipt.date).toLocaleDateString()
           : "No date"}
       </p>
 
-      {/* AMOUNT */}
       <p className="text-green-500 font-bold mt-2">
         ₹{Number(receipt.amount || 0).toFixed(2)}
       </p>
 
-      {/* FOOTER */}
       <div className="flex justify-between items-center mt-4">
-        {/* STATUS */}
+
         <span
           onClick={handleToggleStatus}
           className={`text-xs px-3 py-1 rounded-full cursor-pointer capitalize ${
-            receipt.verified
+            receipt.isVerified
               ? "bg-green-500/20 text-green-500"
               : "bg-yellow-500/20 text-yellow-500"
           }`}
         >
-          {receipt.verified ? "verified" : "pending"}
+          {receipt.isVerified ? "verified" : "pending"}
         </span>
 
-        {/* DELETE */}
         <button
           onClick={handleDelete}
           className="p-2 rounded-lg bg-red-500/20 text-red-500 hover:bg-red-500/30"
