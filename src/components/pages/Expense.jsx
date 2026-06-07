@@ -73,16 +73,12 @@ export default function Expenses() {
           lg:space-y-8
         "
       >
-        {/* Header */}
         <ExpenseHeader />
 
-        {/* Stats */}
         <ExpenseStats />
 
-        {/* Filters */}
         <ExpenseFilters />
 
-        {/* Error */}
         {error && (
           <div
             className="
@@ -98,7 +94,6 @@ export default function Expenses() {
           </div>
         )}
 
-        {/* Table */}
         <div
           className="
             w-full

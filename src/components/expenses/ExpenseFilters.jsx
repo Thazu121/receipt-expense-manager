@@ -4,13 +4,17 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   setExpenseSearch,
   setExpenseSort,
+  setExpenseFilters,
 } from "../../redux/features/expenseSlice";
 
 export default function ExpenseFilters() {
   const dispatch = useDispatch();
 
-  const { search, sort } =
-    useSelector((state) => state.expense);
+  const {
+    search,
+    sort,
+    filters,
+  } = useSelector((state) => state.expense);
 
   return (
     <div
@@ -24,25 +28,11 @@ export default function ExpenseFilters() {
         dark:bg-white/5
         backdrop-blur-xl
         p-4
-        sm:p-5
       "
     >
-      <div
-        className="
-          flex
-          flex-col
-          md:flex-row
-          gap-4
-          items-stretch
-        "
-      >
-        <div
-          className="
-            relative
-            flex-1
-            min-w-0
-          "
-        >
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+
+        <div className="relative">
           <Search
             size={18}
             className="
@@ -77,71 +67,134 @@ export default function ExpenseFilters() {
               pr-4
               py-3
               text-sm
-              sm:text-base
               text-gray-800
               dark:text-white
-              placeholder-gray-400
               outline-none
-              focus:border-emerald-500
-              focus:ring-2
-              focus:ring-emerald-500/20
             "
           />
         </div>
 
-        <div
+        <select
+          value={sort}
+          onChange={(e) =>
+            dispatch(
+              setExpenseSort(
+                e.target.value
+              )
+            )
+          }
           className="
-            w-full
-            md:w-[220px]
-            flex-shrink-0
+            rounded-xl
+            border
+            border-gray-300
+            dark:border-white/10
+            px-4
+            py-3
+            bg-white
+            dark:bg-[#0f3b2f]
           "
         >
-          <select
-            value={sort}
-            onChange={(e) =>
-              dispatch(
-                setExpenseSort(
-                  e.target.value
-                )
-              )
-            }
-            className="
-              w-full
-              rounded-xl
-              border
-              border-gray-300
-              dark:border-emerald-500
-              bg-white
-              dark:bg-[#0f3b2f]
-              px-4
-              py-3
-              text-sm
-              sm:text-base
-              text-gray-800
-              dark:text-white
-              outline-none
-              focus:border-emerald-500
-              focus:ring-2
-              focus:ring-emerald-500/20
-            "
-          >
-            <option value="latest">
-              Latest
-            </option>
+          <option value="latest">
+            Latest
+          </option>
 
-            <option value="oldest">
-              Oldest
-            </option>
+          <option value="oldest">
+            Oldest
+          </option>
 
-            <option value="highest">
-              Highest Amount
-            </option>
+          <option value="highest">
+            Highest Amount
+          </option>
 
-            <option value="lowest">
-              Lowest Amount
-            </option>
-          </select>
-        </div>
+          <option value="lowest">
+            Lowest Amount
+          </option>
+        </select>
+
+        <select
+          value={filters.category || ""}
+          onChange={(e) =>
+            dispatch(
+              setExpenseFilters({
+                category: e.target.value,
+              })
+            )
+          }
+          className="
+            rounded-xl
+            border
+            border-gray-300
+            dark:border-white/10
+            px-4
+            py-3
+            bg-white
+            dark:bg-[#0f3b2f]
+          "
+        >
+          <option value="">
+            All Categories
+          </option>
+
+          <option value="Food">
+            Food
+          </option>
+
+          <option value="Transport">
+            Transport
+          </option>
+
+          <option value="Shopping">
+            Shopping
+          </option>
+
+          <option value="Bills">
+            Bills
+          </option>
+
+          <option value="Medical">
+            Medical
+          </option>
+
+          <option value="General">
+            General
+          </option>
+        </select>
+
+        <select
+          value={
+            filters.favorite
+              ? "favorite"
+              : ""
+          }
+          onChange={(e) =>
+            dispatch(
+              setExpenseFilters({
+                favorite:
+                  e.target.value ===
+                  "favorite",
+              })
+            )
+          }
+          className="
+            rounded-xl
+            border
+            border-gray-300
+            dark:border-white/10
+            px-4
+            py-3
+            bg-white
+            dark:bg-[#0f3b2f]
+          "
+        >
+          <option value="">
+            All Expenses
+          </option>
+
+          <option value="favorite">
+            Favorites Only
+          </option>
+        </select>
+
       </div>
     </div>
   );

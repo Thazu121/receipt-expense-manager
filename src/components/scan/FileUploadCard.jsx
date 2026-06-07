@@ -17,8 +17,7 @@ export default function FileUploadCard() {
   );
 
   const [preview, setPreview] = useState(null);
-  const [uploadError, setUploadError] =
-    useState(null);
+  const [uploadError, setUploadError] = useState(null);
 
   useEffect(() => {
     return () => {
@@ -28,52 +27,48 @@ export default function FileUploadCard() {
     };
   }, [preview]);
 
-const handleUpload = async (e) => {
+ const handleUpload = async (e) => {
   const file = e.target.files?.[0];
 
   if (!file) return;
 
   try {
-    const previewUrl =
-      URL.createObjectURL(file);
+    setUploadError(null);
 
+    const previewUrl = URL.createObjectURL(file);
     setPreview(previewUrl);
 
     const formData = new FormData();
 
-    formData.append(
-      "receipt",
-      file
+    formData.append("receipt", file);
+
+    const uploadRes = await API.post(
+      "/receipts/upload",
+      formData,
+      {
+        headers: {
+          "Content-Type":
+            "multipart/form-data",
+        },
+      }
     );
 
-    const uploadRes =
-      await API.post(
-        "/receipts/upload",
-        formData,
-        {
-          headers: {
-            "Content-Type":
-              "multipart/form-data",
-          },
-        }
-      );
+    const receiptId =
+      uploadRes.data.receipt._id;
+
+    dispatch(setReceiptId(receiptId));
 
     dispatch(
-      setReceiptId(
-        uploadRes.data.receipt._id
-      )
+      scanReceipt({
+        file,
+        receiptId,
+      })
     );
-
-    dispatch(
-      scanReceipt(file)
-    );
-
   } catch (err) {
     console.log(err);
 
     setUploadError(
-      err?.response?.data
-        ?.message ||
+      err?.response?.data?.message ||
         "Upload failed"
     );
   }
@@ -91,40 +86,14 @@ const handleUpload = async (e) => {
   };
 
   return (
-    <div
-      className="
-        w-full
-        bg-white
-        rounded-2xl
-        border
-        shadow-sm
-        p-4
-        sm:p-6
-      "
-    >
+    <div className="w-full bg-white rounded-2xl border shadow-sm p-4 sm:p-6">
+
+      {/* Upload Box */}
       {!preview && (
-        <label
-          className="
-            flex
-            flex-col
-            items-center
-            justify-center
-            border-2
-            border-dashed
-            border-gray-300
-            rounded-2xl
-            min-h-[240px]
-            p-6
-            text-center
-            cursor-pointer
-            hover:border-emerald-500
-            transition
-          "
-        >
+        <label className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-2xl min-h-[240px] p-6 text-center cursor-pointer hover:border-emerald-500 transition">
+
           <div>
-            <div className="text-5xl mb-3">
-              📄
-            </div>
+            <div className="text-5xl mb-3">📄</div>
 
             <h3 className="text-lg sm:text-xl font-semibold">
               Upload Receipt
@@ -150,44 +119,19 @@ const handleUpload = async (e) => {
 
       {preview && (
         <div className="space-y-4">
-          <div
-            className="
-              w-full
-              bg-gray-100
-              border
-              rounded-2xl
-              overflow-hidden
-            "
-          >
+
+          <div className="w-full bg-gray-100 border rounded-2xl overflow-hidden">
             <img
               src={preview}
               alt="Receipt Preview"
-              className="
-                w-full
-                h-auto
-                max-h-[500px]
-                object-contain
-                block
-                mx-auto
-              "
+              className="w-full max-h-[500px] object-contain block mx-auto"
             />
           </div>
 
           <button
             onClick={handleRemove}
             type="button"
-            className="
-              w-full
-              sm:w-auto
-              px-5
-              py-3
-              rounded-xl
-              bg-red-500
-              hover:bg-red-600
-              text-white
-              font-medium
-              transition
-            "
+            className="w-full sm:w-auto px-5 py-3 rounded-xl bg-red-500 hover:bg-red-600 text-white font-medium transition"
           >
             Remove Receipt
           </button>
@@ -195,63 +139,23 @@ const handleUpload = async (e) => {
       )}
 
       {uploadError && (
-        <div
-          className="
-            mt-4
-            p-3
-            rounded-xl
-            bg-red-100
-            text-red-600
-            border
-            border-red-200
-          "
-        >
+        <div className="mt-4 p-3 rounded-xl bg-red-100 text-red-600 border border-red-200">
           {uploadError}
         </div>
       )}
 
       {scanning && (
-        <div
-          className="
-            mt-4
-            flex
-            items-center
-            gap-3
-            p-3
-            rounded-xl
-            bg-emerald-50
-          "
-        >
-          <div
-            className="
-              w-5
-              h-5
-              border-2
-              border-emerald-500
-              border-t-transparent
-              rounded-full
-              animate-spin
-            "
-          />
+        <div className="mt-4 flex items-center gap-3 p-3 rounded-xl bg-emerald-50">
+          <div className="w-5 h-5 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
 
-          <span className="font-medium">
+          <span className="font-medium text-black">
             Scanning Receipt...
           </span>
         </div>
       )}
 
       {error && (
-        <div
-          className="
-            mt-4
-            p-3
-            rounded-xl
-            bg-red-100
-            text-red-600
-            border
-            border-red-200
-          "
-        >
+        <div className="mt-4 p-3 rounded-xl bg-red-100 text-red-600 border border-red-200">
           {error}
         </div>
       )}

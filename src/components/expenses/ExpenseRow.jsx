@@ -1,11 +1,18 @@
 import { useSelector } from "react-redux";
 
-export default function ExpenseRow({
-  expense,
-}) {
+export default function ExpenseRow({ expense }) {
   const isLight = useSelector(
     (state) => state.theme.isLight
   );
+
+  const categoryName =
+    expense.category?.name ||
+    expense.category ||
+    "General";
+
+  const expenseDate =
+    expense.expenseDate ||
+    expense.date;
 
   return (
     <div
@@ -16,7 +23,6 @@ export default function ExpenseRow({
         transition-all
         duration-200
         overflow-hidden
-
         ${
           isLight
             ? `
@@ -32,7 +38,7 @@ export default function ExpenseRow({
         }
       `}
     >
-
+      {/* Desktop */}
       <div
         className="
           hidden
@@ -53,9 +59,9 @@ export default function ExpenseRow({
               : "text-gray-400"
           }`}
         >
-          {expense.date
+          {expenseDate
             ? new Date(
-                expense.date
+                expenseDate
               ).toLocaleDateString()
             : "-"}
         </div>
@@ -70,7 +76,6 @@ export default function ExpenseRow({
               rounded-full
               text-xs
               font-medium
-
               ${
                 isLight
                   ? `
@@ -84,8 +89,7 @@ export default function ExpenseRow({
               }
             `}
           >
-            {expense.category ||
-              "General"}
+            {categoryName}
           </span>
         </div>
 
@@ -115,7 +119,6 @@ export default function ExpenseRow({
       </div>
 
       {/* Mobile */}
-
       <div
         className="
           md:hidden
@@ -150,9 +153,9 @@ export default function ExpenseRow({
                   : "text-gray-400"
               }`}
             >
-              {expense.date
+              {expenseDate
                 ? new Date(
-                    expense.date
+                    expenseDate
                   ).toLocaleDateString()
                 : "-"}
             </p>
@@ -180,7 +183,6 @@ export default function ExpenseRow({
               rounded-full
               text-xs
               font-medium
-
               ${
                 isLight
                   ? `
@@ -194,8 +196,7 @@ export default function ExpenseRow({
               }
             `}
           >
-            {expense.category ||
-              "General"}
+            {categoryName}
           </span>
 
           <span

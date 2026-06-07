@@ -3,9 +3,13 @@ import { scanReceipt as scanReceiptService } from "../../services/scanService";
 
 export const scanReceipt = createAsyncThunk(
   "scan/scanReceipt",
-  async (file, { rejectWithValue }) => {
+  async ({ file, receiptId }, { rejectWithValue }) => {
     try {
-      const response = await scanReceiptService(file);
+      const response = await scanReceiptService(
+        file,
+        receiptId
+      );
+
       return response;
     } catch (error) {
       return rejectWithValue(
@@ -76,6 +80,7 @@ const scanSlice = createSlice({
         category: "",
         rawText: "",
       };
+
       state.confidence = 0;
       state.progress = 0;
       state.error = null;
@@ -83,7 +88,6 @@ const scanSlice = createSlice({
       state.isValid = false;
     },
 
-    // ✅ FINAL FIXED RESET (MOST IMPORTANT)
     resetScan: (state) => {
       state.mode = "camera";
       state.scanning = false;
@@ -111,7 +115,7 @@ const scanSlice = createSlice({
     builder
       .addCase(scanReceipt.pending, (state) => {
         state.scanning = true;
-        state.progress = 10;
+        state.progress = 20;
         state.error = null;
       })
 
@@ -119,7 +123,10 @@ const scanSlice = createSlice({
         state.scanning = false;
         state.progress = 100;
 
-        const data = action.payload?.data || action.payload || {};
+     
+
+        const response = action.payload || {};
+        const data = response.data || {};
 
         state.extracted = {
           merchant: data.merchant || "",
@@ -129,10 +136,19 @@ const scanSlice = createSlice({
           rawText: data.rawText || "",
         };
 
-        state.confidence = Math.round(data.confidence || 0);
-        state.warnings = data.warnings || [];
+        state.confidence =
+          response.confidence || 0;
+
+        state.receiptId =
+          response.receiptId || state.receiptId;
+
+        state.warnings =
+          response.warnings || [];
+
         state.isValid =
-          !!data.merchant && !!data.amount && state.confidence > 50;
+          !!data.merchant &&
+          !!data.amount &&
+          state.confidence > 50;
 
         if (data.merchant || data.amount) {
           state.history.unshift({
@@ -140,7 +156,7 @@ const scanSlice = createSlice({
             amount: data.amount,
             date: data.date,
             category: data.category,
-            confidence: data.confidence,
+            confidence: response.confidence,
             scannedAt: new Date().toISOString(),
           });
         }
@@ -153,7 +169,8 @@ const scanSlice = createSlice({
       .addCase(scanReceipt.rejected, (state, action) => {
         state.scanning = false;
         state.progress = 0;
-        state.error = action.payload || "Scan failed";
+        state.error =
+          action.payload || "Scan failed";
       });
   },
 });

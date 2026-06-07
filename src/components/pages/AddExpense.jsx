@@ -11,7 +11,7 @@ import {
   addReceipt,
 } from "../../redux/features/receiptSlice";
 
-
+import API from "../../api/api";
 
 export default function AddExpense() {
 
@@ -82,94 +82,61 @@ export default function AddExpense() {
 
 
 
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-  const handleSubmit = async (e) => {
+  setError("");
 
-    e.preventDefault();
+  if (!form.store.trim()) {
+    setError("Merchant name is required");
+    return;
+  }
 
-    setError("");
+  if (!form.amount || Number(form.amount) <= 0) {
+    setError("Enter valid amount");
+    return;
+  }
 
+  try {
+    setLoading(true);
 
+    await API.post("/expenses", {
+      title: form.store.trim(),
+      merchant: form.store.trim(),
+      amount: Number(form.amount),
+      category: form.category || "General",
+      expenseDate: form.date,
+      source: "manual",
+    });
 
-    if (
-      !form.store.trim()
-    ) {
-      setError(
-        "Merchant name is required"
-      );
-      return;
-    }
+    setSuccess(true);
 
+    setForm({
+      store: "",
+      amount: "",
+      category: "",
+      date: new Date()
+        .toISOString()
+        .split("T")[0],
+    });
 
+    setTimeout(() => {
+      navigate("/dashboard/expense");
+    }, 1200);
 
-    if (
-      !form.amount ||
-      Number(form.amount) <= 0
-    ) {
-      setError(
-        "Enter valid amount"
-      );
-      return;
-    }
+  } catch (err) {
+  console.log("SAVE ERROR:", err);
+  console.log("RESPONSE:", err?.response?.data);
 
-
-
-    try {
-
-      setLoading(true);
-
-
-
-      dispatch(
-
-        addReceipt({
-
-          id: Date.now(),
-
-          store:
-            form.store.trim(),
-
-          amount:
-            Number(form.amount),
-
-          category:
-            form.category ||
-            "General",
-
-          date: form.date,
-
-          status: "Pending",
-        })
-      );
-
-
-
-      setSuccess(true);
-
-
-
-      setTimeout(() => {
-
-        navigate(
-          "/dashboard/expense"
-        );
-
-      }, 1200);
-
-    } catch (err) {
-
-      setError(
-        "Failed to save expense"
-      );
-
-    } finally {
-
-      setLoading(false);
-
-    }
-  };
-
-
+  setError(
+    err?.response?.data?.message ||
+    err?.message ||
+    "Failed to save expense"
+  );
+}finally {
+    setLoading(false);
+  }
+};
 
   return (
 

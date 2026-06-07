@@ -54,7 +54,6 @@ export default function ScanPage() {
           mx-auto
         "
       >
-        {/* Header */}
         <div
           className="
             text-center
@@ -65,7 +64,6 @@ export default function ScanPage() {
           <ScanHeader />
         </div>
 
-        {/* Tabs */}
         <div
           className="
             flex
@@ -77,7 +75,6 @@ export default function ScanPage() {
           <ScanTabs />
         </div>
 
-        {/* Main Content */}
         <div
           className="
             grid
@@ -88,7 +85,6 @@ export default function ScanPage() {
             items-start
           "
         >
-          {/* Scanner Section */}
           <div
             className="
               w-full
@@ -102,7 +98,6 @@ export default function ScanPage() {
             )}
           </div>
 
-          {/* Extracted Details */}
           <div
             className="
               w-full

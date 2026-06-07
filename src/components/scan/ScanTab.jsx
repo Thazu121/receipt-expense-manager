@@ -73,7 +73,6 @@ export default function ScanTabs() {
           }
         `}
       >
-        📷 Live Camera
       </button>
 
       <button

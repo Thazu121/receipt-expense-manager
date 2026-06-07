@@ -66,7 +66,6 @@ export default function SignUp() {
     dispatch(clearMessages());
   }, [dispatch]);
 
-  // ---------------- VALIDATION ----------------
   const isFormValid =
     name.trim().length >= 3 &&
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) &&
@@ -74,7 +73,6 @@ export default function SignUp() {
     password === confirmPassword &&
     strength >= 3;
 
-  // ---------------- SUBMIT ----------------
   const handleSubmit = (e) => {
     e.preventDefault();
 
@@ -135,7 +133,6 @@ export default function SignUp() {
           </div>
         </div>
 
-        {/* RIGHT SIDE */}
         <div
           className={`w-full md:w-1/2 p-6 sm:p-8 md:p-10 transition-all duration-300 ${
             isLight ? "bg-white text-black" : "bg-[#0b2a1a] text-white"
@@ -145,7 +142,6 @@ export default function SignUp() {
             Create an account
           </h1>
 
-          {/* ERROR / SUCCESS */}
           {error && (
             <p className="text-red-500 text-center text-sm mb-4">
               {error}
@@ -160,7 +156,6 @@ export default function SignUp() {
 
           <form className="space-y-5" onSubmit={handleSubmit}>
 
-            {/* NAME */}
             <div>
               <label className="block text-sm mb-2">Full Name</label>
               <input
@@ -176,7 +171,6 @@ export default function SignUp() {
               {nameErr && <p className="text-red-500 text-sm">{nameErr}</p>}
             </div>
 
-            {/* EMAIL */}
             <div>
               <label className="block text-sm mb-2">Email</label>
               <input
@@ -192,7 +186,6 @@ export default function SignUp() {
               {emailErr && <p className="text-red-500 text-sm">{emailErr}</p>}
             </div>
 
-            {/* PASSWORD */}
             <div>
               <label className="block text-sm mb-2">Password</label>
               <div className="relative">
@@ -217,7 +210,6 @@ export default function SignUp() {
                 </button>
               </div>
 
-              {/* STRENGTH */}
               {password && (
                 <div className="mt-2">
                   <div className="h-2 bg-gray-300 rounded">
@@ -237,7 +229,6 @@ export default function SignUp() {
               )}
             </div>
 
-            {/* CONFIRM PASSWORD */}
             <div>
               <label className="block text-sm mb-2">
                 Confirm Password
@@ -269,7 +260,6 @@ export default function SignUp() {
               )}
             </div>
 
-            {/* BUTTON */}
             <button
               type="submit"
               disabled={!isFormValid || loading}
@@ -283,7 +273,6 @@ export default function SignUp() {
             </button>
           </form>
 
-          {/* LOGIN LINK */}
           <p className="text-center mt-6 text-sm">
             Already have an account?{" "}
             <Link to="/login" className="text-green-500 font-semibold">

@@ -26,25 +26,8 @@ export const fetchExpenses = createAsyncThunk(
       return response.data;
     } catch (error) {
       return thunkAPI.rejectWithValue(
-        error.response?.data?.message || "Failed to fetch expenses"
-      );
-    }
-  }
-);
-
-export const getSingleExpense = createAsyncThunk(
-  "expense/getSingleExpense",
-  async (id, thunkAPI) => {
-    try {
-      const response = await API.get(
-        `/expenses/${id}`,
-        authConfig()
-      );
-
-      return response.data.expense;
-    } catch (error) {
-      return thunkAPI.rejectWithValue(
-        error.response?.data?.message || "Failed to fetch expense"
+        error.response?.data?.message ||
+          "Failed to fetch expenses"
       );
     }
   }
@@ -63,7 +46,8 @@ export const createExpense = createAsyncThunk(
       return response.data.expense;
     } catch (error) {
       return thunkAPI.rejectWithValue(
-        error.response?.data?.message || "Failed to create expense"
+        error.response?.data?.message ||
+          "Failed to create expense"
       );
     }
   }
@@ -82,7 +66,8 @@ export const updateExpense = createAsyncThunk(
       return response.data.expense;
     } catch (error) {
       return thunkAPI.rejectWithValue(
-        error.response?.data?.message || "Failed to update expense"
+        error.response?.data?.message ||
+          "Failed to update expense"
       );
     }
   }
@@ -92,95 +77,43 @@ export const deleteExpense = createAsyncThunk(
   "expense/deleteExpense",
   async (id, thunkAPI) => {
     try {
-      await API.delete(`/expenses/${id}`, authConfig());
+      await API.delete(
+        `/expenses/${id}`,
+        authConfig()
+      );
+
       return id;
     } catch (error) {
       return thunkAPI.rejectWithValue(
-        error.response?.data?.message || "Failed to delete expense"
-      );
-    }
-  }
-);
-
-export const toggleFavoriteExpense = createAsyncThunk(
-  "expense/toggleFavoriteExpense",
-  async (id, thunkAPI) => {
-    try {
-      const response = await API.put(
-        `/expenses/${id}/favorite`, // FIXED (was favourite)
-        {},
-        authConfig()
-      );
-
-      return response.data.expense;
-    } catch (error) {
-      return thunkAPI.rejectWithValue(
-        error.response?.data?.message || "Failed to update favorite"
-      );
-    }
-  }
-);
-
-export const searchExpenses = createAsyncThunk(
-  "expense/searchExpenses",
-  async (query, thunkAPI) => {
-    try {
-      const response = await API.get(
-        `/expenses/search?q=${query}`,
-        authConfig()
-      );
-
-      return response.data.expenses;
-    } catch (error) {
-      return thunkAPI.rejectWithValue(
-        error.response?.data?.message || "Search failed"
-      );
-    }
-  }
-);
-
-export const fetchRecentExpenses = createAsyncThunk(
-  "expense/fetchRecentExpenses",
-  async (_, thunkAPI) => {
-    try {
-      const response = await API.get(
-        "/expenses/recent",
-        authConfig()
-      );
-
-      return response.data.expenses;
-    } catch (error) {
-      return thunkAPI.rejectWithValue(
         error.response?.data?.message ||
-          "Failed to fetch recent expenses"
+          "Failed to delete expense"
       );
     }
   }
 );
 
-export const duplicateExpense = createAsyncThunk(
-  "expense/duplicateExpense",
-  async (id, thunkAPI) => {
-    try {
-      const response = await API.post(
-        `/expenses/${id}/duplicate`,
-        {},
-        authConfig()
-      );
+export const toggleFavoriteExpense =
+  createAsyncThunk(
+    "expense/toggleFavoriteExpense",
+    async (id, thunkAPI) => {
+      try {
+        const response = await API.put(
+          `/expenses/${id}/favorite`,
+          {},
+          authConfig()
+        );
 
-      return response.data.duplicatedExpense;
-    } catch (error) {
-      return thunkAPI.rejectWithValue(
-        error.response?.data?.message ||
-          "Failed to duplicate expense"
-      );
+        return response.data.expense;
+      } catch (error) {
+        return thunkAPI.rejectWithValue(
+          error.response?.data?.message ||
+            "Failed to update favorite"
+        );
+      }
     }
-  }
-);
+  );
 
-/* =========================
-   STATE
-========================= */
+
 
 const initialState = {
   expenses: [],
@@ -200,7 +133,7 @@ const initialState = {
   sort: "latest",
 
   filters: {
-    categoryId: "",
+    category: "",
     paymentMethod: "",
     favorite: false,
     startDate: "",
@@ -208,9 +141,6 @@ const initialState = {
   },
 };
 
-/* =========================
-   SLICE
-========================= */
 
 const expenseSlice = createSlice({
   name: "expense",
@@ -241,7 +171,13 @@ const expenseSlice = createSlice({
     },
 
     clearExpenseFilters: (state) => {
-      state.filters = initialState.filters;
+      state.filters = {
+        category: "",
+        paymentMethod: "",
+        favorite: false,
+        startDate: "",
+        endDate: "",
+      };
     },
   },
 
@@ -255,11 +191,21 @@ const expenseSlice = createSlice({
 
       .addCase(fetchExpenses.fulfilled, (state, action) => {
         state.loading = false;
-        state.expenses = action.payload.expenses;
-        state.totalExpenses = action.payload.totalExpenses;
-        state.totalPages = action.payload.totalPages;
-        state.currentPage = action.payload.currentPage;
-        state.count = action.payload.count;
+
+        state.expenses =
+          action.payload.expenses || [];
+
+        state.totalExpenses =
+          action.payload.totalExpenses || 0;
+
+        state.totalPages =
+          action.payload.totalPages || 1;
+
+        state.currentPage =
+          action.payload.currentPage || 1;
+
+        state.count =
+          action.payload.count || 0;
       })
 
       .addCase(fetchExpenses.rejected, (state, action) => {
@@ -269,12 +215,12 @@ const expenseSlice = createSlice({
 
       .addCase(createExpense.fulfilled, (state, action) => {
         state.expenses.unshift(action.payload);
-        state.success = "Expense created successfully";
       })
 
       .addCase(updateExpense.fulfilled, (state, action) => {
         const index = state.expenses.findIndex(
-          (e) => e._id === action.payload._id
+          (expense) =>
+            expense._id === action.payload._id
         );
 
         if (index !== -1) {
@@ -284,96 +230,115 @@ const expenseSlice = createSlice({
 
       .addCase(deleteExpense.fulfilled, (state, action) => {
         state.expenses = state.expenses.filter(
-          (e) => e._id !== action.payload
+          (expense) =>
+            expense._id !== action.payload
         );
       })
 
-      .addCase(toggleFavoriteExpense.fulfilled, (state, action) => {
-        const index = state.expenses.findIndex(
-          (e) => e._id === action.payload._id
-        );
+      .addCase(
+        toggleFavoriteExpense.fulfilled,
+        (state, action) => {
+          const index = state.expenses.findIndex(
+            (expense) =>
+              expense._id === action.payload._id
+          );
 
-        if (index !== -1) {
-          state.expenses[index] = action.payload;
+          if (index !== -1) {
+            state.expenses[index] = action.payload;
+          }
         }
-      })
-
-      .addCase(searchExpenses.fulfilled, (state, action) => {
-        // FIXED: do NOT overwrite main list permanently
-        state.filteredResults = action.payload;
-      })
-
-      .addCase(fetchRecentExpenses.fulfilled, (state, action) => {
-        state.recentExpenses = action.payload;
-      })
-
-      .addCase(duplicateExpense.fulfilled, (state, action) => {
-        state.expenses.unshift(action.payload);
-      });
+      );
   },
 });
 
-/* =========================
-   SELECTORS (FIXED)
-========================= */
 
-export const selectFilteredExpenses = createSelector(
-  [(state) => state.expense],
-  ({ expenses, search, sort }) => {
-    let filtered = [...expenses];
 
-    if (search) {
-      filtered = filtered.filter(
-        (expense) =>
-          expense.title?.toLowerCase().includes(search.toLowerCase()) ||
-          expense.notes?.toLowerCase().includes(search.toLowerCase()) ||
-          expense.merchant?.toLowerCase().includes(search.toLowerCase())
-      );
-    }
+export const selectFilteredExpenses =
+  createSelector(
+    [(state) => state.expense],
+    ({ expenses, search, sort, filters }) => {
+      let filtered = [...expenses];
 
-    switch (sort) {
-      case "highest":
-        filtered.sort((a, b) => b.amount - a.amount);
-        break;
+      if (search) {
+        const q = search.toLowerCase();
 
-      case "lowest":
-        filtered.sort((a, b) => a.amount - b.amount);
-        break;
-
-      case "oldest":
-        filtered.sort(
-          (a, b) =>
-            new Date(a.expenseDate) - new Date(b.expenseDate)
+        filtered = filtered.filter(
+          (expense) =>
+            expense.title?.toLowerCase().includes(q) ||
+            expense.notes?.toLowerCase().includes(q) ||
+            expense.merchant?.toLowerCase().includes(q)
         );
-        break;
+      }
 
-      default:
-        filtered.sort(
-          (a, b) =>
-            new Date(b.expenseDate) - new Date(a.expenseDate)
+      if (filters.category) {
+        filtered = filtered.filter(
+          (expense) =>
+            expense.category === filters.category
         );
+      }
+
+      if (filters.paymentMethod) {
+        filtered = filtered.filter(
+          (expense) =>
+            expense.paymentMethod ===
+            filters.paymentMethod
+        );
+      }
+
+      if (filters.favorite) {
+        filtered = filtered.filter(
+          (expense) => expense.favorite
+        );
+      }
+
+      if (filters.startDate) {
+        filtered = filtered.filter(
+          (expense) =>
+            new Date(expense.expenseDate) >=
+            new Date(filters.startDate)
+        );
+      }
+
+      if (filters.endDate) {
+        filtered = filtered.filter(
+          (expense) =>
+            new Date(expense.expenseDate) <=
+            new Date(filters.endDate)
+        );
+      }
+
+      switch (sort) {
+        case "highest":
+          filtered.sort(
+            (a, b) => b.amount - a.amount
+          );
+          break;
+
+        case "lowest":
+          filtered.sort(
+            (a, b) => a.amount - b.amount
+          );
+          break;
+
+        case "oldest":
+          filtered.sort(
+            (a, b) =>
+              new Date(a.expenseDate) -
+              new Date(b.expenseDate)
+          );
+          break;
+
+        default:
+          filtered.sort(
+            (a, b) =>
+              new Date(b.expenseDate) -
+              new Date(a.expenseDate)
+          );
+      }
+
+      return filtered;
     }
-
-    return filtered;
-  }
-);
-
-export const selectExpenseStats = createSelector(
-  [(state) => state.expense.expenses],
-  (expenses) => ({
-    totalAmount: expenses.reduce(
-      (sum, e) => sum + Number(e.amount || 0),
-      0
-    ),
-    totalExpenses: expenses.length,
-    favoriteExpenses: expenses.filter((e) => e.favorite).length,
-    recurringExpenses: expenses.filter((e) => e.isRecurring).length,
-  })
-);
-
-/* =========================
-   EXPORTS
-========================= */
+  );
 
 export const {
   clearExpenseError,

@@ -200,13 +200,11 @@ export default function Dashboard() {
           sm:py-8
         "
       >
-        {/* HEADER */}
 
         <div className="mb-8">
           <Header />
         </div>
 
-        {/* EMPTY STATE */}
 
         {expenses.length === 0 ? (
           <div
@@ -253,7 +251,6 @@ export default function Dashboard() {
           </div>
         ) : (
           <>
-            {/* STATS */}
 
             <div
               className="
@@ -303,7 +300,6 @@ export default function Dashboard() {
               />
             </div>
 
-            {/* CHARTS */}
 
             <div
               className="
@@ -335,7 +331,6 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* TRANSACTIONS */}
 
             <TransactionsTable
               expenses={expenses}

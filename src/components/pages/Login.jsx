@@ -26,12 +26,10 @@ export default function Login() {
     }
   }, [isAuthenticated, navigate]);
 
-  // ---------------- CLEAR MESSAGES ----------------
   useEffect(() => {
     dispatch(clearMessages());
   }, [dispatch]);
 
-  // ---------------- VALIDATION ----------------
   const validate = () => {
     let valid = true;
 
@@ -51,7 +49,6 @@ export default function Login() {
     return valid;
   };
 
-  // ---------------- SUBMIT ----------------
   const handleSubmit = (e) => {
     e.preventDefault();
 
@@ -79,7 +76,6 @@ export default function Login() {
         }`}
       >
 
-        {/* TITLE */}
         <h2 className="text-2xl sm:text-3xl font-bold text-center mb-2">
           Welcome Back 👋
         </h2>
@@ -92,7 +88,6 @@ export default function Login() {
           Login to continue
         </p>
 
-        {/* REDUX ERROR */}
         {error && (
           <p className="text-red-500 text-center text-sm mb-4">
             {error}
@@ -101,7 +96,6 @@ export default function Login() {
 
         <form className="space-y-4" onSubmit={handleSubmit}>
 
-          {/* EMAIL */}
           <div>
             <input
               type="email"
@@ -126,7 +120,6 @@ export default function Login() {
             )}
           </div>
 
-          {/* PASSWORD */}
           <div>
             <input
               type="password"
@@ -160,7 +153,6 @@ export default function Login() {
             </div>
           </div>
 
-          {/* BUTTON */}
           <button
             type="submit"
             disabled={!isFormValid || loading}
@@ -174,7 +166,6 @@ export default function Login() {
           </button>
         </form>
 
-        {/* FOOTER */}
         <p className="text-center mt-6 text-sm">
           Don't have an account?{" "}
           <Link to="/signup" className="text-green-500 hover:underline">

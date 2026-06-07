@@ -87,6 +87,7 @@ const handleSaveExpense = async () => {
           ) || new Date(),
 
         source: "ocr",
+        
       });
 
     if (receiptId) {
@@ -123,7 +124,6 @@ const handleSaveExpense = async () => {
           : "bg-zinc-900 border-zinc-700 text-white"
       }`}
     >
-      {/* Header */}
       <div className="flex justify-between items-center mb-5">
         <h2 className="text-xl font-bold">
           Extracted Details
@@ -143,21 +143,18 @@ const handleSaveExpense = async () => {
         </span>
       </div>
 
-      {/* Success */}
       {message && (
         <div className="mb-4 p-3 rounded-xl bg-green-100 text-green-700">
           {message}
         </div>
       )}
 
-      {/* Error */}
       {error && (
         <div className="mb-4 p-3 rounded-xl bg-red-100 text-red-700">
           {error}
         </div>
       )}
 
-      {/* Warning */}
       {confidence < 60 && (
         <div className="mb-4 p-3 rounded-xl bg-yellow-100 text-yellow-700">
           OCR confidence is low.
@@ -165,7 +162,6 @@ const handleSaveExpense = async () => {
         </div>
       )}
 
-      {/* Details */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Detail
           label="Merchant"
@@ -196,7 +192,6 @@ const handleSaveExpense = async () => {
         />
       </div>
 
-      {/* OCR Text */}
       {extracted.rawText && (
         <div className="mt-6">
           <h3 className="font-semibold mb-2">
@@ -217,7 +212,6 @@ const handleSaveExpense = async () => {
         </div>
       )}
 
-      {/* Buttons */}
       <div className="mt-6 flex flex-col sm:flex-row gap-3">
         <button
           onClick={handleSaveExpense}
