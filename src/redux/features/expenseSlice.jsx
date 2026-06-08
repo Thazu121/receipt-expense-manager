@@ -12,8 +12,6 @@ const authConfig = () => ({
   },
 });
 
-
-
 export const fetchExpenses = createAsyncThunk(
   "expense/fetchExpenses",
   async (params = {}, thunkAPI) => {
@@ -113,8 +111,6 @@ export const toggleFavoriteExpense =
     }
   );
 
-
-
 const initialState = {
   expenses: [],
   recentExpenses: [],
@@ -138,9 +134,10 @@ const initialState = {
     favorite: false,
     startDate: "",
     endDate: "",
+    source: "",
+    isRecurring: "",
   },
 };
-
 
 const expenseSlice = createSlice({
   name: "expense",
@@ -177,6 +174,8 @@ const expenseSlice = createSlice({
         favorite: false,
         startDate: "",
         endDate: "",
+        source: "",
+        isRecurring: "",
       };
     },
   },
@@ -213,8 +212,20 @@ const expenseSlice = createSlice({
         state.error = action.payload;
       })
 
+      .addCase(createExpense.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+
       .addCase(createExpense.fulfilled, (state, action) => {
+        state.loading = false;
+        state.success = "Expense created successfully";
         state.expenses.unshift(action.payload);
+      })
+
+      .addCase(createExpense.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       })
 
       .addCase(updateExpense.fulfilled, (state, action) => {
@@ -226,6 +237,8 @@ const expenseSlice = createSlice({
         if (index !== -1) {
           state.expenses[index] = action.payload;
         }
+
+        state.success = "Expense updated successfully";
       })
 
       .addCase(deleteExpense.fulfilled, (state, action) => {
@@ -233,6 +246,8 @@ const expenseSlice = createSlice({
           (expense) =>
             expense._id !== action.payload
         );
+
+        state.success = "Expense deleted successfully";
       })
 
       .addCase(
@@ -250,8 +265,6 @@ const expenseSlice = createSlice({
       );
   },
 });
-
-
 
 export const selectFilteredExpenses =
   createSelector(
@@ -288,6 +301,25 @@ export const selectFilteredExpenses =
       if (filters.favorite) {
         filtered = filtered.filter(
           (expense) => expense.favorite
+        );
+      }
+
+      if (filters.source) {
+        filtered = filtered.filter(
+          (expense) =>
+            expense.source === filters.source
+        );
+      }
+
+      if (filters.isRecurring === "true") {
+        filtered = filtered.filter(
+          (expense) => expense.isRecurring === true
+        );
+      }
+
+      if (filters.isRecurring === "false") {
+        filtered = filtered.filter(
+          (expense) => expense.isRecurring === false
         );
       }
 
@@ -338,6 +370,17 @@ export const selectFilteredExpenses =
 
       return filtered;
     }
+  );
+
+export const selectRecurringExpenses =
+  createSelector(
+    [(state) => state.expense.expenses],
+    (expenses) =>
+      expenses.filter(
+        (expense) =>
+          expense.source === "recurring" ||
+          expense.isRecurring === true
+      )
   );
 
 export const {

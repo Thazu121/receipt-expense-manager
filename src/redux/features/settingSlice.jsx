@@ -3,12 +3,6 @@ import { createSlice } from "@reduxjs/toolkit";
 const initialState = {
   notificationsEnabled: true,
   notifications: [],
-
-  theme: "light",
-  language: "en",
-
-  loading: false,
-  error: null,
 };
 
 const settingsSlice = createSlice({
@@ -16,81 +10,65 @@ const settingsSlice = createSlice({
   initialState,
 
   reducers: {
-    // merge settings from backend if needed
-    setSettings: (state, action) => {
-      return {
-        ...state,
-        ...action.payload,
-      };
-    },
-
-    // ON/OFF notifications
+    // ---------------- TOGGLE NOTIFICATIONS ----------------
     toggleNotifications: (state) => {
       state.notificationsEnabled = !state.notificationsEnabled;
     },
+addNotification: (state, action) => {
+  if (!state.notificationsEnabled) return;
 
-    // ✅ SOCKET: add notification from backend
-    addNotification: (state, action) => {
-      if (!state.notificationsEnabled) return;
+  state.notifications.unshift({
+    id: action.payload.id || Date.now().toString(),
+    title: action.payload.title,
+    message: action.payload.message,
+    type: action.payload.type || "info",
+    read: false,
+    createdAt: action.payload.createdAt || new Date().toISOString(),
+  });
+},
 
-      state.notifications.unshift({
-        _id: action.payload._id || Date.now().toString(),
-        title: action.payload.title,
-        message: action.payload.message,
-        isRead: action.payload.isRead ?? false,
-        createdAt: action.payload.createdAt || new Date().toISOString(),
-      });
-    },
-
-    // mark one notification as read
+    // ---------------- MARK SINGLE AS READ ----------------
     markAsRead: (state, action) => {
-      const notification = state.notifications.find(
-        (n) => n._id === action.payload
+      const notif = state.notifications.find(
+        (n) => n.id === action.payload
       );
 
-      if (notification) {
-        notification.isRead = true;
+      if (notif) {
+        notif.read = true;
       }
     },
 
-    // mark all as read
+    // ---------------- MARK ALL AS READ ----------------
     markAllRead: (state) => {
       state.notifications.forEach((n) => {
-        n.isRead = true;
+        n.read = true;
       });
     },
 
-    // delete one notification
+    // ---------------- DELETE SINGLE NOTIFICATION ----------------
     deleteNotification: (state, action) => {
       state.notifications = state.notifications.filter(
-        (n) => n._id !== action.payload
+        (n) => n.id !== action.payload
       );
     },
 
-    // clear all notifications
+    // ---------------- CLEAR ALL ----------------
     clearNotifications: (state) => {
       state.notifications = [];
     },
 
-    // theme toggle
-    toggleTheme: (state) => {
-      state.theme = state.theme === "light" ? "dark" : "light";
-    },
-
-    // reset everything
+    // ---------------- RESET ----------------
     resetSettings: () => initialState,
   },
 });
 
 export const {
-  setSettings,
   toggleNotifications,
   addNotification,
   markAsRead,
   markAllRead,
   deleteNotification,
   clearNotifications,
-  toggleTheme,
   resetSettings,
 } = settingsSlice.actions;
 

@@ -8,6 +8,7 @@ import {
   Images,
   BanknoteArrowDown,
   X,
+  Repeat
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 
@@ -22,11 +23,11 @@ export default function SideNavbar() {
     { name: "Scan Receipt", path: "/dashboard/scanner", icon: Scan },
     { name: "Gallery", path: "/dashboard/gallery", icon: Images },
     { name: "Expense", path: "/dashboard/expense", icon: BanknoteArrowDown },
+    {name:"Recurring",path:"/dashboard/recurring", icon:Repeat}
   ];
 
   return (
     <>
-      {/* ================= MOBILE TOP BAR ================= */}
       <div className="lg:hidden flex items-center justify-between p-4 bg-white dark:bg-[#0F172A] border-b dark:border-gray-800">
         <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
           ExpenseTracker

@@ -1,7 +1,6 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { Eye, EyeOff } from "lucide-react";
 
 import {
   updateUsername,
@@ -9,12 +8,11 @@ import {
   logout,
   deleteAccount,
   updateProfilePhoto,
+  clearMessages,
 } from "../../redux/features/authSlice";
 
-import {
-  toggleNotifications,
-  toggleTheme,
-} from "../../redux/features/settingSlice";
+import { toggleNotifications } from "../../redux/features/settingSlice";
+import { toggleTheme } from "../../redux/features/themeSlice";
 
 export default function Settings() {
   const dispatch = useDispatch();
@@ -23,6 +21,7 @@ export default function Settings() {
 
   const { user, error, success, loading } = useSelector((s) => s.auth);
   const settings = useSelector((s) => s.settings);
+  const isLight = useSelector((s) => s.theme.isLight);
 
   const [username, setUsername] = useState(user?.name || "");
   const [currentPassword, setCurrentPassword] = useState("");
@@ -30,12 +29,9 @@ export default function Settings() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [localError, setLocalError] = useState("");
 
-  const [showCurrent, setShowCurrent] = useState(false);
-  const [showNew, setShowNew] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
+  const dark = !isLight;
 
-  const dark = settings.theme === "dark";
-
+  // ---------------- THEME ----------------
   const bg = dark
     ? "bg-gradient-to-br from-[#031a13] via-[#042e1e] to-[#001d13] text-white"
     : "bg-gradient-to-br from-[#f2fff9] via-[#e6fff3] to-[#dbffec] text-black";
@@ -61,12 +57,30 @@ export default function Settings() {
   const message = localError || error || success;
   const isError = !!(localError || error);
 
-  // ---------------- HANDLERS ----------------
-  const handlePhoto = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      dispatch(updateProfilePhoto(file));
+  useEffect(() => {
+    if (message) {
+      const timer = setTimeout(() => {
+        dispatch(clearMessages());
+        setLocalError("");
+      }, 3000);
+
+      return () => clearTimeout(timer);
     }
+  }, [message, dispatch]);
+
+  useEffect(() => {
+    if (success) {
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    }
+  }, [success]);
+
+  const handlePhoto = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    dispatch(updateProfilePhoto(file));
   };
 
   const handleUpdateUsername = () => {
@@ -74,6 +88,8 @@ export default function Settings() {
   };
 
   const handleUpdatePassword = () => {
+    setLocalError("");
+
     if (newPassword !== confirmPassword) {
       setLocalError("Passwords do not match");
       return;
@@ -91,7 +107,7 @@ export default function Settings() {
     <div className={`min-h-screen p-4 md:p-6 ${bg}`}>
       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-        {/* LEFT */}
+        {/* LEFT PANEL */}
         <div className="space-y-6 order-2 lg:order-1">
 
           {/* PROFILE */}
@@ -104,7 +120,7 @@ export default function Settings() {
                 />
               ) : (
                 <div className="w-full h-full bg-green-600 rounded-full flex items-center justify-center text-2xl text-white">
-                  {(username?.charAt(0) || "U").toUpperCase()}
+                  {(user?.name?.charAt(0) || "U").toUpperCase()}
                 </div>
               )}
             </div>
@@ -124,7 +140,6 @@ export default function Settings() {
             />
           </div>
 
-          {/* SETTINGS */}
           <div className={`p-6 rounded-3xl ${card} space-y-3`}>
             <button
               onClick={() => dispatch(toggleTheme())}
@@ -162,10 +177,8 @@ export default function Settings() {
           </div>
         </div>
 
-        {/* RIGHT */}
         <div className="lg:col-span-2 space-y-6 order-1 lg:order-2">
 
-          {/* USERNAME */}
           <div className={`p-6 rounded-3xl ${card}`}>
             <input
               value={username}
@@ -182,11 +195,10 @@ export default function Settings() {
             </button>
           </div>
 
-          {/* PASSWORD */}
           <div className={`p-6 rounded-3xl ${card}`}>
 
             <input
-              type={showCurrent ? "text" : "password"}
+              type="password"
               placeholder="Current Password"
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
@@ -194,7 +206,7 @@ export default function Settings() {
             />
 
             <input
-              type={showNew ? "text" : "password"}
+              type="password"
               placeholder="New Password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
@@ -214,7 +226,7 @@ export default function Settings() {
             )}
 
             <input
-              type={showConfirm ? "text" : "password"}
+              type="password"
               placeholder="Confirm Password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
@@ -223,14 +235,13 @@ export default function Settings() {
 
             <button
               onClick={handleUpdatePassword}
-              disabled={loading}
+              disabled={loading || !currentPassword || !newPassword || !confirmPassword}
               className="mt-4 bg-green-600 text-white px-6 py-2 rounded-xl w-full"
             >
               Update Password
             </button>
           </div>
 
-          {/* MESSAGE */}
           {message && (
             <div
               className={`p-3 rounded-xl text-white ${

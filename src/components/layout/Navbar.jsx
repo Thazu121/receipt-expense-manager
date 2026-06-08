@@ -39,6 +39,7 @@ export default function Navbar() {
   const notificationRef = useRef();
   const profileRef = useRef();
 
+  // ---------------- CLOSE OUTSIDE ----------------
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (
@@ -61,10 +62,12 @@ export default function Navbar() {
       document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // ---------------- MOBILE SCROLL LOCK ----------------
   useEffect(() => {
     document.body.style.overflow = mobileOpen ? "hidden" : "auto";
   }, [mobileOpen]);
 
+  // ---------------- LOGOUT ----------------
   const handleLogout = () => {
     dispatch(logout());
     navigate("/login", { replace: true });
@@ -72,6 +75,7 @@ export default function Navbar() {
 
   const closeMobile = () => setMobileOpen(false);
 
+  // ---------------- ACTIVE LINK STYLE ----------------
   const linkStyle = (path) =>
     `text-sm font-medium transition ${
       location.pathname.includes(path)
@@ -89,6 +93,7 @@ export default function Navbar() {
           : "bg-[#0f172a] border-gray-800"
       }`}
     >
+      {/* ---------------- LOGO ---------------- */}
       <h1
         className={`text-lg font-semibold ${
           isLight ? "text-gray-800" : "text-white"
@@ -97,6 +102,7 @@ export default function Navbar() {
         SpendWise
       </h1>
 
+      {/* ---------------- DESKTOP NAV ---------------- */}
       <nav className="hidden md:flex gap-8 items-center">
         <Link to="/dashboard" className={linkStyle("dashboard")}>
           Dashboard
@@ -109,6 +115,7 @@ export default function Navbar() {
         </Link>
       </nav>
 
+      {/* ---------------- RIGHT ACTIONS ---------------- */}
       <div className="flex items-center gap-3 md:gap-4">
 
         {/* SCAN BUTTON */}
@@ -120,6 +127,7 @@ export default function Navbar() {
           Scan Receipt
         </button>
 
+        {/* THEME TOGGLE */}
         <button
           onClick={() => dispatch(toggleTheme())}
           className={`p-2 rounded-lg transition ${
@@ -129,6 +137,7 @@ export default function Navbar() {
           {isLight ? <Moon size={18} /> : <Sun size={18} />}
         </button>
 
+        {/* ---------------- NOTIFICATIONS ---------------- */}
         <div className="relative" ref={notificationRef}>
           <button
             onClick={() => {
@@ -141,11 +150,13 @@ export default function Navbar() {
           >
             <Bell size={18} />
 
+            {/* RED DOT */}
             {notifications?.some((n) => !n.read) && (
               <span className="absolute top-1 right-1 w-2 h-2 bg-emerald-500 rounded-full" />
             )}
           </button>
 
+          {/* DROPDOWN */}
           {notificationOpen && (
             <div
               className={`absolute right-0 mt-3 w-72 rounded-xl shadow-lg border z-50 ${
@@ -156,6 +167,7 @@ export default function Navbar() {
             >
               <div className="flex justify-between px-4 py-3 border-b text-sm font-semibold">
                 Notifications
+
                 {notifications.length > 0 && (
                   <button
                     onClick={() => dispatch(clearNotifications())}
@@ -172,9 +184,9 @@ export default function Navbar() {
                     No notifications
                   </p>
                 ) : (
-                  notifications.map((n) => (
+                  notifications.map((n, i) => (
                     <p
-                      key={n.id}
+                      key={n.id || i}
                       className="px-4 py-3 text-sm border-b"
                     >
                       {n.message}
@@ -186,6 +198,7 @@ export default function Navbar() {
           )}
         </div>
 
+        {/* ---------------- PROFILE ---------------- */}
         <div className="relative" ref={profileRef}>
           <div
             onClick={() => setProfileOpen(!profileOpen)}
@@ -204,6 +217,7 @@ export default function Navbar() {
             )}
           </div>
 
+          {/* DROPDOWN */}
           {profileOpen && (
             <div
               className={`absolute right-0 mt-3 w-44 rounded-xl shadow-lg border z-50 ${
@@ -234,6 +248,7 @@ export default function Navbar() {
           )}
         </div>
 
+        {/* MOBILE MENU BUTTON */}
         <button
           onClick={() => setMobileOpen(!mobileOpen)}
           className="md:hidden"
@@ -242,6 +257,7 @@ export default function Navbar() {
         </button>
       </div>
 
+      {/* ---------------- MOBILE BACKDROP ---------------- */}
       {mobileOpen && (
         <div
           onClick={closeMobile}
@@ -249,16 +265,15 @@ export default function Navbar() {
         />
       )}
 
+      {/* ---------------- MOBILE MENU ---------------- */}
       <div
         className={`fixed top-0 right-0 h-full w-4/5 max-w-sm md:hidden z-50 transform transition-transform duration-300 ${
           mobileOpen ? "translate-x-0" : "translate-x-full"
         } ${
-          isLight
-            ? "bg-white text-black"
-            : "bg-[#0f172a] text-white"
+          isLight ? "bg-white text-black" : "bg-[#0f172a] text-white"
         }`}
       >
-        <div className="p-6 space-y-5">
+        <div className="flex flex-col p-6 gap-5">
           <Link onClick={closeMobile} to="/dashboard">
             Dashboard
           </Link>

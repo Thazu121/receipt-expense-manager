@@ -2,110 +2,143 @@ import { useSelector } from "react-redux";
 import { useMemo } from "react";
 
 export default function ExpenseStats() {
-const expenses = useSelector(
-(state) => state.expense.expenses
-);
+  const expenses = useSelector(
+    (state) => state.expense.expenses || []
+  );
 
-const isLight = useSelector(
-(state) => state.theme.isLight
-);
+  const isLight = useSelector(
+    (state) => state.theme.isLight
+  );
 
-const stats = useMemo(() => {
-const categoryTotals = {};
-let totalAmount = 0;
+  const stats = useMemo(() => {
+    const categoryTotals = {};
 
+    let totalAmount = 0;
+    let recurringAmount = 0;
+    let manualAmount = 0;
 
-expenses.forEach((expense) => {
-  const amount = Number(expense.amount || 0);
+    expenses.forEach((expense) => {
+      const amount = Number(expense.amount || 0);
 
-  totalAmount += amount;
+      totalAmount += amount;
 
-  const category =
-    expense.category?.name ||
-    expense.categoryId?.name ||
-    expense.category ||
-    "General";
+      if (
+        expense.source === "recurring" ||
+        expense.isRecurring
+      ) {
+        recurringAmount += amount;
+      } else {
+        manualAmount += amount;
+      }
 
-  categoryTotals[category] =
-    (categoryTotals[category] || 0) +
-    amount;
-});
+      const category =
+        expense.category?.name ||
+        expense.categoryId?.name ||
+        expense.category ||
+        "General";
 
-const topCategory =
-  Object.entries(categoryTotals)
-    .sort((a, b) => b[1] - a[1])[0]?.[0] ||
-  "N/A";
+      categoryTotals[category] =
+        (categoryTotals[category] || 0) + amount;
+    });
 
-return {
-  totalAmount,
-  totalExpenses: expenses.length,
-  topCategory,
-};
+    const topCategory =
+      Object.entries(categoryTotals).sort(
+        (a, b) => b[1] - a[1]
+      )[0]?.[0] || "N/A";
 
+    return {
+      totalAmount,
+      recurringAmount,
+      manualAmount,
+      topCategory,
+    };
+  }, [expenses]);
 
-}, [expenses]);
+  return (
+    <div
+      className="
+        grid
+        grid-cols-1
+        sm:grid-cols-2
+        xl:grid-cols-4
+        gap-4
+        mb-6
+      "
+    >
+      <StatCard
+        title="Total Spending"
+        value={`₹${stats.totalAmount.toLocaleString()}`}
+        isLight={isLight}
+      />
 
-return ( <div
-   className="
-     grid
-     grid-cols-1
-     sm:grid-cols-2
-     xl:grid-cols-3
-     gap-4
-     mb-6
-   "
- >
-<StatCard
-title="Total Spending"
-value={`₹${stats.totalAmount.toFixed(2)}`}
-isLight={isLight}
-/>
+      <StatCard
+        title="Manual Spending"
+        value={`₹${stats.manualAmount.toLocaleString()}`}
+        isLight={isLight}
+      />
 
+      <StatCard
+        title="Recurring Spending"
+        value={`₹${stats.recurringAmount.toLocaleString()}`}
+        isLight={isLight}
+      />
 
-  <StatCard
-    title="Total Expenses"
-    value={stats.totalExpenses}
-    isLight={isLight}
-  />
-
-  <StatCard
-    title="Top Category"
-    value={stats.topCategory}
-    isLight={isLight}
-  />
-</div>
-
-);
+      <StatCard
+        title="Top Category"
+        value={stats.topCategory}
+        isLight={isLight}
+      />
+    </div>
+  );
 }
 
-function StatCard({
-title,
-value,
-isLight,
-}) {
-return (
-<div
-className={`rounded-2xl p-5 shadow-lg ${
-        isLight
-          ? "bg-white border border-gray-200"
-          : "bg-white/5 border border-white/10 backdrop-blur-xl"
-      }`}
->
-<p
-className={`text-sm ${
+function StatCard({ title, value, isLight }) {
+  return (
+    <div
+      className={`
+        rounded-2xl
+        p-4
+        sm:p-5
+        lg:p-6
+        shadow-lg
+        transition-all
+        duration-300
+        hover:scale-[1.02]
+        overflow-hidden
+        ${
           isLight
-            ? "text-gray-500"
-            : "text-gray-400"
-        }`}
->
-{title} </p>
+            ? "bg-white border border-gray-200"
+            : "bg-white/5 border border-white/10 backdrop-blur-xl"
+        }
+      `}
+    >
+      <p
+        className={`
+          text-xs
+          sm:text-sm
+          mb-2
+          ${
+            isLight
+              ? "text-gray-500"
+              : "text-gray-400"
+          }
+        `}
+      >
+        {title}
+      </p>
 
-
-  <h2 className="text-3xl font-bold mt-2">
-    {value}
-  </h2>
-</div>
-
-
-);
+      <h2
+        className="
+          text-xl
+          sm:text-2xl
+          lg:text-3xl
+          font-bold
+          break-words
+          leading-tight
+        "
+      >
+        {value}
+      </h2>
+    </div>
+  );
 }
