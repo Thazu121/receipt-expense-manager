@@ -1,62 +1,180 @@
-import { useSelector } from "react-redux";
 import { useMemo, useState } from "react";
+import { useSelector } from "react-redux";
 
 import InsightsHeader from "../Insight/InsightsHeader";
-import FinancialOverviewCard from "../Insight/FinancialOverviewCard";
-import CashFlowCard from "../Insight/CashFlowCard";
-import OverspendingCard from "../Insight/OverspendingCard";
-import CategoryPerformanceCard from "../Insight/CategoryPerformanceCard";
-import TrendBreakdown from "../Insight/TrendBreakdown";
-import StatCard from "../Insight/StatCard";
 import DateFilter from "../Insight/DateFilter";
 
+import SummaryCard from "../Insight/SummaryCard";
+import FinancialOverviewCard from "../Insight/FinancialOverviewCard";
+import CashFlowCard from "../Insight/CashFlowCard";
+import AverageTransactionCard from "../Insight/AverageTransactionCard";
+import MonthlyComparisonCard from "../Insight/MonthlyComparisonCard";
+import TrendBreakdown from "../Insight/TrendBreakdown";
+import CategoryPerformanceCard from "../Insight/CategoryPerformanceCard";
+import TopCategoriesCard from "../Insight/TopCategoriesCard";
+import LargeExpensesCard from "../Insight/LargeExpensesCard";
+import TopMerchantCard from "../Insight/TopMerchantCard";
+import AIRecommendationsCard from "../Insight/AIRecommendationsCard";
+import OverspendingCard from "../Insight/OverspendingCard";
+
 export default function InsightsPage() {
-  const isLight = useSelector((state) => state.theme.isLight);
-  const receipts = useSelector((state) => state.receipt.receipts);
+  const isLight = useSelector(
+    (state) => state.theme.isLight
+  );
 
-  const [range, setRange] = useState("30");
+  const expenses = useSelector(
+    (state) => state.expense.expenses || []
+  );
 
-  const filteredReceipts = useMemo(() => {
-    const days = Number(range);
-    const now = new Date();
+  const receipts = useSelector(
+    (state) => state.receipt.receipts || []
+  );
+
+  const [range, setRange] = useState(30);
+
+  const filteredExpenses = useMemo(() => {
+    if (Number(range) === 0) {
+      return expenses;
+    }
+
     const cutoff = new Date();
-    cutoff.setDate(now.getDate() - days);
 
-    return receipts.filter((r) => {
-      const date = new Date(r.date);
-      return date >= cutoff;
+    cutoff.setDate(
+      cutoff.getDate() - Number(range)
+    );
+
+    return expenses.filter((expense) => {
+      const date = new Date(
+        expense.expenseDate || expense.date
+      );
+
+      return !isNaN(date) && date >= cutoff;
     });
-  }, [receipts, range]);
+  }, [expenses, range]);
 
   return (
     <div className={isLight ? "" : "dark"}>
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-[#071a14] dark:to-[#04110c] transition-colors duration-300">
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-
-          <div className="mb-6 flex justify-between items-center">
+      <div
+        className="
+          min-h-screen
+          bg-gray-50
+          dark:bg-[#071a14]
+          transition-colors
+        "
+      >
+        <div
+          className="
+            max-w-7xl
+            mx-auto
+            px-4
+            sm:px-6
+            lg:px-8
+            py-8
+            space-y-8
+          "
+        >
+          <div
+            className="
+              flex
+              flex-col
+              md:flex-row
+              md:items-center
+              md:justify-between
+              gap-4
+            "
+          >
             <InsightsHeader />
-            <DateFilter onChange={setRange} />
+
+            <DateFilter
+              onChange={setRange}
+            />
           </div>
 
-          <div className="mb-10">
-            <FinancialOverviewCard receipts={filteredReceipts} />
+          <SummaryCard
+            expenses={filteredExpenses}
+          />
+
+          <FinancialOverviewCard
+            expenses={filteredExpenses}
+          />
+
+          <div
+            className="
+              grid
+              grid-cols-1
+              lg:grid-cols-3
+              gap-6
+            "
+          >
+            <CashFlowCard
+              expenses={filteredExpenses}
+            />
+
+            <AverageTransactionCard
+              expenses={filteredExpenses}
+            />
+
+            <MonthlyComparisonCard
+              expenses={expenses}
+            />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-            <CashFlowCard receipts={filteredReceipts} />
-            <StatCard type="monthly" receipts={filteredReceipts} />
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
-            <div className="lg:col-span-2">
-              <TrendBreakdown receipts={filteredReceipts} />
+          <div
+            className="
+              grid
+              grid-cols-1
+              xl:grid-cols-3
+              gap-6
+            "
+          >
+            <div className="xl:col-span-2">
+              <TrendBreakdown
+                expenses={filteredExpenses}
+              />
             </div>
-            <OverspendingCard receipts={filteredReceipts} />
+
+            <OverspendingCard
+              expenses={expenses}
+            />
           </div>
 
-          <CategoryPerformanceCard receipts={filteredReceipts} />
+          <div
+            className="
+              grid
+              grid-cols-1
+              xl:grid-cols-2
+              gap-6
+            "
+          >
+            <CategoryPerformanceCard
+              expenses={filteredExpenses}
+            />
 
+            <TopCategoriesCard
+              expenses={filteredExpenses}
+            />
+          </div>
+
+          <div
+            className="
+              grid
+              grid-cols-1
+              xl:grid-cols-2
+              gap-6
+            "
+          >
+            <LargeExpensesCard
+              expenses={filteredExpenses}
+            />
+
+            <TopMerchantCard
+              receipts={receipts}
+            />
+          </div>
+
+          <AIRecommendationsCard
+            expenses={filteredExpenses}
+          />
         </div>
       </div>
     </div>
