@@ -1,39 +1,31 @@
 import { useSelector } from "react-redux";
-import { useMemo } from "react";
 import { formatCurrency } from "../../utils/formatCurrency";
+import { Wallet } from "lucide-react";
 
-export default function CashFlowCard({ receipts = [] }) {
+export default function CashFlowCard({ expenses = [] }) {
   const currency = useSelector((state) => state.settings.currency);
 
-  const total = useMemo(() => {
-    return receipts.reduce(
-      (sum, r) => sum + Number(r.amount || 0),
-      0
-    );
-  }, [receipts]);
+  const total = expenses.reduce(
+    (sum, e) => sum + Number(e.amount || 0),
+    0
+  );
 
   return (
-    <div
-      className="
-        w-full
-        p-4 sm:p-6
-        rounded-2xl
-        bg-gradient-to-br from-emerald-500 to-green-600
-        text-white
-        shadow-lg
-        transition-all duration-300
-      "
-    >
-      <h3 className="font-semibold text-base sm:text-lg mb-2 sm:mb-3">
-        Cash Flow
-      </h3>
+    <div className="p-6 rounded-2xl bg-gradient-to-br from-emerald-500 to-green-600 text-white shadow-sm">
+      <div className="flex justify-between items-center">
+        <h3 className="font-semibold text-lg">
+          Total Spending
+        </h3>
 
-      <div className="text-2xl sm:text-3xl md:text-4xl font-bold break-words">
-        {formatCurrency(total, currency)}
+        <Wallet size={24} />
       </div>
 
-      <p className="text-xs sm:text-sm mt-2 opacity-80">
-        Net movement
+      <h2 className="text-3xl sm:text-4xl font-bold mt-4">
+        {formatCurrency(total, currency)}
+      </h2>
+
+      <p className="text-sm opacity-80 mt-2">
+        Based on selected report range
       </p>
     </div>
   );

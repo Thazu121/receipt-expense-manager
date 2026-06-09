@@ -1,5 +1,5 @@
-import { useSelector } from "react-redux";
 import { useMemo } from "react";
+import { useSelector } from "react-redux";
 import { formatCurrency } from "../../utils/formatCurrency";
 
 import {
@@ -11,37 +11,45 @@ import {
   Legend,
 } from "recharts";
 
-export default function CategoryPerformanceCard() {
-  const receipts = useSelector((state) => state.receipt.receipts);
-  const currency = useSelector((state) => state.settings.currency);
+export default function CategoryPerformanceCard({
+  expenses = [],
+}) {
+  const currency = useSelector(
+    (state) => state.settings.currency
+  );
 
   const data = useMemo(() => {
-    if (!receipts?.length) return [];
-
     const map = {};
 
-    receipts.forEach((r) => {
-      const category = r.category || "Other";
-      const amount = Math.abs(Number(r.amount || 0));
-      map[category] = (map[category] || 0) + amount;
+    expenses.forEach((expense) => {
+      const category =
+        expense.categoryId?.name ||
+        expense.category?.name ||
+        expense.category ||
+        "Other";
+
+      const amount = Number(expense.amount || 0);
+
+      if (!amount) return;
+
+      map[category] =
+        (map[category] || 0) + amount;
     });
 
-    const sorted = Object.entries(map)
-      .map(([name, value]) => ({ name, value }))
+    return Object.entries(map)
+      .map(([name, value]) => ({
+        name,
+        value,
+      }))
       .sort((a, b) => b.value - a.value);
+  }, [expenses]);
 
-    const topCategories = sorted.slice(0, 6);
-    const others = sorted.slice(6);
+  const total = data.reduce(
+    (sum, item) => sum + item.value,
+    0
+  );
 
-    if (others.length > 0) {
-      const otherTotal = others.reduce((sum, item) => sum + item.value, 0);
-      topCategories.push({ name: "Other", value: otherTotal });
-    }
-
-    return topCategories;
-  }, [receipts]);
-
-  const COLORS = [
+  const colors = [
     "#10b981",
     "#3b82f6",
     "#f59e0b",
@@ -52,36 +60,71 @@ export default function CategoryPerformanceCard() {
   ];
 
   return (
-    <div className="w-full p-4 sm:p-6 rounded-2xl bg-white/80 dark:bg-[#0f2e24]/60 border border-emerald-100 dark:border-green-800 shadow-sm transition-all duration-300">
+    <div
+      className="
+        w-full
+        min-w-0
+        p-4
+        sm:p-6
+        rounded-2xl
+        bg-white
+        dark:bg-[#0f172a]
+        border
+        border-gray-200
+        dark:border-gray-700
+        shadow-sm
+      "
+    >
+      <div className="mb-5">
+        <h3 className="text-lg font-semibold">
+          Spending by Category
+        </h3>
 
-      <h3 className="font-semibold text-base sm:text-lg mb-4 sm:mb-6">
-        Spending by Category
-      </h3>
+        <p className="text-sm text-gray-500 mt-1">
+          Total:{" "}
+          {formatCurrency(total, currency)}
+        </p>
+      </div>
 
       {data.length === 0 ? (
-        <div className="text-center py-10 text-gray-400 text-sm">
-          No data available
+        <div
+          className="
+            h-[320px]
+            flex
+            items-center
+            justify-center
+            text-gray-400
+            text-sm
+          "
+        >
+          No category data available
         </div>
       ) : (
-        <div className="w-full h-[260px] sm:h-[320px] md:h-[360px]">
-          <ResponsiveContainer width="100%" height="100%">
+        <div className="w-full min-w-0 h-[320px]">
+          <ResponsiveContainer
+            width="99%"
+            height={320}
+          >
             <PieChart>
-
               <Pie
                 data={data}
                 dataKey="value"
                 nameKey="name"
                 cx="50%"
                 cy="45%"
-                outerRadius="80%"
                 innerRadius="45%"
+                outerRadius="75%"
                 paddingAngle={3}
                 labelLine={false}
               >
-                {data.map((entry, index) => (
+                {data.map((_, index) => (
                   <Cell
                     key={index}
-                    fill={COLORS[index % COLORS.length]}
+                    fill={
+                      colors[
+                        index % colors.length
+                      ]
+                    }
                   />
                 ))}
               </Pie>
@@ -97,7 +140,7 @@ export default function CategoryPerformanceCard() {
                 align="center"
                 wrapperStyle={{
                   fontSize: "12px",
-                  paddingTop: "10px",
+                  paddingTop: "12px",
                 }}
               />
             </PieChart>

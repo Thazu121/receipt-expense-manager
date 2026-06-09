@@ -1,31 +1,35 @@
 import { useState } from "react";
 
 export default function DateFilter({ onChange }) {
-  const [active, setActive] = useState("30");
+  const [active, setActive] = useState(30);
+
+  const options = [
+    { label: "7 Days", value: 7 },
+    { label: "30 Days", value: 30 },
+    { label: "90 Days", value: 90 },
+    { label: "All", value: 0 },
+  ];
 
   const handleClick = (value) => {
     setActive(value);
-    onChange(value);
+    onChange?.(value);
   };
 
   return (
-    <div className="w-full sm:w-auto">
-      <div className="flex flex-wrap sm:flex-nowrap gap-2 bg-emerald-100 dark:bg-white/10 p-1 rounded-lg w-full sm:w-auto">
-        {["7", "30", "90"].map((value) => (
-          <button
-            key={value}
-            onClick={() => handleClick(value)}
-            className={`flex-1 sm:flex-none px-3 py-2 text-sm sm:text-base rounded-md transition-all duration-200
-              ${
-                active === value
-                  ? "bg-emerald-500 text-white shadow-md"
-                  : "text-gray-600 dark:text-gray-300 hover:bg-emerald-200 dark:hover:bg-white/20"
-              }`}
-          >
-            {value} Days
-          </button>
-        ))}
-      </div>
+    <div className="flex flex-wrap gap-2 p-1 rounded-xl bg-emerald-100 dark:bg-white/10">
+      {options.map((item) => (
+        <button
+          key={item.value}
+          onClick={() => handleClick(item.value)}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+            active === item.value
+              ? "bg-emerald-500 text-white shadow"
+              : "text-gray-600 dark:text-gray-300 hover:bg-emerald-200 dark:hover:bg-white/20"
+          }`}
+        >
+          {item.label}
+        </button>
+      ))}
     </div>
   );
 }
