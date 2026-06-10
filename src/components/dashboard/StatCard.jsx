@@ -16,7 +16,7 @@ export default function StatCard({
         currency: "INR",
         maximumFractionDigits: 2,
       }).format(safeValue)
-    : safeValue;
+    : new Intl.NumberFormat("en-IN").format(safeValue);
 
   const valueColor =
     safeValue < 0
@@ -38,13 +38,13 @@ export default function StatCard({
         min-h-[110px] sm:min-h-[130px]
       "
     >
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
           {title}
         </p>
 
         {Icon && (
-          <div className="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-500/10">
+          <div className="shrink-0 p-2 rounded-lg bg-emerald-50 dark:bg-emerald-500/10">
             <Icon size={18} className="text-emerald-500" />
           </div>
         )}

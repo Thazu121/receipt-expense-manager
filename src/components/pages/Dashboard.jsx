@@ -1,8 +1,5 @@
 import { useEffect, useMemo } from "react";
-import {
-  useSelector,
-  useDispatch,
-} from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 
 import Header from "../dashboard/Header";
 import StatCard from "../dashboard/StatCard";
@@ -10,18 +7,12 @@ import SpendingChart from "../dashboard/SpendingChart";
 import CategoriesCard from "../dashboard/CategoriesCard";
 import TransactionsTable from "../dashboard/TransactionTables";
 
-import {
-  fetchExpenses,
-} from "../../redux/features/expenseSlice";
+import { fetchExpenses } from "../../redux/features/expenseSlice";
 
 export default function Dashboard() {
   const dispatch = useDispatch();
 
-  const {
-    expenses = [],
-    loading,
-    error,
-  } = useSelector(
+  const { expenses = [], loading, error } = useSelector(
     (state) => state.expense
   );
 
@@ -34,131 +25,76 @@ export default function Dashboard() {
   }, [dispatch]);
 
   const stats = useMemo(() => {
-    const totalSpending =
-      expenses.reduce(
+    const totalSpending = expenses.reduce(
+      (sum, expense) =>
+        sum + Math.abs(Number(expense.amount || 0)),
+      0
+    );
+
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    const monthlySpending = expenses
+      .filter((expense) => {
+        const rawDate =
+          expense.expenseDate ||
+          expense.date ||
+          expense.createdAt;
+
+        if (!rawDate) return false;
+
+        const date = new Date(rawDate);
+
+        return (
+          date.getMonth() === currentMonth &&
+          date.getFullYear() === currentYear
+        );
+      })
+      .reduce(
         (sum, expense) =>
-          sum +
-          Number(
-            expense.amount || 0
-          ),
+          sum + Math.abs(Number(expense.amount || 0)),
         0
       );
 
-    const currentMonth =
-      new Date().getMonth();
-
-    const currentYear =
-      new Date().getFullYear();
-
-    const monthlySpending =
-      expenses
-        .filter((expense) => {
-          const date =
-            new Date(
-              expense.createdAt
-            );
-
-          return (
-            date.getMonth() ===
-              currentMonth &&
-            date.getFullYear() ===
-              currentYear
-          );
-        })
-        .reduce(
-          (sum, expense) =>
-            sum +
-            Number(
-              expense.amount || 0
-            ),
-          0
-        );
-
-    const categories =
-      new Set(
-        expenses.map(
-          (expense) =>
-            expense.categoryId
-              ?.name ||
-            expense.category ||
-            "Other"
-        )
-      );
-
-    const favoriteCount =
-      expenses.filter(
+    const categories = new Set(
+      expenses.map(
         (expense) =>
-          expense.favorite
-      ).length;
+          expense.categoryId?.name ||
+          expense.category ||
+          "General"
+      )
+    );
+
+    const favoriteCount = expenses.filter(
+      (expense) =>
+        expense.favorite || expense.isFavorite
+    ).length;
 
     return {
       totalSpending,
       monthlySpending,
-      totalCategories:
-        categories.size,
+      totalCategories: categories.size,
       favoriteCount,
-      totalExpenses:
-        expenses.length,
+      totalExpenses: expenses.length,
     };
   }, [expenses]);
 
   if (loading) {
     return (
-      <div
-        className="
-          min-h-screen
-          flex
-          items-center
-          justify-center
-        "
-      >
-        <div
-          className="
-            h-16
-            w-16
-            rounded-full
-            border-4
-            border-emerald-500
-            border-t-transparent
-            animate-spin
-          "
-        />
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="h-16 w-16 rounded-full border-4 border-emerald-500 border-t-transparent animate-spin" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div
-        className="
-          min-h-screen
-          flex
-          items-center
-          justify-center
-          p-4
-        "
-      >
-        <div
-          className="
-            max-w-md
-            w-full
-            bg-red-100
-            text-red-600
-            rounded-2xl
-            p-6
-            text-center
-          "
-        >
-          <h2
-            className="
-              text-xl
-              font-bold
-              mb-2
-            "
-          >
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-red-100 text-red-600 rounded-2xl p-6 text-center">
+          <h2 className="text-xl font-bold mb-2">
             Error Loading Dashboard
           </h2>
-
           <p>{error}</p>
         </div>
       </div>
@@ -168,173 +104,78 @@ export default function Dashboard() {
   return (
     <div
       className={`
-        min-h-screen
-        transition-all
-
+        min-h-screen transition-all
         ${
           isLight
-            ? `
-              bg-gray-100
-              text-gray-900
-            `
-            : `
-              bg-gradient-to-br
-              from-[#071b11]
-              via-[#0b2a1b]
-              to-[#071b11]
-              text-white
-            `
+            ? "bg-gray-100 text-gray-900"
+            : "bg-gradient-to-br from-[#071b11] via-[#0b2a1b] to-[#071b11] text-white"
         }
       `}
     >
-      <div
-        className="
-          max-w-7xl
-          mx-auto
-
-          px-4
-          sm:px-6
-          lg:px-8
-
-          py-6
-          sm:py-8
-        "
-      >
-
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <div className="mb-8">
           <Header />
         </div>
 
-
         {expenses.length === 0 ? (
           <div
             className={`
-              rounded-3xl
-              p-10
-              text-center
-
+              rounded-3xl p-10 text-center
               ${
                 isLight
-                  ? `
-                    bg-white
-                    border
-                    border-gray-200
-                  `
-                  : `
-                    bg-white/5
-                    border
-                    border-white/10
-                    backdrop-blur-xl
-                  `
+                  ? "bg-white border border-gray-200"
+                  : "bg-white/5 border border-white/10 backdrop-blur-xl"
               }
             `}
           >
-            <h2
-              className="
-                text-3xl
-                font-bold
-              "
-            >
+            <h2 className="text-3xl font-bold">
               No Expenses Found
             </h2>
 
-            <p
-              className="
-                mt-4
-                text-gray-500
-              "
-            >
-              Start adding expenses
-              to see analytics and
-              reports.
+            <p className="mt-4 text-gray-500">
+              Start adding expenses to see analytics and reports.
             </p>
           </div>
         ) : (
           <>
-
-            <div
-              className="
-                grid
-                grid-cols-1
-                sm:grid-cols-2
-                xl:grid-cols-5
-                gap-5
-                mb-8
-              "
-            >
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-5 mb-8">
               <StatCard
                 title="Total Spending"
-                value={
-                  stats.totalSpending
-                }
+                value={stats.totalSpending}
                 isCurrency
               />
 
               <StatCard
                 title="This Month"
-                value={
-                  stats.monthlySpending
-                }
+                value={stats.monthlySpending}
                 isCurrency
               />
 
               <StatCard
                 title="Categories"
-                value={
-                  stats.totalCategories
-                }
+                value={stats.totalCategories}
               />
 
               <StatCard
                 title="Favorites"
-                value={
-                  stats.favoriteCount
-                }
+                value={stats.favoriteCount}
               />
 
               <StatCard
                 title="Expenses"
-                value={
-                  stats.totalExpenses
-                }
+                value={stats.totalExpenses}
               />
             </div>
 
-
-            <div
-              className="
-                grid
-                grid-cols-1
-                lg:grid-cols-3
-                gap-6
-                mb-8
-              "
-            >
-              <div
-                className="
-                  lg:col-span-2
-                "
-              >
-                <SpendingChart
-                  expenses={
-                    expenses
-                  }
-                />
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+              <div className="lg:col-span-2">
+                <SpendingChart expenses={expenses} />
               </div>
 
-              <div>
-                <CategoriesCard
-                  expenses={
-                    expenses
-                  }
-                />
-              </div>
+              <CategoriesCard expenses={expenses} />
             </div>
 
-
-            <TransactionsTable
-              expenses={expenses}
-            />
+            <TransactionsTable expenses={expenses} />
           </>
         )}
       </div>

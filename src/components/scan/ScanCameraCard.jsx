@@ -10,17 +10,11 @@ import {
 export default function CameraCard() {
   const dispatch = useDispatch();
 
-  const {
-    scanning,
-    progress,
-    error,
-  } = useSelector(
+  const { scanning, progress, error } = useSelector(
     (state) => state.scan
   );
 
-  const isLight = useSelector(
-    (state) => state.theme.isLight
-  );
+  const isLight = useSelector((state) => state.theme.isLight);
 
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -37,107 +31,134 @@ export default function CameraCard() {
 
     const timer = setTimeout(() => {
       dispatch(clearError());
-    }, 4000);
+    }, 6000);
 
     return () => clearTimeout(timer);
   }, [error, dispatch]);
 
+  const getCameraErrorMessage = (err) => {
+    if (err?.name === "NotAllowedError") {
+      return "Camera permission denied. Please allow camera access in browser settings.";
+    }
+
+    if (err?.name === "NotFoundError") {
+      return "No camera device found on this device.";
+    }
+
+    if (err?.name === "NotReadableError") {
+      return "Camera is already being used by another app.";
+    }
+
+    if (err?.name === "OverconstrainedError") {
+      return "Requested camera is not available.";
+    }
+
+    if (err?.name === "SecurityError") {
+      return "Camera access blocked. Please use HTTPS or localhost.";
+    }
+
+    if (err?.name === "AbortError") {
+      return "Camera access was interrupted.";
+    }
+
+    return "Unable to access camera. Please check permission.";
+  };
+
   const startCamera = async () => {
     try {
-      const stream =
-        await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode: {
-              ideal: "environment",
-            },
+      if (!navigator.mediaDevices?.getUserMedia) {
+        dispatch(setError("Camera is not supported in this browser."));
+        return;
+      }
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: {
+            ideal: "environment",
           },
-        });
+        },
+        audio: false,
+      });
 
       streamRef.current = stream;
 
       if (videoRef.current) {
-        videoRef.current.srcObject =
-          stream;
+        videoRef.current.srcObject = stream;
       }
-    } catch (error) {
-      dispatch(
-        setError(
-          "Unable to access camera"
-        )
-      );
+    } catch (err) {
+      dispatch(setError(getCameraErrorMessage(err)));
     }
   };
 
   const stopCamera = () => {
     if (!streamRef.current) return;
 
-    streamRef.current
-      .getTracks()
-      .forEach((track) =>
-        track.stop()
-      );
+    streamRef.current.getTracks().forEach((track) => {
+      track.stop();
+    });
 
     streamRef.current = null;
   };
 
-  const captureAndScan =
-    async () => {
-      if (
-        !videoRef.current ||
-        scanning
-      )
+  const captureAndScan = async () => {
+    if (!videoRef.current || !canvasRef.current || scanning) return;
+
+    try {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext("2d");
+
+      if (!video.videoWidth || !video.videoHeight) {
+        dispatch(setError("Camera is not ready yet."));
         return;
-
-      try {
-        const video =
-          videoRef.current;
-
-        const canvas =
-          canvasRef.current;
-
-        const ctx =
-          canvas.getContext("2d");
-
-        canvas.width =
-          video.videoWidth;
-
-        canvas.height =
-          video.videoHeight;
-
-        ctx.drawImage(
-          video,
-          0,
-          0
-        );
-
-        const image =
-          canvas.toDataURL(
-            "image/png"
-          );
-
-        const result =
-          await dispatch(
-            scanReceipt(image)
-          );
-
-        if (
-          scanReceipt.rejected.match(
-            result
-          )
-        ) {
-          throw new Error(
-            result.payload
-          );
-        }
-      } catch (error) {
-        dispatch(
-          setError(
-            error.message ||
-              "Scan failed"
-          )
-        );
       }
-    };
+
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      canvas.toBlob(
+        async (blob) => {
+          try {
+            if (!blob) {
+              dispatch(setError("Failed to capture image."));
+              return;
+            }
+
+            const file = new File(
+              [blob],
+              `receipt-${Date.now()}.png`,
+              {
+                type: "image/png",
+              }
+            );
+
+            const result = await dispatch(
+              scanReceipt({
+                file,
+                receiptId: null,
+              })
+            );
+
+            if (scanReceipt.rejected.match(result)) {
+              throw new Error(result.payload || "Scan failed");
+            }
+          } catch (err) {
+            dispatch(setError(err?.message || "Scan failed"));
+          }
+        },
+        "image/png",
+        0.95
+      );
+    } catch (err) {
+      dispatch(setError(err?.message || "Scan failed"));
+    }
+  };
+
+  const isPermissionError =
+    error?.toLowerCase().includes("permission denied") ||
+    error?.toLowerCase().includes("allow camera");
 
   return (
     <div
@@ -150,7 +171,6 @@ export default function CameraCard() {
         p-4
         sm:p-6
         transition-all
-
         ${
           isLight
             ? "bg-white border border-gray-200 shadow-md"
@@ -162,7 +182,7 @@ export default function CameraCard() {
         <div
           className="
             mb-4
-            p-3
+            p-4
             rounded-xl
             bg-red-500/10
             text-red-500
@@ -170,7 +190,14 @@ export default function CameraCard() {
             text-sm
           "
         >
-          {error}
+          <p className="font-semibold">{error}</p>
+
+          {isPermissionError && (
+            <p className="mt-2 text-xs text-yellow-500">
+              Click the lock icon near the address bar → Site settings →
+              Camera → Allow, then refresh the page.
+            </p>
+          )}
         </div>
       )}
 
@@ -197,10 +224,7 @@ export default function CameraCard() {
           "
         />
 
-        <canvas
-          ref={canvasRef}
-          className="hidden"
-        />
+        <canvas ref={canvasRef} className="hidden" />
 
         {scanning && (
           <div
@@ -229,9 +253,7 @@ export default function CameraCard() {
               "
             />
 
-            <p className="font-medium">
-              Scanning Receipt...
-            </p>
+            <p className="font-medium">Scanning Receipt...</p>
 
             <div
               className="
@@ -256,9 +278,7 @@ export default function CameraCard() {
               />
             </div>
 
-            <span className="text-sm">
-              {progress}%
-            </span>
+            <span className="text-sm">{progress}%</span>
           </div>
         )}
 
@@ -274,12 +294,8 @@ export default function CameraCard() {
           "
         >
           <button
-            onClick={
-              captureAndScan
-            }
-            disabled={
-              scanning
-            }
+            onClick={captureAndScan}
+            disabled={scanning || Boolean(error)}
             className="
               w-full
               sm:w-auto
@@ -294,12 +310,32 @@ export default function CameraCard() {
               disabled:opacity-50
             "
           >
-            {scanning
-              ? "Scanning..."
-              : "📷 Scan Receipt"}
+            {scanning ? "Scanning..." : "📷 Scan Receipt"}
           </button>
         </div>
       </div>
+
+      {isPermissionError && (
+        <div className="mt-4 flex justify-center">
+          <button
+            onClick={() => {
+              dispatch(clearError());
+              startCamera();
+            }}
+            className="
+              px-5
+              py-2
+              rounded-lg
+              bg-yellow-500
+              hover:bg-yellow-400
+              text-black
+              font-semibold
+            "
+          >
+            Try Camera Again
+          </button>
+        </div>
+      )}
 
       <div
         className="
@@ -314,17 +350,9 @@ export default function CameraCard() {
           text-green-500
         "
       >
-        <span>
-          ✔ OCR READY
-        </span>
-
-        <span>
-          ✔ AUTO FOCUS
-        </span>
-
-        <span>
-          ✔ AI EXTRACTION
-        </span>
+        <span>✔ OCR READY</span>
+        <span>✔ AUTO FOCUS</span>
+        <span>✔ AI EXTRACTION</span>
       </div>
     </div>
   );
