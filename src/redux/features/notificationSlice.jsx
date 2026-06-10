@@ -12,6 +12,11 @@ const auth = () => ({
   },
 });
 
+const getNotificationId = (notification = {}) =>
+  notification._id ||
+  notification.id ||
+  notification.uniqueKey;
+
 export const fetchNotifications = createAsyncThunk(
   "notification/fetchNotifications",
   async (_, thunkAPI) => {
@@ -57,6 +62,21 @@ export const markAllNotificationsRead = createAsyncThunk(
   }
 );
 
+export const deleteNotification = createAsyncThunk(
+  "notification/deleteNotification",
+  async (id, thunkAPI) => {
+    try {
+      await API.delete(`/notification/${id}`, auth());
+      return id;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error?.response?.data?.message ||
+          "Failed to delete notification"
+      );
+    }
+  }
+);
+
 export const clearNotifications = createAsyncThunk(
   "notification/clearNotifications",
   async (_, thunkAPI) => {
@@ -83,24 +103,27 @@ const notificationSlice = createSlice({
 
   reducers: {
     addRealtimeNotification: (state, action) => {
-      const notification = action.payload;
+      const incoming = action.payload || {};
 
-      const id =
-        notification._id ||
-        notification.id ||
-        Date.now().toString();
+      const id = getNotificationId(incoming);
 
-      const exists = state.notifications.some(
-        (n) => n._id === id || n.id === id
-      );
+      const exists = state.notifications.some((n) => {
+        const existingId = getNotificationId(n);
+
+        return (
+          existingId === id ||
+          (incoming.uniqueKey &&
+            n.uniqueKey === incoming.uniqueKey)
+        );
+      });
 
       if (!exists) {
         state.notifications.unshift({
-          ...notification,
-          id,
-          read: notification.read || false,
+          ...incoming,
+          id: id || Date.now().toString(),
+          read: Boolean(incoming.read),
           createdAt:
-            notification.createdAt ||
+            incoming.createdAt ||
             new Date().toISOString(),
         });
       }
@@ -120,7 +143,7 @@ const notificationSlice = createSlice({
 
       .addCase(fetchNotifications.fulfilled, (state, action) => {
         state.loading = false;
-        state.notifications = action.payload;
+        state.notifications = action.payload || [];
       })
 
       .addCase(fetchNotifications.rejected, (state, action) => {
@@ -130,7 +153,7 @@ const notificationSlice = createSlice({
 
       .addCase(markNotificationRead.fulfilled, (state, action) => {
         const notification = state.notifications.find(
-          (n) => n._id === action.payload || n.id === action.payload
+          (n) => getNotificationId(n) === action.payload
         );
 
         if (notification) {
@@ -144,6 +167,12 @@ const notificationSlice = createSlice({
         });
       })
 
+      .addCase(deleteNotification.fulfilled, (state, action) => {
+        state.notifications = state.notifications.filter(
+          (n) => getNotificationId(n) !== action.payload
+        );
+      })
+
       .addCase(clearNotifications.fulfilled, (state) => {
         state.notifications = [];
       });
@@ -151,7 +180,7 @@ const notificationSlice = createSlice({
 });
 
 export const selectNotifications = (state) =>
-  state.notification.notifications;
+  state.notification?.notifications || [];
 
 export const selectUnreadCount = createSelector(
   [selectNotifications],

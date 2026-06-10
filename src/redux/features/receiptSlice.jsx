@@ -16,10 +16,7 @@ const safeDate = (date) => {
   if (!date) return "";
 
   const parsed = new Date(date);
-
-  if (isNaN(parsed.getTime())) {
-    return "";
-  }
+  if (isNaN(parsed.getTime())) return "";
 
   return parsed.toISOString().split("T")[0];
 };
@@ -29,52 +26,54 @@ const normalizeReceipt = (r = {}) => ({
 
   image: r.imageUrl || r.image || "",
 
-  store:
-    r.merchantName ||
-    r.store ||
-    "Unknown Store",
+  cloudinaryId: r.cloudinaryId || "",
 
-  amount:
-    r.extractedAmount ??
-    r.amount ??
-    0,
+  store: r.merchantName || r.store || "Unknown Store",
 
-  date: safeDate(
-    r.extractedDate ||
-      r.date
-  ),
+  amount: r.extractedAmount ?? r.amount ?? 0,
 
-  category:
-    r.category ||
-    "General",
+  date: safeDate(r.extractedDate || r.date),
 
-  createdAt:
-    r.createdAt ||
-    new Date().toISOString(),
+  category: r.category || "General",
 
-  confidence:
-    r.confidenceScore ??
-    r.confidence ??
-    0,
+  createdAt: r.createdAt || new Date().toISOString(),
 
-  isVerified:
-    Boolean(r.isVerified),
+  confidence: r.confidenceScore ?? r.confidence ?? 0,
 
-  status:
-    r.isVerified
-      ? "Verified"
-      : "Pending",
+  isVerified: Boolean(r.isVerified),
 
-  rawText:
-    r.extractedText || "",
+  status: r.isVerified ? "Verified" : "Pending",
+
+  rawText: r.extractedText || r.rawText || "",
 });
+
+const getReceiptKey = (receipt = {}) => {
+  const image = receipt.image || "";
+  const cloudinaryId = receipt.cloudinaryId || "";
+  const store = receipt.store || "";
+  const amount = receipt.amount ?? "";
+  const date = receipt.date || "";
+  const rawText = receipt.rawText || "";
+
+  return (
+    receipt._id ||
+    cloudinaryId ||
+    image ||
+    `${store}-${amount}-${date}-${rawText.slice(0, 30)}`
+  );
+};
 
 const dedupeReceipts = (receipts = []) => {
   const map = new Map();
 
   receipts.forEach((receipt) => {
-    if (!receipt?._id) return;
-    map.set(receipt._id, receipt);
+    if (!receipt) return;
+
+    const key = getReceiptKey(receipt);
+
+    if (!map.has(key)) {
+      map.set(key, receipt);
+    }
   });
 
   return Array.from(map.values());
@@ -84,11 +83,7 @@ export const fetchReceipts = createAsyncThunk(
   "receipt/fetchReceipts",
   async (_, thunkAPI) => {
     try {
-      const res = await API.get(
-        "/receipts",
-        auth()
-      );
-
+      const res = await API.get("/receipts", auth());
       return res.data.receipts || [];
     } catch (error) {
       return thunkAPI.rejectWithValue(
@@ -104,22 +99,15 @@ export const addReceipt = createAsyncThunk(
   async (file, thunkAPI) => {
     try {
       const formData = new FormData();
-
-      formData.append(
-        "receipt",
-        file
-      );
+      formData.append("receipt", file);
 
       const res = await API.post(
         "/receipts/upload",
         formData,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem(
-              "token"
-            )}`,
-            "Content-Type":
-              "multipart/form-data",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            "Content-Type": "multipart/form-data",
           },
         }
       );
@@ -127,8 +115,7 @@ export const addReceipt = createAsyncThunk(
       return res.data.receipt;
     } catch (error) {
       return thunkAPI.rejectWithValue(
-        error?.response?.data?.message ||
-          "Upload failed"
+        error?.response?.data?.message || "Upload failed"
       );
     }
   }
@@ -136,10 +123,7 @@ export const addReceipt = createAsyncThunk(
 
 export const updateReceipt = createAsyncThunk(
   "receipt/updateReceipt",
-  async (
-    { id, updates },
-    thunkAPI
-  ) => {
+  async ({ id, updates }, thunkAPI) => {
     try {
       const res = await API.put(
         `/receipts/${id}`,
@@ -150,8 +134,7 @@ export const updateReceipt = createAsyncThunk(
       return res.data.receipt;
     } catch (error) {
       return thunkAPI.rejectWithValue(
-        error?.response?.data?.message ||
-          "Update failed"
+        error?.response?.data?.message || "Update failed"
       );
     }
   }
@@ -161,16 +144,11 @@ export const deleteReceipt = createAsyncThunk(
   "receipt/deleteReceipt",
   async (id, thunkAPI) => {
     try {
-      await API.delete(
-        `/receipts/${id}`,
-        auth()
-      );
-
+      await API.delete(`/receipts/${id}`, auth());
       return id;
     } catch (error) {
       return thunkAPI.rejectWithValue(
-        error?.response?.data?.message ||
-          "Delete failed"
+        error?.response?.data?.message || "Delete failed"
       );
     }
   }
@@ -230,7 +208,6 @@ const receiptSlice = createSlice({
 
   extraReducers: (builder) => {
     builder
-
       .addCase(fetchReceipts.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -240,9 +217,7 @@ const receiptSlice = createSlice({
         state.loading = false;
 
         state.receipts = dedupeReceipts(
-          (action.payload || []).map(
-            normalizeReceipt
-          )
+          (action.payload || []).map(normalizeReceipt)
         );
       })
 
@@ -259,16 +234,23 @@ const receiptSlice = createSlice({
       .addCase(addReceipt.fulfilled, (state, action) => {
         state.uploading = false;
 
-        const newReceipt =
-          normalizeReceipt(action.payload);
+        const newReceipt = normalizeReceipt(action.payload);
 
-        state.receipts = dedupeReceipts([
-          newReceipt,
-          ...state.receipts,
-        ]);
+        const alreadyExists = state.receipts.some((receipt) => {
+          return (
+            receipt._id === newReceipt._id ||
+            receipt.image === newReceipt.image ||
+            receipt.cloudinaryId === newReceipt.cloudinaryId
+          );
+        });
 
-        state.success =
-          "Receipt uploaded successfully";
+        if (!alreadyExists) {
+          state.receipts.unshift(newReceipt);
+        }
+
+        state.receipts = dedupeReceipts(state.receipts);
+
+        state.success = "Receipt uploaded successfully";
       })
 
       .addCase(addReceipt.rejected, (state, action) => {
@@ -284,19 +266,15 @@ const receiptSlice = createSlice({
       .addCase(updateReceipt.fulfilled, (state, action) => {
         state.updating = false;
 
-        const updated =
-          normalizeReceipt(action.payload);
+        const updated = normalizeReceipt(action.payload);
 
         state.receipts = dedupeReceipts(
           state.receipts.map((receipt) =>
-            receipt._id === updated._id
-              ? updated
-              : receipt
+            receipt._id === updated._id ? updated : receipt
           )
         );
 
-        state.success =
-          "Receipt updated successfully";
+        state.success = "Receipt updated successfully";
       })
 
       .addCase(updateReceipt.rejected, (state, action) => {
@@ -312,15 +290,11 @@ const receiptSlice = createSlice({
       .addCase(deleteReceipt.fulfilled, (state, action) => {
         state.deleting = false;
 
-        state.receipts =
-          state.receipts.filter(
-            (receipt) =>
-              receipt._id !==
-              action.payload
-          );
+        state.receipts = state.receipts.filter(
+          (receipt) => receipt._id !== action.payload
+        );
 
-        state.success =
-          "Receipt deleted successfully";
+        state.success = "Receipt deleted successfully";
       })
 
       .addCase(deleteReceipt.rejected, (state, action) => {
@@ -339,20 +313,13 @@ export const selectFilteredReceipts = createSelector(
     categoryFilter,
     sortBy,
   }) => {
-    let list = dedupeReceipts(
-      receipts || []
-    );
+    let list = dedupeReceipts(receipts || []);
 
     if (search) {
-      const q =
-        search.toLowerCase();
+      const q = search.toLowerCase();
 
       list = list.filter((r) =>
-        [
-          r.store,
-          r.category,
-          r.status,
-        ]
+        [r.store, r.category, r.status]
           .join(" ")
           .toLowerCase()
           .includes(q)
@@ -360,53 +327,39 @@ export const selectFilteredReceipts = createSelector(
     }
 
     if (statusFilter !== "All") {
-      list = list.filter(
-        (r) =>
-          r.status ===
-          statusFilter
-      );
+      list = list.filter((r) => r.status === statusFilter);
     }
 
     if (categoryFilter !== "All") {
       list = list.filter(
         (r) =>
-          String(r.category)
-            .toLowerCase() ===
-          String(categoryFilter)
-            .toLowerCase()
+          String(r.category).toLowerCase() ===
+          String(categoryFilter).toLowerCase()
       );
     }
 
     switch (sortBy) {
       case "Newest":
         list.sort(
-          (a, b) =>
-            new Date(b.createdAt) -
-            new Date(a.createdAt)
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
         );
         break;
 
       case "Oldest":
         list.sort(
-          (a, b) =>
-            new Date(a.createdAt) -
-            new Date(b.createdAt)
+          (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
         );
         break;
 
       case "Amount High-Low":
         list.sort(
-          (a, b) =>
-            Number(b.amount || 0) -
-            Number(a.amount || 0)
+          (a, b) => Number(b.amount || 0) - Number(a.amount || 0)
         );
         break;
 
       case "Amount Low-High":
         list.sort(
-          (a, b) =>
-            Number(a.amount || 0) -
-            Number(b.amount || 0)
+          (a, b) => Number(a.amount || 0) - Number(b.amount || 0)
         );
         break;
 
@@ -418,42 +371,32 @@ export const selectFilteredReceipts = createSelector(
   }
 );
 
-export const selectReceiptStats =
-  createSelector(
-    [(state) => state.receipt.receipts],
-    (receipts = []) => {
-      const totalAmount =
-        receipts.reduce(
-          (sum, receipt) =>
-            sum +
-            Number(
-              receipt.amount || 0
-            ),
-          0
-        );
+export const selectReceiptStats = createSelector(
+  [(state) => state.receipt.receipts],
+  (receipts = []) => {
+    const uniqueReceipts = dedupeReceipts(receipts);
 
-      const verified =
-        receipts.filter(
-          (r) => r.isVerified
-        ).length;
+    const totalAmount = uniqueReceipts.reduce(
+      (sum, receipt) => sum + Number(receipt.amount || 0),
+      0
+    );
 
-      const pending =
-        receipts.length - verified;
+    const verified = uniqueReceipts.filter((r) => r.isVerified).length;
 
-      return {
-        totalReceipts:
-          receipts.length,
-        totalAmount,
-        verified,
-        pending,
-        averageAmount:
-          receipts.length > 0
-            ? totalAmount /
-              receipts.length
-            : 0,
-      };
-    }
-  );
+    const pending = uniqueReceipts.length - verified;
+
+    return {
+      totalReceipts: uniqueReceipts.length,
+      totalAmount,
+      verified,
+      pending,
+      averageAmount:
+        uniqueReceipts.length > 0
+          ? totalAmount / uniqueReceipts.length
+          : 0,
+    };
+  }
+);
 
 export const {
   setSearch,

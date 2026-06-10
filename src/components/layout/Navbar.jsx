@@ -7,6 +7,7 @@ import {
   X,
   Upload,
   Bell,
+  Repeat,
 } from "lucide-react";
 
 import {
@@ -38,39 +39,19 @@ export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const isLight = useSelector(
-    (state) => state.theme.isLight
-  );
+  const isLight = useSelector((state) => state.theme.isLight);
+  const profileImage = useSelector((state) => state.auth.user?.photo);
+  const username = useSelector((state) => state.auth.user?.name);
 
-  const profileImage = useSelector(
-    (state) => state.auth.user?.photo
-  );
+  const notifications = useSelector(selectNotifications);
+  const unreadCount = useSelector(selectUnreadCount);
 
-  const username = useSelector(
-    (state) => state.auth.user?.name
-  );
+  const [notificationOpen, setNotificationOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
-  const notifications = useSelector(
-    selectNotifications
-  );
-
-  const unreadCount = useSelector(
-    selectUnreadCount
-  );
-
-  const [
-    notificationOpen,
-    setNotificationOpen,
-  ] = useState(false);
-
-  const [profileOpen, setProfileOpen] =
-    useState(false);
-
-  const [mobileOpen, setMobileOpen] =
-    useState(false);
-
-  const notificationRef = useRef();
-  const profileRef = useRef();
+  const notificationRef = useRef(null);
+  const profileRef = useRef(null);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -83,29 +64,24 @@ export default function Navbar() {
 
       if (
         notificationRef.current &&
-        !notificationRef.current.contains(
-          e.target
-        )
+        !notificationRef.current.contains(e.target)
       ) {
         setNotificationOpen(false);
       }
     };
 
-    document.addEventListener(
-      "mousedown",
-      handleClickOutside
-    );
+    document.addEventListener("mousedown", handleClickOutside);
 
     return () =>
-      document.removeEventListener(
-        "mousedown",
-        handleClickOutside
-      );
+      document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   useEffect(() => {
-    document.body.style.overflow =
-      mobileOpen ? "hidden" : "auto";
+    document.body.style.overflow = mobileOpen ? "hidden" : "auto";
+
+    return () => {
+      document.body.style.overflow = "auto";
+    };
   }, [mobileOpen]);
 
   const handleLogout = () => {
@@ -113,8 +89,10 @@ export default function Navbar() {
     navigate("/login", { replace: true });
   };
 
-  const closeMobile = () =>
-    setMobileOpen(false);
+  const closeMobile = () => setMobileOpen(false);
+
+  const getNotificationId = (n) =>
+    n._id || n.id || n.uniqueKey;
 
   const linkStyle = (path) =>
     `text-sm font-medium transition ${
@@ -135,44 +113,29 @@ export default function Navbar() {
     >
       <h1
         className={`text-lg font-semibold ${
-          isLight
-            ? "text-gray-800"
-            : "text-white"
+          isLight ? "text-gray-800" : "text-white"
         }`}
       >
         SpendWise
       </h1>
 
       <nav className="hidden md:flex gap-8 items-center">
-        <Link
-          to="/dashboard"
-          className={linkStyle(
-            "dashboard"
-          )}
-        >
+        <Link to="/dashboard" className={linkStyle("dashboard")}>
           Dashboard
         </Link>
 
-        <Link
-          to="/dashboard/expense"
-          className={linkStyle("expense")}
-        >
+        <Link to="/dashboard/expense" className={linkStyle("expense")}>
           Expense
         </Link>
 
-        <Link
-          to="/dashboard/report"
-          className={linkStyle("report")}
-        >
+        <Link to="/dashboard/report" className={linkStyle("report")}>
           Insights
         </Link>
       </nav>
 
       <div className="flex items-center gap-3 md:gap-4">
         <button
-          onClick={() =>
-            navigate("/dashboard/scanner")
-          }
+          onClick={() => navigate("/dashboard/scanner")}
           className="hidden md:flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
         >
           <Upload size={16} />
@@ -180,36 +143,19 @@ export default function Navbar() {
         </button>
 
         <button
-          onClick={() =>
-            dispatch(toggleTheme())
-          }
+          onClick={() => dispatch(toggleTheme())}
           className={`p-2 rounded-lg transition ${
-            isLight
-              ? "bg-gray-100"
-              : "bg-[#1E293B]"
+            isLight ? "bg-gray-100" : "bg-[#1E293B]"
           }`}
         >
-          {isLight ? (
-            <Moon size={18} />
-          ) : (
-            <Sun size={18} />
-          )}
+          {isLight ? <Moon size={18} /> : <Sun size={18} />}
         </button>
 
-        <div
-          className="relative"
-          ref={notificationRef}
-        >
+        <div className="relative" ref={notificationRef}>
           <button
-            onClick={() =>
-              setNotificationOpen(
-                !notificationOpen
-              )
-            }
+            onClick={() => setNotificationOpen((prev) => !prev)}
             className={`relative p-2 rounded-lg transition ${
-              isLight
-                ? "bg-gray-100"
-                : "bg-[#1E293B]"
+              isLight ? "bg-gray-100" : "bg-[#1E293B]"
             }`}
           >
             <Bell size={18} />
@@ -237,11 +183,7 @@ export default function Navbar() {
                 <div className="flex gap-3">
                   {notifications.length > 0 && (
                     <button
-                      onClick={() =>
-                        dispatch(
-                          markAllNotificationsRead()
-                        )
-                      }
+                      onClick={() => dispatch(markAllNotificationsRead())}
                       className="text-xs text-emerald-500"
                     >
                       Mark read
@@ -250,11 +192,7 @@ export default function Navbar() {
 
                   {notifications.length > 0 && (
                     <button
-                      onClick={() =>
-                        dispatch(
-                          clearNotifications()
-                        )
-                      }
+                      onClick={() => dispatch(clearNotifications())}
                       className="text-xs text-red-500"
                     >
                       Clear
@@ -269,54 +207,67 @@ export default function Navbar() {
                     No notifications
                   </p>
                 ) : (
-                  notifications.map((n) => (
-                    <button
-                      key={n._id || n.id}
-                      onClick={() =>
-                        dispatch(
-                          markNotificationRead(
-                            n._id || n.id
-                          )
-                        )
-                      }
-                      className={`w-full text-left px-4 py-3 border-b border-gray-100 dark:border-gray-700 transition ${
-                        n.read
-                          ? ""
-                          : "bg-emerald-50 dark:bg-emerald-900/20"
-                      }`}
-                    >
-                      <p className="font-semibold text-sm">
-                        {n.title ||
-                          "Notification"}
-                      </p>
+                  notifications.map((n, index) => {
+                    const id = getNotificationId(n);
 
-                      <p className="text-sm text-gray-500 mt-1">
-                        {n.message}
-                      </p>
+                    return (
+                      <button
+                        key={id || index}
+                        onClick={() => {
+                          if (id) {
+                            dispatch(markNotificationRead(id));
+                          }
+                        }}
+                        className={`w-full text-left px-4 py-3 border-b border-gray-100 dark:border-gray-700 transition ${
+                          n.read
+                            ? ""
+                            : "bg-emerald-50 dark:bg-emerald-900/20"
+                        }`}
+                      >
+                        <div className="flex gap-3">
+                          <div
+                            className={`mt-1 shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+                              n.type === "recurring"
+                                ? "bg-purple-100 text-purple-600"
+                                : "bg-emerald-100 text-emerald-600"
+                            }`}
+                          >
+                            {n.type === "recurring" ? (
+                              <Repeat size={16} />
+                            ) : (
+                              <Bell size={16} />
+                            )}
+                          </div>
 
-                      <p className="text-xs text-gray-400 mt-2">
-                        {n.createdAt
-                          ? new Date(
-                              n.createdAt
-                            ).toLocaleString()
-                          : ""}
-                      </p>
-                    </button>
-                  ))
+                          <div className="min-w-0">
+                            <p className="font-semibold text-sm">
+                              {n.type === "recurring" ? "🔁 " : ""}
+                              {n.title || "Notification"}
+                            </p>
+
+                            <p className="text-sm text-gray-500 mt-1 break-words">
+                              {n.message}
+                            </p>
+
+                            <p className="text-xs text-gray-400 mt-2">
+                              {n.createdAt
+                                ? new Date(n.createdAt).toLocaleString()
+                                : ""}
+                            </p>
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })
                 )}
               </div>
             </div>
           )}
         </div>
 
-        <div
-          className="relative"
-          ref={profileRef}
-        >
+        <div className="relative" ref={profileRef}>
           <div
-            onClick={() =>
-              setProfileOpen(!profileOpen)
-            }
+            onClick={() => setProfileOpen((prev) => !prev)}
             className="w-9 h-9 rounded-full overflow-hidden border-2 border-emerald-400 cursor-pointer"
           >
             {profileImage ? (
@@ -327,9 +278,7 @@ export default function Navbar() {
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-emerald-500 text-white">
-                {username
-                  ?.charAt(0)
-                  ?.toUpperCase() || "U"}
+                {username?.charAt(0)?.toUpperCase() || "U"}
               </div>
             )}
           </div>
@@ -344,9 +293,7 @@ export default function Navbar() {
             >
               <button
                 onClick={() => {
-                  navigate(
-                    "/dashboard/settings"
-                  );
+                  navigate("/dashboard/settings");
                   setProfileOpen(false);
                 }}
                 className="flex items-center gap-3 w-full px-4 py-3 text-sm hover:bg-emerald-100 dark:hover:bg-white/10"
@@ -367,16 +314,10 @@ export default function Navbar() {
         </div>
 
         <button
-          onClick={() =>
-            setMobileOpen(!mobileOpen)
-          }
+          onClick={() => setMobileOpen((prev) => !prev)}
           className="md:hidden"
         >
-          {mobileOpen ? (
-            <X size={22} />
-          ) : (
-            <Menu size={22} />
-          )}
+          {mobileOpen ? <X size={22} /> : <Menu size={22} />}
         </button>
       </div>
 
@@ -389,42 +330,25 @@ export default function Navbar() {
 
       <div
         className={`fixed top-0 right-0 h-full w-4/5 max-w-sm md:hidden z-50 transform transition-transform duration-300 ${
-          mobileOpen
-            ? "translate-x-0"
-            : "translate-x-full"
-        } ${
-          isLight
-            ? "bg-white text-black"
-            : "bg-[#0f172a] text-white"
-        }`}
+          mobileOpen ? "translate-x-0" : "translate-x-full"
+        } ${isLight ? "bg-white text-black" : "bg-[#0f172a] text-white"}`}
       >
         <div className="flex flex-col p-6 gap-5">
-          <Link
-            onClick={closeMobile}
-            to="/dashboard"
-          >
+          <Link onClick={closeMobile} to="/dashboard">
             Dashboard
           </Link>
 
-          <Link
-            onClick={closeMobile}
-            to="/dashboard/expense"
-          >
+          <Link onClick={closeMobile} to="/dashboard/expense">
             Expense
           </Link>
 
-          <Link
-            onClick={closeMobile}
-            to="/dashboard/report"
-          >
+          <Link onClick={closeMobile} to="/dashboard/report">
             Insights
           </Link>
 
           <button
             onClick={() => {
-              navigate(
-                "/dashboard/scanner"
-              );
+              navigate("/dashboard/scanner");
               closeMobile();
             }}
             className="w-full bg-emerald-500 text-white px-4 py-2 rounded-lg"

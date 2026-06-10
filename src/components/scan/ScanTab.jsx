@@ -73,6 +73,7 @@ export default function ScanTabs() {
           }
         `}
       >
+        Camera
       </button>
 
       <button
