@@ -36,6 +36,20 @@ export default function ExpenseTable() {
   const [editing, setEditing] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
 
+  const categories = [
+    "Food",
+    "Grocery",
+    "Transport",
+    "Bills",
+    "Shopping",
+    "Entertainment",
+    "Medical",
+    "Travel",
+    "Education",
+    "Investment",
+    "General",
+  ];
+
   const getSourceBadge = (expense) => {
     if (expense.source === "recurring" || expense.isRecurring) {
       return {
@@ -85,7 +99,7 @@ export default function ExpenseTable() {
           amount: Number(editing.amount),
           expenseDate: editing.expenseDate,
           notes: editing.notes,
-          category: editing.category,
+          category: editing.category || "General",
           paymentMethod: editing.paymentMethod,
         },
       })
@@ -133,18 +147,10 @@ export default function ExpenseTable() {
             : "bg-white/5 border border-white/10 backdrop-blur-xl"
         }`}
       >
-        {/* Header */}
         <div
           className={`
-            hidden
-            lg:grid
-            grid-cols-7
-            gap-4
-            px-6
-            py-4
-            border-b
-            font-semibold
-            text-sm
+            hidden lg:grid grid-cols-7 gap-4 px-6 py-4 border-b
+            font-semibold text-sm
             ${
               isLight
                 ? "border-gray-200 text-gray-600"
@@ -174,7 +180,6 @@ export default function ExpenseTable() {
                   : "border-white/10 hover:bg-white/5"
               }`}
             >
-              {/* Desktop */}
               <div className="hidden lg:grid grid-cols-7 gap-4 items-center">
                 <div className="font-medium truncate">
                   {expense.title || "Untitled"}
@@ -212,14 +217,10 @@ export default function ExpenseTable() {
                   <Star
                     size={18}
                     className={
-                      expense.favorite
-                        ? "text-yellow-500"
-                        : ""
+                      expense.favorite ? "text-yellow-500" : ""
                     }
                     fill={
-                      expense.favorite
-                        ? "currentColor"
-                        : "none"
+                      expense.favorite ? "currentColor" : "none"
                     }
                   />
                 </button>
@@ -239,7 +240,6 @@ export default function ExpenseTable() {
                 </div>
               </div>
 
-              {/* Mobile */}
               <div className="lg:hidden">
                 <div
                   className={`rounded-xl p-4 ${
@@ -324,7 +324,6 @@ export default function ExpenseTable() {
         })}
       </div>
 
-      {/* Edit Modal */}
       {editing && (
         <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50 p-4">
           <div
@@ -341,13 +340,14 @@ export default function ExpenseTable() {
             <div className="space-y-4">
               <input
                 type="text"
-                value={editing.title}
+                value={editing.title || ""}
                 onChange={(e) =>
                   setEditing({
                     ...editing,
                     title: e.target.value,
                   })
                 }
+                placeholder="Expense title"
                 className={`w-full p-3 rounded-lg border outline-none ${
                   isLight
                     ? "bg-white border-gray-300 text-black"
@@ -357,19 +357,48 @@ export default function ExpenseTable() {
 
               <input
                 type="number"
-                value={editing.amount}
+                value={editing.amount || ""}
                 onChange={(e) =>
                   setEditing({
                     ...editing,
                     amount: e.target.value,
                   })
                 }
+                placeholder="Amount"
                 className={`w-full p-3 rounded-lg border outline-none ${
                   isLight
                     ? "bg-white border-gray-300 text-black"
                     : "bg-zinc-800 border-zinc-700 text-white"
                 }`}
               />
+
+              <div className="relative">
+                <Tag
+                  size={16}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 opacity-60"
+                />
+
+                <select
+                  value={editing.category || "General"}
+                  onChange={(e) =>
+                    setEditing({
+                      ...editing,
+                      category: e.target.value,
+                    })
+                  }
+                  className={`w-full pl-10 p-3 rounded-lg border outline-none ${
+                    isLight
+                      ? "bg-white border-gray-300 text-black"
+                      : "bg-zinc-800 border-zinc-700 text-white"
+                  }`}
+                >
+                  {categories.map((category) => (
+                    <option key={category} value={category}>
+                      {category}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
               <input
                 type="date"
@@ -435,7 +464,6 @@ export default function ExpenseTable() {
         </div>
       )}
 
-      {/* Delete Modal */}
       {deleteId && (
         <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50 p-4">
           <div
@@ -457,9 +485,7 @@ export default function ExpenseTable() {
               <button
                 onClick={() => setDeleteId(null)}
                 className={`flex-1 py-3 rounded-lg ${
-                  isLight
-                    ? "bg-gray-300"
-                    : "bg-zinc-700"
+                  isLight ? "bg-gray-300" : "bg-zinc-700"
                 }`}
               >
                 Cancel
