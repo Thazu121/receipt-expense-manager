@@ -9,14 +9,27 @@ import {
   Bell,
 } from "lucide-react";
 
-import { Link, useNavigate, useLocation } from "react-router-dom";
-import { useSelector, useDispatch } from "react-redux";
+import {
+  Link,
+  useNavigate,
+  useLocation,
+} from "react-router-dom";
+
+import {
+  useSelector,
+  useDispatch,
+} from "react-redux";
+
 import { toggleTheme } from "../../redux/features/themeSlice";
 import { logout } from "../../redux/features/authSlice";
+
 import {
-  markAllRead,
+  selectNotifications,
+  selectUnreadCount,
+  markNotificationRead,
+  markAllNotificationsRead,
   clearNotifications,
-} from "../../redux/features/settingSlice";
+} from "../../redux/features/notificationSlice";
 
 import { useState, useRef, useEffect } from "react";
 
@@ -25,21 +38,40 @@ export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const isLight = useSelector((state) => state.theme.isLight);
-  const profileImage = useSelector((state) => state.auth.user?.photo);
-  const username = useSelector((state) => state.auth.user?.name);
-  const notifications = useSelector(
-    (state) => state.settings.notifications
+  const isLight = useSelector(
+    (state) => state.theme.isLight
   );
 
-  const [notificationOpen, setNotificationOpen] = useState(false);
-  const [profileOpen, setProfileOpen] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const profileImage = useSelector(
+    (state) => state.auth.user?.photo
+  );
+
+  const username = useSelector(
+    (state) => state.auth.user?.name
+  );
+
+  const notifications = useSelector(
+    selectNotifications
+  );
+
+  const unreadCount = useSelector(
+    selectUnreadCount
+  );
+
+  const [
+    notificationOpen,
+    setNotificationOpen,
+  ] = useState(false);
+
+  const [profileOpen, setProfileOpen] =
+    useState(false);
+
+  const [mobileOpen, setMobileOpen] =
+    useState(false);
 
   const notificationRef = useRef();
   const profileRef = useRef();
 
-  // ---------------- CLOSE OUTSIDE ----------------
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (
@@ -51,31 +83,39 @@ export default function Navbar() {
 
       if (
         notificationRef.current &&
-        !notificationRef.current.contains(e.target)
+        !notificationRef.current.contains(
+          e.target
+        )
       ) {
         setNotificationOpen(false);
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener(
+      "mousedown",
+      handleClickOutside
+    );
+
     return () =>
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener(
+        "mousedown",
+        handleClickOutside
+      );
   }, []);
 
-  // ---------------- MOBILE SCROLL LOCK ----------------
   useEffect(() => {
-    document.body.style.overflow = mobileOpen ? "hidden" : "auto";
+    document.body.style.overflow =
+      mobileOpen ? "hidden" : "auto";
   }, [mobileOpen]);
 
-  // ---------------- LOGOUT ----------------
   const handleLogout = () => {
     dispatch(logout());
     navigate("/login", { replace: true });
   };
 
-  const closeMobile = () => setMobileOpen(false);
+  const closeMobile = () =>
+    setMobileOpen(false);
 
-  // ---------------- ACTIVE LINK STYLE ----------------
   const linkStyle = (path) =>
     `text-sm font-medium transition ${
       location.pathname.includes(path)
@@ -93,104 +133,175 @@ export default function Navbar() {
           : "bg-[#0f172a] border-gray-800"
       }`}
     >
-      {/* ---------------- LOGO ---------------- */}
       <h1
         className={`text-lg font-semibold ${
-          isLight ? "text-gray-800" : "text-white"
+          isLight
+            ? "text-gray-800"
+            : "text-white"
         }`}
       >
         SpendWise
       </h1>
 
-      {/* ---------------- DESKTOP NAV ---------------- */}
       <nav className="hidden md:flex gap-8 items-center">
-        <Link to="/dashboard" className={linkStyle("dashboard")}>
+        <Link
+          to="/dashboard"
+          className={linkStyle(
+            "dashboard"
+          )}
+        >
           Dashboard
         </Link>
-        <Link to="/dashboard/expense" className={linkStyle("expense")}>
+
+        <Link
+          to="/dashboard/expense"
+          className={linkStyle("expense")}
+        >
           Expense
         </Link>
-        <Link to="/dashboard/report" className={linkStyle("report")}>
+
+        <Link
+          to="/dashboard/report"
+          className={linkStyle("report")}
+        >
           Insights
         </Link>
       </nav>
 
-      {/* ---------------- RIGHT ACTIONS ---------------- */}
       <div className="flex items-center gap-3 md:gap-4">
-
-        {/* SCAN BUTTON */}
         <button
-          onClick={() => navigate("/dashboard/scanner")}
+          onClick={() =>
+            navigate("/dashboard/scanner")
+          }
           className="hidden md:flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
         >
           <Upload size={16} />
           Scan Receipt
         </button>
 
-        {/* THEME TOGGLE */}
         <button
-          onClick={() => dispatch(toggleTheme())}
+          onClick={() =>
+            dispatch(toggleTheme())
+          }
           className={`p-2 rounded-lg transition ${
-            isLight ? "bg-gray-100" : "bg-[#1E293B]"
+            isLight
+              ? "bg-gray-100"
+              : "bg-[#1E293B]"
           }`}
         >
-          {isLight ? <Moon size={18} /> : <Sun size={18} />}
+          {isLight ? (
+            <Moon size={18} />
+          ) : (
+            <Sun size={18} />
+          )}
         </button>
 
-        {/* ---------------- NOTIFICATIONS ---------------- */}
-        <div className="relative" ref={notificationRef}>
+        <div
+          className="relative"
+          ref={notificationRef}
+        >
           <button
-            onClick={() => {
-              setNotificationOpen(!notificationOpen);
-              if (!notificationOpen) dispatch(markAllRead());
-            }}
+            onClick={() =>
+              setNotificationOpen(
+                !notificationOpen
+              )
+            }
             className={`relative p-2 rounded-lg transition ${
-              isLight ? "bg-gray-100" : "bg-[#1E293B]"
+              isLight
+                ? "bg-gray-100"
+                : "bg-[#1E293B]"
             }`}
           >
             <Bell size={18} />
 
-            {/* RED DOT */}
-            {notifications?.some((n) => !n.read) && (
-              <span className="absolute top-1 right-1 w-2 h-2 bg-emerald-500 rounded-full" />
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-red-500 text-white text-xs flex items-center justify-center">
+                {unreadCount}
+              </span>
             )}
           </button>
 
-          {/* DROPDOWN */}
           {notificationOpen && (
             <div
-              className={`absolute right-0 mt-3 w-72 rounded-xl shadow-lg border z-50 ${
+              className={`absolute right-0 mt-3 w-80 sm:w-96 rounded-xl shadow-lg border z-50 overflow-hidden ${
                 isLight
                   ? "bg-white border-gray-200"
                   : "bg-[#1E293B] border-gray-700"
               }`}
             >
-              <div className="flex justify-between px-4 py-3 border-b text-sm font-semibold">
-                Notifications
+              <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+                <span className="text-sm font-semibold">
+                  Notifications
+                </span>
 
-                {notifications.length > 0 && (
-                  <button
-                    onClick={() => dispatch(clearNotifications())}
-                    className="text-xs text-red-500"
-                  >
-                    Clear
-                  </button>
-                )}
+                <div className="flex gap-3">
+                  {notifications.length > 0 && (
+                    <button
+                      onClick={() =>
+                        dispatch(
+                          markAllNotificationsRead()
+                        )
+                      }
+                      className="text-xs text-emerald-500"
+                    >
+                      Mark read
+                    </button>
+                  )}
+
+                  {notifications.length > 0 && (
+                    <button
+                      onClick={() =>
+                        dispatch(
+                          clearNotifications()
+                        )
+                      }
+                      className="text-xs text-red-500"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
               </div>
 
-              <div className="max-h-64 overflow-y-auto">
+              <div className="max-h-80 overflow-y-auto">
                 {notifications.length === 0 ? (
-                  <p className="p-4 text-sm text-center text-gray-400">
+                  <p className="p-5 text-sm text-center text-gray-400">
                     No notifications
                   </p>
                 ) : (
-                  notifications.map((n, i) => (
-                    <p
-                      key={n.id || i}
-                      className="px-4 py-3 text-sm border-b"
+                  notifications.map((n) => (
+                    <button
+                      key={n._id || n.id}
+                      onClick={() =>
+                        dispatch(
+                          markNotificationRead(
+                            n._id || n.id
+                          )
+                        )
+                      }
+                      className={`w-full text-left px-4 py-3 border-b border-gray-100 dark:border-gray-700 transition ${
+                        n.read
+                          ? ""
+                          : "bg-emerald-50 dark:bg-emerald-900/20"
+                      }`}
                     >
-                      {n.message}
-                    </p>
+                      <p className="font-semibold text-sm">
+                        {n.title ||
+                          "Notification"}
+                      </p>
+
+                      <p className="text-sm text-gray-500 mt-1">
+                        {n.message}
+                      </p>
+
+                      <p className="text-xs text-gray-400 mt-2">
+                        {n.createdAt
+                          ? new Date(
+                              n.createdAt
+                            ).toLocaleString()
+                          : ""}
+                      </p>
+                    </button>
                   ))
                 )}
               </div>
@@ -198,10 +309,14 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* ---------------- PROFILE ---------------- */}
-        <div className="relative" ref={profileRef}>
+        <div
+          className="relative"
+          ref={profileRef}
+        >
           <div
-            onClick={() => setProfileOpen(!profileOpen)}
+            onClick={() =>
+              setProfileOpen(!profileOpen)
+            }
             className="w-9 h-9 rounded-full overflow-hidden border-2 border-emerald-400 cursor-pointer"
           >
             {profileImage ? (
@@ -212,12 +327,13 @@ export default function Navbar() {
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-emerald-500 text-white">
-                {username?.charAt(0)?.toUpperCase() || "U"}
+                {username
+                  ?.charAt(0)
+                  ?.toUpperCase() || "U"}
               </div>
             )}
           </div>
 
-          {/* DROPDOWN */}
           {profileOpen && (
             <div
               className={`absolute right-0 mt-3 w-44 rounded-xl shadow-lg border z-50 ${
@@ -228,10 +344,12 @@ export default function Navbar() {
             >
               <button
                 onClick={() => {
-                  navigate("/dashboard/settings");
+                  navigate(
+                    "/dashboard/settings"
+                  );
                   setProfileOpen(false);
                 }}
-                className="flex items-center gap-3 w-full px-4 py-3 text-sm hover:bg-emerald-100"
+                className="flex items-center gap-3 w-full px-4 py-3 text-sm hover:bg-emerald-100 dark:hover:bg-white/10"
               >
                 <Settings size={16} />
                 Settings
@@ -239,7 +357,7 @@ export default function Navbar() {
 
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-3 w-full px-4 py-3 text-sm text-red-500 hover:bg-red-50"
+                className="flex items-center gap-3 w-full px-4 py-3 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
               >
                 <LogOut size={16} />
                 Logout
@@ -248,16 +366,20 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* MOBILE MENU BUTTON */}
         <button
-          onClick={() => setMobileOpen(!mobileOpen)}
+          onClick={() =>
+            setMobileOpen(!mobileOpen)
+          }
           className="md:hidden"
         >
-          {mobileOpen ? <X size={22} /> : <Menu size={22} />}
+          {mobileOpen ? (
+            <X size={22} />
+          ) : (
+            <Menu size={22} />
+          )}
         </button>
       </div>
 
-      {/* ---------------- MOBILE BACKDROP ---------------- */}
       {mobileOpen && (
         <div
           onClick={closeMobile}
@@ -265,28 +387,44 @@ export default function Navbar() {
         />
       )}
 
-      {/* ---------------- MOBILE MENU ---------------- */}
       <div
         className={`fixed top-0 right-0 h-full w-4/5 max-w-sm md:hidden z-50 transform transition-transform duration-300 ${
-          mobileOpen ? "translate-x-0" : "translate-x-full"
+          mobileOpen
+            ? "translate-x-0"
+            : "translate-x-full"
         } ${
-          isLight ? "bg-white text-black" : "bg-[#0f172a] text-white"
+          isLight
+            ? "bg-white text-black"
+            : "bg-[#0f172a] text-white"
         }`}
       >
         <div className="flex flex-col p-6 gap-5">
-          <Link onClick={closeMobile} to="/dashboard">
+          <Link
+            onClick={closeMobile}
+            to="/dashboard"
+          >
             Dashboard
           </Link>
-          <Link onClick={closeMobile} to="/dashboard/expense">
+
+          <Link
+            onClick={closeMobile}
+            to="/dashboard/expense"
+          >
             Expense
           </Link>
-          <Link onClick={closeMobile} to="/dashboard/report">
+
+          <Link
+            onClick={closeMobile}
+            to="/dashboard/report"
+          >
             Insights
           </Link>
 
           <button
             onClick={() => {
-              navigate("/dashboard/scanner");
+              navigate(
+                "/dashboard/scanner"
+              );
               closeMobile();
             }}
             className="w-full bg-emerald-500 text-white px-4 py-2 rounded-lg"
