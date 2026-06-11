@@ -1,20 +1,21 @@
 import API from "../api/api";
 
-export const scanReceipt = async (file, receiptId) => {
+export const scanReceipt = async (file) => {
   const formData = new FormData();
 
   formData.append("receipt", file);
-  formData.append("receiptId", receiptId);
 
-  const res = await API.post(
-    "/scan/receipt",
+  const response = await API.post(
+    "/scan",
     formData,
     {
       headers: {
-        "Content-Type": "multipart/form-data",
+        Authorization: `Bearer ${localStorage.getItem(
+          "token"
+        )}`,
       },
     }
-  )
+  );
 
-  return res.data;
-}
+  return response.data;
+};

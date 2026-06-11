@@ -9,17 +9,15 @@ import {
 
 export const scanReceipt = createAsyncThunk(
   "scan/scanReceipt",
-
-  async (
-    { file, receiptId },
-    { rejectWithValue }
-  ) => {
+  async (payload, { rejectWithValue }) => {
     try {
-      const response =
-        await scanReceiptService(
-          file,
-          receiptId
-        );
+      const file = payload?.file || payload;
+
+      if (!file) {
+        return rejectWithValue("No image file selected");
+      }
+
+      const response = await scanReceiptService(file);
 
       return response;
     } catch (error) {
@@ -36,13 +34,11 @@ const initialState = {
   mode: "camera",
 
   scanning: false,
-
   progress: 0,
-
   error: null,
+  success: null,
 
   image: null,
-
   receiptId: null,
 
   extracted: {
@@ -54,17 +50,13 @@ const initialState = {
   },
 
   confidence: 0,
-
   warnings: [],
-
   isValid: false,
-
   history: [],
 };
 
 const scanSlice = createSlice({
   name: "scan",
-
   initialState,
 
   reducers: {
@@ -92,28 +84,14 @@ const scanSlice = createSlice({
       state.error = null;
     },
 
-    clearScanData: (state) => {
-      state.extracted = {
-        merchant: "",
-        amount: "",
-        date: "",
-        category: "",
-        rawText: "",
-      };
-
-      state.confidence = 0;
-      state.progress = 0;
-      state.error = null;
-      state.warnings = [];
-      state.isValid = false;
+    clearSuccess: (state) => {
+      state.success = null;
     },
 
-    resetScan: (state) => {
-      state.mode = "camera";
-      state.scanning = false;
+    clearScanData: (state) => {
       state.progress = 0;
       state.error = null;
-      state.image = null;
+      state.success = null;
       state.receiptId = null;
 
       state.extracted = {
@@ -127,128 +105,112 @@ const scanSlice = createSlice({
       state.confidence = 0;
       state.warnings = [];
       state.isValid = false;
-      state.history = [];
     },
+
+    resetScan: () => initialState,
   },
 
   extraReducers: (builder) => {
     builder
+      .addCase(scanReceipt.pending, (state) => {
+        state.scanning = true;
+        state.progress = 20;
+        state.error = null;
+        state.success = null;
+      })
 
-      .addCase(
-        scanReceipt.pending,
-        (state) => {
-          state.scanning = true;
-          state.progress = 20;
-          state.error = null;
+      .addCase(scanReceipt.fulfilled, (state, action) => {
+        state.scanning = false;
+        state.progress = 100;
+        state.success = "Receipt scanned successfully";
+
+        const response = action.payload || {};
+        const data = response.data || {};
+        const receipt = response.receipt || {};
+
+        state.extracted = {
+          merchant:
+            data.merchant ||
+            data.merchantName ||
+            receipt.merchantName ||
+            receipt.merchant ||
+            "",
+
+          amount:
+            data.amount ||
+            data.extractedAmount ||
+            receipt.extractedAmount ||
+            receipt.amount ||
+            "",
+
+          date:
+            data.date ||
+            data.extractedDate ||
+            receipt.extractedDate ||
+            receipt.date ||
+            "",
+
+          category:
+            data.category ||
+            receipt.category ||
+            "General",
+
+          rawText:
+            data.rawText ||
+            data.extractedText ||
+            receipt.extractedText ||
+            receipt.rawText ||
+            "",
+        };
+
+        state.confidence =
+          response.confidence ||
+          response.confidenceScore ||
+          data.confidence ||
+          data.confidenceScore ||
+          receipt.confidenceScore ||
+          0;
+
+        state.receiptId =
+          response.receiptId ||
+          data.receiptId ||
+          receipt._id ||
+          null;
+
+        state.warnings =
+          response.warnings ||
+          data.warnings ||
+          [];
+
+        state.isValid =
+          Boolean(state.extracted.merchant) &&
+          Boolean(state.extracted.amount) &&
+          Number(state.confidence) > 50;
+
+        if (
+          state.extracted.merchant ||
+          state.extracted.amount
+        ) {
+          state.history.unshift({
+            merchant: state.extracted.merchant,
+            amount: state.extracted.amount,
+            date: state.extracted.date,
+            category: state.extracted.category,
+            confidence: state.confidence,
+            scannedAt: new Date().toISOString(),
+          });
         }
-      )
 
-      .addCase(
-        scanReceipt.fulfilled,
-        (state, action) => {
-          state.scanning = false;
-          state.progress = 100;
-
-          const response =
-            action.payload || {};
-
-          const data =
-            response.data || {};
-
-          const receipt =
-            response.receipt || {};
-
-          state.extracted = {
-            merchant:
-              data.merchant ||
-              receipt.merchantName ||
-              "",
-
-            amount:
-              data.amount ||
-              receipt.extractedAmount ||
-              "",
-
-            date:
-              data.date ||
-              receipt.extractedDate ||
-              "",
-
-            category:
-              data.category ||
-              receipt.category ||
-              "General",
-
-            rawText:
-              data.rawText ||
-              receipt.extractedText ||
-              "",
-          };
-
-          state.confidence =
-            response.confidence ||
-            receipt.confidenceScore ||
-            0;
-
-          state.receiptId =
-            response.receiptId ||
-            receipt._id ||
-            state.receiptId;
-
-          state.warnings =
-            response.warnings || [];
-
-          state.isValid =
-            Boolean(
-              state.extracted.merchant
-            ) &&
-            Boolean(
-              state.extracted.amount
-            ) &&
-            Number(state.confidence) > 50;
-
-          if (
-            state.extracted.merchant ||
-            state.extracted.amount
-          ) {
-            state.history.unshift({
-              merchant:
-                state.extracted.merchant,
-
-              amount:
-                state.extracted.amount,
-
-              date:
-                state.extracted.date,
-
-              category:
-                state.extracted.category,
-
-              confidence:
-                state.confidence,
-
-              scannedAt:
-                new Date().toISOString(),
-            });
-          }
-
-          if (state.history.length > 50) {
-            state.history.pop();
-          }
+        if (state.history.length > 50) {
+          state.history.pop();
         }
-      )
+      })
 
-      .addCase(
-        scanReceipt.rejected,
-        (state, action) => {
-          state.scanning = false;
-          state.progress = 0;
-
-          state.error =
-            action.payload ||
-            "Scan failed";
-        }
-      );
+      .addCase(scanReceipt.rejected, (state, action) => {
+        state.scanning = false;
+        state.progress = 0;
+        state.error = action.payload || "Scan failed";
+      });
   },
 });
 
@@ -259,6 +221,7 @@ export const {
   setProgress,
   setError,
   clearError,
+  clearSuccess,
   clearScanData,
   resetScan,
 } = scanSlice.actions;
