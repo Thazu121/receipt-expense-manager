@@ -7,11 +7,11 @@ import DateFilter from "../Insight/DateFilter";
 import SummaryCard from "../Insight/SummaryCard";
 import FinancialOverviewCard from "../Insight/FinancialOverviewCard";
 import CashFlowCard from "../Insight/CashFlowCard";
-import AverageTransactionCard from "../Insight/AverageTransactionCard";
+import AverageTransactionCard from "../Insight/AverageTransactionCard"
 import MonthlyComparisonCard from "../Insight/MonthlyComparisonCard";
 import TrendBreakdown from "../Insight/TrendBreakdown";
 import CategoryPerformanceCard from "../Insight/CategoryPerformanceCard";
-import TopCategoriesCard from "../Insight/TopCategoriesCard";
+import TopCategoriesCard from "../Insight/TopCategoriescard"
 import LargeExpensesCard from "../Insight/LargeExpensesCard";
 import TopMerchantCard from "../Insight/TopMerchantCard";
 import AIRecommendationsCard from "../Insight/AIRecommendationsCard";
