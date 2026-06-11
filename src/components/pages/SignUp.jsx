@@ -2,10 +2,14 @@ import { useState, useEffect } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import { signup, clearMessages } from "../../redux/features/authSlice";
+import {
+  signup,
+  clearMessages,
+} from "../../redux/features/authSlice";
 
 export default function SignUp() {
   const isLight = useSelector((state) => state.theme.isLight);
+
   const { error, success, loading, isAuthenticated } = useSelector(
     (state) => state.auth
   );
@@ -26,7 +30,6 @@ export default function SignUp() {
   const [passwordErr, setPasswordErr] = useState("");
   const [confirmErr, setConfirmErr] = useState("");
 
-  // ---------------- PASSWORD STRENGTH ----------------
   const calculateStrength = (value) => {
     let score = 0;
 
@@ -40,28 +43,48 @@ export default function SignUp() {
   };
 
   const getStrengthData = (score) => {
-    if (!password) return { text: "", color: "", width: "0%" };
+    if (!password) {
+      return {
+        text: "",
+        color: "",
+        width: "0%",
+      };
+    }
 
-    if (score <= 2)
-      return { text: "Weak", color: "bg-red-500", width: "33%" };
+    if (score <= 2) {
+      return {
+        text: "Weak",
+        color: "bg-red-500",
+        width: "33%",
+      };
+    }
 
-    if (score <= 4)
-      return { text: "Medium", color: "bg-yellow-500", width: "66%" };
+    if (score <= 4) {
+      return {
+        text: "Medium",
+        color: "bg-yellow-500",
+        width: "66%",
+      };
+    }
 
-    return { text: "Strong", color: "bg-green-500", width: "100%" };
+    return {
+      text: "Strong",
+      color: "bg-green-500",
+      width: "100%",
+    };
   };
 
   const strength = calculateStrength(password);
   const strengthData = getStrengthData(strength);
 
-  // ---------------- REDIRECT ----------------
   useEffect(() => {
     if (success || isAuthenticated) {
-      navigate("/dashboard", { replace: true });
+      navigate("/dashboard", {
+        replace: true,
+      });
     }
   }, [success, isAuthenticated, navigate]);
 
-  // ---------------- CLEAR MESSAGES ----------------
   useEffect(() => {
     dispatch(clearMessages());
   }, [dispatch]);
@@ -116,15 +139,13 @@ export default function SignUp() {
 
   return (
     <main className="min-h-screen flex items-center justify-center px-4 py-6">
-
       <div className="w-full max-w-6xl flex flex-col md:flex-row rounded-3xl overflow-hidden shadow-2xl">
-
-        {/* LEFT SIDE */}
         <div className="hidden md:flex w-1/2 bg-green-600 items-center justify-center p-12 text-white">
           <div className="text-center">
             <h2 className="text-4xl font-bold mb-6">
               Welcome to SpendWise
             </h2>
+
             <p className="text-lg opacity-90">
               Track your expenses smarter.
               <br />
@@ -134,9 +155,20 @@ export default function SignUp() {
         </div>
 
         <div
-          className={`w-full md:w-1/2 p-6 sm:p-8 md:p-10 transition-all duration-300 ${
-            isLight ? "bg-white text-black" : "bg-[#0b2a1a] text-white"
-          }`}
+          className={`
+            w-full
+            md:w-1/2
+            p-6
+            sm:p-8
+            md:p-10
+            transition-all
+            duration-300
+            ${
+              isLight
+                ? "bg-white text-black"
+                : "bg-[#0b2a1a] text-white"
+            }
+          `}
         >
           <h1 className="text-2xl sm:text-3xl font-bold text-center mb-6">
             Create an account
@@ -154,70 +186,108 @@ export default function SignUp() {
             </p>
           )}
 
-          <form className="space-y-5" onSubmit={handleSubmit}>
-
+          <form
+            className="space-y-5"
+            onSubmit={handleSubmit}
+          >
             <div>
-              <label className="block text-sm mb-2">Full Name</label>
+              <label className="block text-sm mb-2">
+                Full Name
+              </label>
+
               <input
+                type="text"
+                name="name"
+                autoComplete="name"
                 value={name}
                 onChange={(e) => {
                   setName(e.target.value);
                   setNameErr("");
                   dispatch(clearMessages());
                 }}
-                className="w-full px-4 py-3 rounded-lg bg-gray-100 text-black"
+                className="w-full px-4 py-3 rounded-lg bg-gray-100 text-black outline-none focus:ring-2 focus:ring-green-500"
                 placeholder="Enter your name"
               />
-              {nameErr && <p className="text-red-500 text-sm">{nameErr}</p>}
+
+              {nameErr && (
+                <p className="text-red-500 text-sm mt-1">
+                  {nameErr}
+                </p>
+              )}
             </div>
 
             <div>
-              <label className="block text-sm mb-2">Email</label>
+              <label className="block text-sm mb-2">
+                Email
+              </label>
+
               <input
+                type="email"
+                name="email"
+                autoComplete="email"
                 value={email}
                 onChange={(e) => {
                   setEmail(e.target.value);
                   setEmailErr("");
                   dispatch(clearMessages());
                 }}
-                className="w-full px-4 py-3 rounded-lg bg-gray-100 text-black"
+                className="w-full px-4 py-3 rounded-lg bg-gray-100 text-black outline-none focus:ring-2 focus:ring-green-500"
                 placeholder="name@email.com"
               />
-              {emailErr && <p className="text-red-500 text-sm">{emailErr}</p>}
+
+              {emailErr && (
+                <p className="text-red-500 text-sm mt-1">
+                  {emailErr}
+                </p>
+              )}
             </div>
 
             <div>
-              <label className="block text-sm mb-2">Password</label>
+              <label className="block text-sm mb-2">
+                Password
+              </label>
+
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
+                  name="password"
+                  autoComplete="new-password"
                   value={password}
                   onChange={(e) => {
                     setPassword(e.target.value);
                     setPasswordErr("");
                     dispatch(clearMessages());
                   }}
-                  className="w-full px-4 py-3 rounded-lg bg-gray-100 text-black"
+                  className="w-full px-4 py-3 pr-12 rounded-lg bg-gray-100 text-black outline-none focus:ring-2 focus:ring-green-500"
                   placeholder="Minimum 8 characters"
                 />
 
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-3"
+                  onClick={() =>
+                    setShowPassword(!showPassword)
+                  }
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600"
                 >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  {showPassword ? (
+                    <EyeOff size={18} />
+                  ) : (
+                    <Eye size={18} />
+                  )}
                 </button>
               </div>
 
               {password && (
                 <div className="mt-2">
-                  <div className="h-2 bg-gray-300 rounded">
+                  <div className="h-2 bg-gray-300 rounded overflow-hidden">
                     <div
                       className={`h-2 rounded ${strengthData.color}`}
-                      style={{ width: strengthData.width }}
+                      style={{
+                        width: strengthData.width,
+                      }}
                     />
                   </div>
+
                   <p className="text-xs mt-1">
                     Strength: {strengthData.text}
                   </p>
@@ -225,7 +295,9 @@ export default function SignUp() {
               )}
 
               {passwordErr && (
-                <p className="text-red-500 text-sm">{passwordErr}</p>
+                <p className="text-red-500 text-sm mt-1">
+                  {passwordErr}
+                </p>
               )}
             </div>
 
@@ -233,49 +305,73 @@ export default function SignUp() {
               <label className="block text-sm mb-2">
                 Confirm Password
               </label>
+
               <div className="relative">
                 <input
                   type={showConfirm ? "text" : "password"}
+                  name="confirmPassword"
+                  autoComplete="new-password"
                   value={confirmPassword}
                   onChange={(e) => {
                     setConfirmPassword(e.target.value);
                     setConfirmErr("");
                     dispatch(clearMessages());
                   }}
-                  className="w-full px-4 py-3 rounded-lg bg-gray-100 text-black"
+                  className="w-full px-4 py-3 pr-12 rounded-lg bg-gray-100 text-black outline-none focus:ring-2 focus:ring-green-500"
                   placeholder="Confirm password"
                 />
 
                 <button
                   type="button"
-                  onClick={() => setShowConfirm(!showConfirm)}
-                  className="absolute right-3 top-3"
+                  onClick={() =>
+                    setShowConfirm(!showConfirm)
+                  }
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600"
                 >
-                  {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
+                  {showConfirm ? (
+                    <EyeOff size={18} />
+                  ) : (
+                    <Eye size={18} />
+                  )}
                 </button>
               </div>
 
               {confirmErr && (
-                <p className="text-red-500 text-sm">{confirmErr}</p>
+                <p className="text-red-500 text-sm mt-1">
+                  {confirmErr}
+                </p>
               )}
             </div>
 
             <button
               type="submit"
               disabled={!isFormValid || loading}
-              className={`w-full py-3 rounded-lg text-white font-semibold ${
-                !isFormValid || loading
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-green-500 hover:bg-green-600"
-              }`}
+              className={`
+                w-full
+                py-3
+                rounded-lg
+                text-white
+                font-semibold
+                transition
+                ${
+                  !isFormValid || loading
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-green-500 hover:bg-green-600"
+                }
+              `}
             >
-              {loading ? "Creating Account..." : "Create Account"}
+              {loading
+                ? "Creating Account..."
+                : "Create Account"}
             </button>
           </form>
 
           <p className="text-center mt-6 text-sm">
             Already have an account?{" "}
-            <Link to="/login" className="text-green-500 font-semibold">
+            <Link
+              to="/login"
+              className="text-green-500 font-semibold"
+            >
               Sign In
             </Link>
           </p>

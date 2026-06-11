@@ -221,10 +221,9 @@ export default function Settings() {
         sm:px-6
         lg:px-8
         transition
-        ${
-          isLight
-            ? "bg-gradient-to-br from-[#f2fff9] via-[#e6fff3] to-[#dbffec] text-gray-900"
-            : "bg-gradient-to-br from-[#031a13] via-[#042e1e] to-[#001d13] text-white"
+        ${isLight
+          ? "bg-gradient-to-br from-[#f2fff9] via-[#e6fff3] to-[#dbffec] text-gray-900"
+          : "bg-gradient-to-br from-[#031a13] via-[#042e1e] to-[#001d13] text-white"
         }
       `}
     >
@@ -251,10 +250,9 @@ export default function Settings() {
               p-6
               shadow-xl
               border
-              ${
-                isLight
-                  ? "bg-white border-gray-200"
-                  : "bg-white/5 border-white/10 backdrop-blur-xl"
+              ${isLight
+                ? "bg-white border-gray-200"
+                : "bg-white/5 border-white/10 backdrop-blur-xl"
               }
             `}
           >
@@ -346,10 +344,9 @@ export default function Settings() {
               shadow-xl
               border
               space-y-4
-              ${
-                isLight
-                  ? "bg-white border-gray-200"
-                  : "bg-white/5 border-white/10 backdrop-blur-xl"
+              ${isLight
+                ? "bg-white border-gray-200"
+                : "bg-white/5 border-white/10 backdrop-blur-xl"
               }
             `}
           >
@@ -394,10 +391,9 @@ export default function Settings() {
               shadow-xl
               border
               space-y-3
-              ${
-                isLight
-                  ? "bg-white border-gray-200"
-                  : "bg-white/5 border-white/10 backdrop-blur-xl"
+              ${isLight
+                ? "bg-white border-gray-200"
+                : "bg-white/5 border-white/10 backdrop-blur-xl"
               }
             `}
           >
@@ -462,10 +458,9 @@ export default function Settings() {
               sm:p-8
               shadow-xl
               border
-              ${
-                isLight
-                  ? "bg-white border-gray-200"
-                  : "bg-white/5 border-white/10 backdrop-blur-xl"
+              ${isLight
+                ? "bg-white border-gray-200"
+                : "bg-white/5 border-white/10 backdrop-blur-xl"
               }
             `}
           >
@@ -515,10 +510,9 @@ export default function Settings() {
                 border
                 focus:ring-2
                 focus:ring-emerald-500
-                ${
-                  isLight
-                    ? "bg-gray-100 border-gray-200 text-gray-900"
-                    : "bg-[#0e2d22] border-white/10 text-white"
+                ${isLight
+                  ? "bg-gray-100 border-gray-200 text-gray-900"
+                  : "bg-[#0e2d22] border-white/10 text-white"
                 }
               `}
             />
@@ -547,23 +541,22 @@ export default function Settings() {
             </button>
           </section>
 
-         <section
-  className={`
+          <section
+            className={`
     rounded-3xl
     p-6
     sm:p-8
     shadow-xl
     border
-    ${
-      isLight
-        ? "bg-white border-gray-200"
-        : "bg-white/5 border-white/10 backdrop-blur-xl"
-    }
+    ${isLight
+                ? "bg-white border-gray-200"
+                : "bg-white/5 border-white/10 backdrop-blur-xl"
+              }
   `}
->
-  <div className="flex items-center gap-3 mb-6">
-    <div
-      className="
+          >
+            <div className="flex items-center gap-3 mb-6">
+              <div
+                className="
         w-11
         h-11
         rounded-2xl
@@ -573,81 +566,81 @@ export default function Settings() {
         items-center
         justify-center
       "
-    >
-      <Lock size={22} />
-    </div>
+              >
+                <Lock size={22} />
+              </div>
 
-    <div>
-      <h2 className="text-2xl font-bold">
-        Security
-      </h2>
+              <div>
+                <h2 className="text-2xl font-bold">
+                  Security
+                </h2>
 
-      <p className="text-sm text-gray-500 dark:text-gray-400">
-        Change your account password
-      </p>
-    </div>
-  </div>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Change your account password
+                </p>
+              </div>
+            </div>
 
-  <form
-    onSubmit={(e) => {
-      e.preventDefault();
-      handleUpdatePassword();
-    }}
-    className="space-y-4"
-  >
-    <PasswordInput
-      value={currentPassword}
-      onChange={setCurrentPassword}
-      placeholder="Current Password"
-      autoComplete="current-password"
-      isLight={isLight}
-    />
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleUpdatePassword();
+              }}
+              className="space-y-4"
+            >
+              <PasswordInput
+                value={currentPassword}
+                onChange={setCurrentPassword}
+                placeholder="Current Password"
+                autoComplete="current-password"
+                isLight={isLight}
+              />
 
-    <PasswordInput
-      value={newPassword}
-      onChange={setNewPassword}
-      placeholder="New Password"
-      autoComplete="new-password"
-      isLight={isLight}
-    />
+              <PasswordInput
+                value={newPassword}
+                onChange={setNewPassword}
+                placeholder="New Password"
+                autoComplete="new-password"
+                isLight={isLight}
+              />
 
-    {newPassword && (
-      <div>
-        <div className="h-2 bg-gray-300 rounded-full overflow-hidden">
-          <div
-            className={`${strength.color} h-full rounded-full transition-all`}
-            style={{
-              width: strength.width,
-            }}
-          />
-        </div>
+              {newPassword && (
+                <div>
+                  <div className="h-2 bg-gray-300 rounded-full overflow-hidden">
+                    <div
+                      className={`${strength.color} h-full rounded-full transition-all`}
+                      style={{
+                        width: strength.width,
+                      }}
+                    />
+                  </div>
 
-        <p className="text-sm mt-1 text-gray-500 dark:text-gray-400">
-          Password Strength:
-          <span className="font-semibold ml-1">
-            {strength.label}
-          </span>
-        </p>
-      </div>
-    )}
+                  <p className="text-sm mt-1 text-gray-500 dark:text-gray-400">
+                    Password Strength:
+                    <span className="font-semibold ml-1">
+                      {strength.label}
+                    </span>
+                  </p>
+                </div>
+              )}
 
-    <PasswordInput
-      value={confirmPassword}
-      onChange={setConfirmPassword}
-      placeholder="Confirm Password"
-      autoComplete="new-password"
-      isLight={isLight}
-    />
+              <PasswordInput
+                value={confirmPassword}
+                onChange={setConfirmPassword}
+                placeholder="Confirm Password"
+                autoComplete="new-password"
+                isLight={isLight}
+              />
 
-    <button
-      type="submit"
-      disabled={
-        loading ||
-        !currentPassword ||
-        !newPassword ||
-        !confirmPassword
-      }
-      className="
+              <button
+                type="submit"
+                disabled={
+                  loading ||
+                  !currentPassword ||
+                  !newPassword ||
+                  !confirmPassword
+                }
+                className="
         w-full
         py-3
         rounded-2xl
@@ -658,13 +651,13 @@ export default function Settings() {
         disabled:opacity-60
         transition
       "
-    >
-      {loading
-        ? "Updating..."
-        : "Update Password"}
-    </button>
-  </form>
-</section>
+              >
+                {loading
+                  ? "Updating..."
+                  : "Update Password"}
+              </button>
+            </form>
+          </section>
 
           <section
             className={`
@@ -672,10 +665,9 @@ export default function Settings() {
               p-6
               shadow-xl
               border
-              ${
-                isLight
-                  ? "bg-white border-gray-200"
-                  : "bg-white/5 border-white/10 backdrop-blur-xl"
+              ${isLight
+                ? "bg-white border-gray-200"
+                : "bg-white/5 border-white/10 backdrop-blur-xl"
               }
             `}
           >
@@ -701,10 +693,9 @@ export default function Settings() {
                 rounded-2xl
                 text-white
                 shadow-lg
-                ${
-                  isError
-                    ? "bg-red-500"
-                    : "bg-emerald-600"
+                ${isError
+                  ? "bg-red-500"
+                  : "bg-emerald-600"
                 }
               `}
             >
@@ -738,10 +729,9 @@ function SettingButton({
         rounded-2xl
         border
         transition
-        ${
-          isLight
-            ? "bg-gray-50 border-gray-200 hover:bg-gray-100"
-            : "bg-[#0e2d22] border-white/10 hover:bg-white/10"
+        ${isLight
+          ? "bg-gray-50 border-gray-200 hover:bg-gray-100"
+          : "bg-[#0e2d22] border-white/10 hover:bg-white/10"
         }
       `}
     >
@@ -762,10 +752,9 @@ function SettingButton({
           py-1
           rounded-full
           font-semibold
-          ${
-            active === false
-              ? "bg-red-100 text-red-600"
-              : "bg-emerald-100 text-emerald-600"
+          ${active === false
+            ? "bg-red-100 text-red-600"
+            : "bg-emerald-100 text-emerald-600"
           }
         `}
       >
@@ -800,10 +789,9 @@ function PasswordInput({
         border
         focus:ring-2
         focus:ring-emerald-500
-        ${
-          isLight
-            ? "bg-gray-100 border-gray-200 text-gray-900"
-            : "bg-[#0e2d22] border-white/10 text-white"
+        ${isLight
+          ? "bg-gray-100 border-gray-200 text-gray-900"
+          : "bg-[#0e2d22] border-white/10 text-white"
         }
       `}
     />
