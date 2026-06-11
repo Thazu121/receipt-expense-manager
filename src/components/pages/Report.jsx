@@ -11,7 +11,7 @@ import AverageTransactionCard from "../Insight/AverageTransactionCard"
 import MonthlyComparisonCard from "../Insight/MonthlyComparisonCard";
 import TrendBreakdown from "../Insight/TrendBreakdown";
 import CategoryPerformanceCard from "../Insight/CategoryPerformanceCard";
-import TopCategoriesCard from "../Insight/TopCategoryCard"
+import TopCategoriesCard from "../Insight/TopCategoriesCard"
 import LargeExpensesCard from "../Insight/LargeExpensesCard";
 import TopMerchantCard from "../Insight/TopMerchantCard";
 import AIRecommendationsCard from "../Insight/AIRecommendationsCard";
