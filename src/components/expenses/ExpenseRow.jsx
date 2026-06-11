@@ -70,7 +70,6 @@ export default function ExpenseRow({ expense }) {
         }
       `}
     >
-      {/* Desktop */}
       <div className="hidden md:grid md:grid-cols-6 gap-4 items-center">
         <div className="font-semibold truncate">
           {expense.title || "Untitled"}
@@ -132,7 +131,6 @@ export default function ExpenseRow({ expense }) {
         </div>
       </div>
 
-      {/* Mobile */}
       <div className="md:hidden flex flex-col gap-3">
         <div className="flex justify-between items-start gap-3">
           <div className="flex-1 min-w-0">

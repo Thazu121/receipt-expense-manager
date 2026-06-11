@@ -191,5 +191,5 @@ export default function ExpenseFilters() {
         </button>
       </div>
     </div>
-  );
+  )
 }

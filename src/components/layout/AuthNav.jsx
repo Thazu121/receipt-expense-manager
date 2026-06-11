@@ -15,7 +15,6 @@ export default function AuthNav() {
   const isSignup = location.pathname === "/signup";
   const isSignin = location.pathname === "/login";
 
-  // close on outside click
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) {
@@ -27,7 +26,6 @@ export default function AuthNav() {
       document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // lock scroll when menu open
   useEffect(() => {
     document.body.style.overflow = isOpen ? "hidden" : "auto";
   }, [isOpen]);
@@ -36,7 +34,6 @@ export default function AuthNav() {
     <header className="absolute top-4 left-4 right-4 md:top-6 md:left-10 md:right-10 z-50">
       <div className="flex items-center justify-between">
 
-        {/* LOGO */}
         <Link
           to="/"
           className="flex items-center gap-2 text-lg md:text-xl font-semibold"
@@ -48,7 +45,6 @@ export default function AuthNav() {
           </span>
         </Link>
 
-        {/* DESKTOP MENU */}
         <nav className="hidden md:flex items-center gap-6">
           <Link
             to="/"
@@ -79,7 +75,6 @@ export default function AuthNav() {
             </>
           )}
 
-          {/* THEME BUTTON */}
           <button
             onClick={() => dispatch(toggleTheme())}
             className={`w-10 h-10 flex items-center justify-center rounded-full border transition ${
@@ -96,7 +91,6 @@ export default function AuthNav() {
           </button>
         </nav>
 
-        {/* MOBILE BUTTON */}
         <button
           onClick={() => setIsOpen(!isOpen)}
           className="md:hidden p-2 rounded-full bg-emerald-100 dark:bg-white/10 z-50"
@@ -109,7 +103,6 @@ export default function AuthNav() {
         </button>
       </div>
 
-      {/* BACKDROP */}
       {isOpen && (
         <div
           onClick={() => setIsOpen(false)}
@@ -117,7 +110,6 @@ export default function AuthNav() {
         />
       )}
 
-      {/* MOBILE MENU */}
       <div
         ref={menuRef}
         className={`fixed top-0 right-0 h-full w-[80%] max-w-sm z-50 md:hidden transform transition-transform duration-300 ${

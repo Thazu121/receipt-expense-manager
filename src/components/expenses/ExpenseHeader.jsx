@@ -85,5 +85,5 @@ function HeaderCard({ title, value, icon, highlight }) {
         {value}
       </h2>
     </div>
-  );
+  )
 }

@@ -25,7 +25,6 @@ export const fetchRecurring =
     }
   );
 
-// ================= CREATE =================
 
 export const addRecurring =
   createAsyncThunk(
@@ -50,7 +49,6 @@ export const addRecurring =
     }
   );
 
-// ================= UPDATE =================
 
 export const updateRecurring =
   createAsyncThunk(
@@ -96,7 +94,6 @@ export const deleteRecurring =
     }
   );
 
-// ================= TOGGLE =================
 
 export const toggleRecurring =
   createAsyncThunk(
@@ -138,7 +135,6 @@ export const getRecurringById =
     }
   );
 
-// ================= SLICE =================
 
 const recurringSlice =
   createSlice({
@@ -216,7 +212,6 @@ const recurringSlice =
           }
         )
 
-        // ADD
 
         .addCase(
           addRecurring.pending,
@@ -364,7 +359,6 @@ const recurringSlice =
           }
         )
 
-        // SINGLE
 
         .addCase(
           getRecurringById.pending,

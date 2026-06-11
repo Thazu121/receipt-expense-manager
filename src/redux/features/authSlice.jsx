@@ -1,7 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import API from "../../api/api";
 
-// ---------------- HELPERS ----------------
 const getUser = () => {
   try {
     return JSON.parse(localStorage.getItem("user")) || null;
@@ -17,7 +16,6 @@ const handleError = (err, thunkAPI, msg) =>
     err.response?.data?.message || msg
   );
 
-// ---------------- INITIAL STATE ----------------
 const initialState = {
   user: getUser(),
   token: getToken(),
@@ -28,9 +26,7 @@ const initialState = {
   success: null,
 };
 
-// ---------------- AUTH THUNKS ----------------
 
-// LOGIN
 export const login = createAsyncThunk(
   "auth/login",
   async (data, thunkAPI) => {
@@ -47,7 +43,6 @@ export const login = createAsyncThunk(
   }
 );
 
-// SIGNUP
 export const signup = createAsyncThunk(
   "auth/signup",
   async (data, thunkAPI) => {
@@ -64,7 +59,6 @@ export const signup = createAsyncThunk(
   }
 );
 
-// FORGOT PASSWORD
 export const forgotPassword = createAsyncThunk(
   "auth/forgotPassword",
   async (data, thunkAPI) => {
@@ -75,9 +69,8 @@ export const forgotPassword = createAsyncThunk(
       return handleError(err, thunkAPI, "Forgot password failed");
     }
   }
-);
+)
 
-// RESET PASSWORD
 export const resetPassword = createAsyncThunk(
   "auth/resetPassword",
   async (data, thunkAPI) => {
@@ -88,9 +81,8 @@ export const resetPassword = createAsyncThunk(
       return handleError(err, thunkAPI, "Reset password failed");
     }
   }
-);
+)
 
-// UPDATE USERNAME
 export const updateUsername = createAsyncThunk(
   "auth/updateUsername",
   async (name, thunkAPI) => {
@@ -104,9 +96,8 @@ export const updateUsername = createAsyncThunk(
       return handleError(err, thunkAPI, "Update failed");
     }
   }
-);
+)
 
-// CHANGE PASSWORD (FIXED ERROR HANDLING)
 export const changePassword = createAsyncThunk(
   "auth/changePassword",
   async (data, thunkAPI) => {
@@ -117,9 +108,8 @@ export const changePassword = createAsyncThunk(
       return handleError(err, thunkAPI, "Password change failed");
     }
   }
-);
+)
 
-// UPDATE PROFILE PHOTO
 export const updateProfilePhoto = createAsyncThunk(
   "auth/updateProfilePhoto",
   async (file, thunkAPI) => {
@@ -138,9 +128,8 @@ export const updateProfilePhoto = createAsyncThunk(
       return handleError(err, thunkAPI, "Photo upload failed");
     }
   }
-);
+)
 
-// DELETE ACCOUNT
 export const deleteAccount = createAsyncThunk(
   "auth/deleteAccount",
   async (_, thunkAPI) => {
@@ -157,7 +146,6 @@ export const deleteAccount = createAsyncThunk(
   }
 );
 
-// ---------------- SLICE ----------------
 const authSlice = createSlice({
   name: "auth",
   initialState,
@@ -184,7 +172,6 @@ const authSlice = createSlice({
   extraReducers: (builder) => {
     builder
 
-      // ---------------- LOGIN ----------------
       .addCase(login.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -201,7 +188,6 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
 
-      // ---------------- SIGNUP ----------------
       .addCase(signup.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -218,7 +204,6 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
 
-      // ---------------- FORGOT PASSWORD ----------------
       .addCase(forgotPassword.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -232,7 +217,6 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
 
-      // ---------------- RESET PASSWORD ----------------
       .addCase(resetPassword.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -246,14 +230,12 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
 
-      // ---------------- UPDATE USERNAME ----------------
       .addCase(updateUsername.fulfilled, (state, action) => {
         state.user = action.payload;
         state.success = "Username updated";
         state.error = null;
       })
 
-      // ---------------- CHANGE PASSWORD (FIXED) ----------------
       .addCase(changePassword.pending, (state) => {
         state.loading = true;
         state.error = null;

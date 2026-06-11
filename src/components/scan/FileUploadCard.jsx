@@ -88,7 +88,6 @@ export default function FileUploadCard() {
   return (
     <div className="w-full bg-white rounded-2xl border shadow-sm p-4 sm:p-6">
 
-      {/* Upload Box */}
       {!preview && (
         <label className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-2xl min-h-[240px] p-6 text-center cursor-pointer hover:border-emerald-500 transition">
 
@@ -160,5 +159,5 @@ export default function FileUploadCard() {
         </div>
       )}
     </div>
-  );
+  )
 }

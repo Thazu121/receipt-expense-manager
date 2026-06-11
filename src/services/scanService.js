@@ -14,7 +14,7 @@ export const scanReceipt = async (file, receiptId) => {
         "Content-Type": "multipart/form-data",
       },
     }
-  );
+  )
 
   return res.data;
-};
+}

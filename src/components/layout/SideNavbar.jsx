@@ -87,7 +87,6 @@ export default function SideNavbar() {
         </nav>
       </aside>
 
-      {/* ================= DESKTOP SIDEBAR ================= */}
       <aside
         className={`hidden lg:flex ${
           collapsed ? "w-16" : "w-56"
@@ -111,7 +110,6 @@ export default function SideNavbar() {
           </button>
         </div>
 
-        {/* Navigation */}
         <nav className="space-y-2 flex-1">
           {navItems.map((item, index) => {
             const Icon = item.icon;
