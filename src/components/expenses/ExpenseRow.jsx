@@ -1,18 +1,38 @@
 import { useSelector } from "react-redux";
-import { Repeat, Receipt, Wallet, ScanLine } from "lucide-react";
+import {
+  Repeat,
+  Receipt,
+  Wallet,
+  ScanLine,
+  Calendar,
+  CreditCard,
+} from "lucide-react";
 
 export default function ExpenseRow({ expense }) {
-  const isLight = useSelector((state) => state.theme.isLight);
+  const isLight = useSelector(
+    (state) => state.theme.isLight
+  );
 
   if (!expense) return null;
 
   const categoryName =
-    expense.category?.name || expense.category || "General";
+    expense.categoryId?.name ||
+    expense.category?.name ||
+    expense.category ||
+    "General";
 
-  const expenseDate = expense.expenseDate || expense.date;
+  const expenseDate =
+    expense.expenseDate ||
+    expense.date ||
+    expense.createdAt;
+
+  const amount = Number(expense.amount || 0);
 
   const getSourceBadge = () => {
-    if (expense.source === "recurring" || expense.isRecurring) {
+    if (
+      expense.source === "recurring" ||
+      expense.isRecurring
+    ) {
       return {
         label: "Recurring",
         icon: Repeat,
@@ -51,6 +71,22 @@ export default function ExpenseRow({ expense }) {
     };
   };
 
+  const formatDate = (date) => {
+    if (!date) return "-";
+
+    return new Date(date).toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
+  const formatAmount = (value) =>
+    value.toLocaleString("en-IN", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+
   const sourceBadge = getSourceBadge();
   const SourceIcon = sourceBadge.icon;
 
@@ -60,9 +96,7 @@ export default function ExpenseRow({ expense }) {
         w-full
         px-3 sm:px-4 lg:px-6
         py-4
-        transition-all
-        duration-200
-        overflow-hidden
+        transition-all duration-200
         ${
           isLight
             ? "border-b border-gray-200 hover:bg-gray-50"
@@ -70,9 +104,26 @@ export default function ExpenseRow({ expense }) {
         }
       `}
     >
-      <div className="hidden md:grid md:grid-cols-6 gap-4 items-center">
-        <div className="font-semibold truncate">
-          {expense.title || "Untitled"}
+      {/* Desktop / Tablet Row */}
+      <div className="hidden lg:grid lg:grid-cols-[1.4fr_1fr_1fr_1fr_1fr_1fr] gap-4 items-center">
+        <div className="min-w-0">
+          <p className="font-semibold truncate">
+            {expense.title ||
+              expense.merchant ||
+              "Untitled"}
+          </p>
+
+          {expense.notes && (
+            <p
+              className={`text-xs mt-1 truncate ${
+                isLight
+                  ? "text-gray-500"
+                  : "text-gray-400"
+              }`}
+            >
+              {expense.notes}
+            </p>
+          )}
         </div>
 
         <div
@@ -80,16 +131,14 @@ export default function ExpenseRow({ expense }) {
             isLight ? "text-gray-500" : "text-gray-400"
           }`}
         >
-          {expenseDate
-            ? new Date(expenseDate).toLocaleDateString()
-            : "-"}
+          {formatDate(expenseDate)}
         </div>
 
         <div>
           <span
             className={`
               inline-flex items-center px-3 py-1 rounded-full
-              text-xs font-medium
+              text-xs font-medium max-w-full truncate
               ${
                 isLight
                   ? "bg-emerald-100 text-emerald-700"
@@ -123,42 +172,80 @@ export default function ExpenseRow({ expense }) {
         </div>
 
         <div
-          className={`font-bold ${
+          className={`font-bold text-right ${
             isLight ? "text-emerald-600" : "text-emerald-400"
           }`}
         >
-          ₹{Number(expense.amount || 0).toFixed(2)}
+          ₹{formatAmount(amount)}
         </div>
       </div>
 
-      <div className="md:hidden flex flex-col gap-3">
-        <div className="flex justify-between items-start gap-3">
-          <div className="flex-1 min-w-0">
+      {/* Mobile Card */}
+      <div
+        className={`
+          lg:hidden
+          rounded-2xl
+          p-4
+          ${
+            isLight
+              ? "bg-white border border-gray-200"
+              : "bg-white/5 border border-white/10"
+          }
+        `}
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
             <h3 className="font-semibold truncate">
-              {expense.title || "Untitled"}
+              {expense.title ||
+                expense.merchant ||
+                "Untitled"}
             </h3>
 
-            <p
-              className={`text-xs mt-1 ${
-                isLight ? "text-gray-500" : "text-gray-400"
-              }`}
-            >
-              {expenseDate
-                ? new Date(expenseDate).toLocaleDateString()
-                : "-"}
-            </p>
+            {expense.notes && (
+              <p
+                className={`text-xs mt-1 line-clamp-1 ${
+                  isLight
+                    ? "text-gray-500"
+                    : "text-gray-400"
+                }`}
+              >
+                {expense.notes}
+              </p>
+            )}
           </div>
 
-          <div
-            className={`font-bold whitespace-nowrap ${
-              isLight ? "text-emerald-600" : "text-emerald-400"
+          <p
+            className={`font-bold text-sm sm:text-base whitespace-nowrap ${
+              isLight
+                ? "text-emerald-600"
+                : "text-emerald-400"
             }`}
           >
-            ₹{Number(expense.amount || 0).toFixed(2)}
-          </div>
+            ₹{formatAmount(amount)}
+          </p>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="mt-4 grid grid-cols-1 xs:grid-cols-2 gap-2">
+          <span
+            className={`inline-flex items-center gap-2 text-xs ${
+              isLight ? "text-gray-500" : "text-gray-400"
+            }`}
+          >
+            <Calendar size={14} />
+            {formatDate(expenseDate)}
+          </span>
+
+          <span
+            className={`inline-flex items-center gap-2 text-xs capitalize ${
+              isLight ? "text-gray-500" : "text-gray-400"
+            }`}
+          >
+            <CreditCard size={14} />
+            {expense.paymentMethod || "cash"}
+          </span>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2 mt-4">
           <span
             className={`
               px-3 py-1 rounded-full text-xs font-medium
@@ -181,14 +268,6 @@ export default function ExpenseRow({ expense }) {
           >
             <SourceIcon size={13} />
             {sourceBadge.label}
-          </span>
-
-          <span
-            className={`text-xs capitalize ${
-              isLight ? "text-gray-500" : "text-gray-400"
-            }`}
-          >
-            {expense.paymentMethod || "cash"}
           </span>
         </div>
       </div>

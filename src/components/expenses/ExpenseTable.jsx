@@ -90,6 +90,22 @@ export default function ExpenseTable() {
     };
   };
 
+  const formatDate = (date) => {
+    if (!date) return "-";
+
+    return new Date(date).toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
+  const formatAmount = (amount) =>
+    Number(amount || 0).toLocaleString("en-IN", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+
   const handleSave = () => {
     dispatch(
       updateExpense({
@@ -110,7 +126,7 @@ export default function ExpenseTable() {
 
   if (loading) {
     return (
-      <div className="p-8 text-center">
+      <div className="p-8 text-center text-gray-500 dark:text-gray-400">
         Loading expenses...
       </div>
     );
@@ -127,7 +143,7 @@ export default function ExpenseTable() {
   if (!expenses.length) {
     return (
       <div
-        className={`rounded-2xl p-10 text-center ${
+        className={`rounded-2xl p-8 sm:p-10 text-center ${
           isLight
             ? "bg-white border border-gray-200"
             : "bg-white/5 border border-white/10"
@@ -149,7 +165,7 @@ export default function ExpenseTable() {
       >
         <div
           className={`
-            hidden lg:grid grid-cols-7 gap-4 px-6 py-4 border-b
+            hidden xl:grid grid-cols-7 gap-4 px-6 py-4 border-b
             font-semibold text-sm
             ${
               isLight
@@ -167,167 +183,185 @@ export default function ExpenseTable() {
           <span>Actions</span>
         </div>
 
-        {expenses.map((expense) => {
-          const badge = getSourceBadge(expense);
-          const SourceIcon = badge.icon;
+        <div className="divide-y divide-gray-200 dark:divide-white/10">
+          {expenses.map((expense) => {
+            const badge = getSourceBadge(expense);
+            const SourceIcon = badge.icon;
+            const isFavorite =
+              expense.favorite || expense.isFavorite;
 
-          return (
-            <div
-              key={expense._id}
-              className={`border-b px-4 py-5 ${
-                isLight
-                  ? "border-gray-200 hover:bg-gray-50"
-                  : "border-white/10 hover:bg-white/5"
-              }`}
-            >
-              <div className="hidden lg:grid grid-cols-7 gap-4 items-center">
-                <div className="font-medium truncate">
-                  {expense.title || "Untitled"}
-                </div>
-
-                <div className="text-sm">
-                  {expense.expenseDate
-                    ? new Date(expense.expenseDate).toLocaleDateString()
-                    : "-"}
-                </div>
-
-                <div>
-                  <span className="inline-flex px-3 py-1 rounded-full text-xs bg-emerald-100 text-emerald-700">
-                    {expense.categoryId?.name ||
-                      expense.category ||
-                      "General"}
-                  </span>
-                </div>
-
-                <div>
-                  <span
-                    className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${badge.className}`}
-                  >
-                    <SourceIcon size={13} />
-                    {badge.label}
-                  </span>
-                </div>
-
-                <button
-                  onClick={() =>
-                    dispatch(toggleFavoriteExpense(expense._id))
-                  }
-                  className="w-fit"
-                >
-                  <Star
-                    size={18}
-                    className={
-                      expense.favorite ? "text-yellow-500" : ""
-                    }
-                    fill={
-                      expense.favorite ? "currentColor" : "none"
-                    }
-                  />
-                </button>
-
-                <div className="font-bold text-emerald-500">
-                  ₹{Number(expense.amount || 0).toFixed(2)}
-                </div>
-
-                <div className="flex gap-3">
-                  <button onClick={() => setEditing(expense)}>
-                    <Pencil size={18} />
-                  </button>
-
-                  <button onClick={() => setDeleteId(expense._id)}>
-                    <Trash2 size={18} />
-                  </button>
-                </div>
-              </div>
-
-              <div className="lg:hidden">
-                <div
-                  className={`rounded-xl p-4 ${
-                    isLight ? "bg-gray-50" : "bg-white/5"
-                  }`}
-                >
-                  <div className="flex justify-between gap-3">
-                    <div>
-                      <h3 className="font-semibold">
-                        {expense.title || "Untitled"}
-                      </h3>
-
-                      <div className="flex items-center gap-1 text-sm mt-1">
-                        <Calendar size={14} />
-                        {expense.expenseDate
-                          ? new Date(expense.expenseDate).toLocaleDateString()
-                          : "-"}
-                      </div>
-                    </div>
-
-                    <div className="font-bold text-emerald-500">
-                      ₹{Number(expense.amount || 0).toFixed(2)}
-                    </div>
+            return (
+              <div
+                key={expense._id}
+                className={`p-3 sm:p-4 xl:px-6 xl:py-5 transition ${
+                  isLight
+                    ? "hover:bg-gray-50"
+                    : "hover:bg-white/5"
+                }`}
+              >
+                <div className="hidden xl:grid grid-cols-7 gap-4 items-center">
+                  <div className="font-medium truncate">
+                    {expense.title || expense.merchant || "Untitled"}
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-2 mt-4">
-                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs bg-emerald-100 text-emerald-700">
-                      <Tag size={13} />
+                  <div className="text-sm text-gray-500 dark:text-gray-400">
+                    {formatDate(
+                      expense.expenseDate ||
+                        expense.date ||
+                        expense.createdAt
+                    )}
+                  </div>
+
+                  <div>
+                    <span className="inline-flex px-3 py-1 rounded-full text-xs bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">
                       {expense.categoryId?.name ||
                         expense.category ||
                         "General"}
                     </span>
+                  </div>
 
+                  <div>
                     <span
                       className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${badge.className}`}
                     >
                       <SourceIcon size={13} />
                       {badge.label}
                     </span>
-
-                    <button
-                      onClick={() =>
-                        dispatch(toggleFavoriteExpense(expense._id))
-                      }
-                      className="ml-auto"
-                    >
-                      <Star
-                        size={18}
-                        className={
-                          expense.favorite
-                            ? "text-yellow-500"
-                            : ""
-                        }
-                        fill={
-                          expense.favorite
-                            ? "currentColor"
-                            : "none"
-                        }
-                      />
-                    </button>
                   </div>
 
-                  <div className="flex gap-2 mt-4">
+                  <button
+                    onClick={() =>
+                      dispatch(toggleFavoriteExpense(expense._id))
+                    }
+                    className="w-fit"
+                  >
+                    <Star
+                      size={18}
+                      className={
+                        isFavorite ? "text-yellow-500" : ""
+                      }
+                      fill={
+                        isFavorite ? "currentColor" : "none"
+                      }
+                    />
+                  </button>
+
+                  <div className="font-bold text-emerald-500">
+                    ₹{formatAmount(expense.amount)}
+                  </div>
+
+                  <div className="flex gap-3">
                     <button
                       onClick={() => setEditing(expense)}
-                      className="flex-1 py-2 rounded-lg bg-blue-500 text-white"
+                      className="hover:text-blue-500"
                     >
-                      Edit
+                      <Pencil size={18} />
                     </button>
 
                     <button
                       onClick={() => setDeleteId(expense._id)}
-                      className="flex-1 py-2 rounded-lg bg-red-500 text-white"
+                      className="hover:text-red-500"
                     >
-                      Delete
+                      <Trash2 size={18} />
                     </button>
                   </div>
                 </div>
+
+                <div className="xl:hidden">
+                  <div
+                    className={`rounded-xl p-4 ${
+                      isLight ? "bg-gray-50" : "bg-white/5"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <h3 className="font-semibold truncate">
+                          {expense.title ||
+                            expense.merchant ||
+                            "Untitled"}
+                        </h3>
+
+                        <div className="flex items-center gap-1 text-xs sm:text-sm mt-1 text-gray-500 dark:text-gray-400">
+                          <Calendar size={14} />
+                          {formatDate(
+                            expense.expenseDate ||
+                              expense.date ||
+                              expense.createdAt
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="text-right shrink-0">
+                        <p className="font-bold text-emerald-500 text-sm sm:text-base">
+                          ₹{formatAmount(expense.amount)}
+                        </p>
+
+                        <button
+                          onClick={() =>
+                            dispatch(
+                              toggleFavoriteExpense(expense._id)
+                            )
+                          }
+                          className="mt-2 inline-flex justify-end"
+                        >
+                          <Star
+                            size={18}
+                            className={
+                              isFavorite ? "text-yellow-500" : ""
+                            }
+                            fill={
+                              isFavorite
+                                ? "currentColor"
+                                : "none"
+                            }
+                          />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2 mt-4">
+                      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">
+                        <Tag size={13} />
+                        {expense.categoryId?.name ||
+                          expense.category ||
+                          "General"}
+                      </span>
+
+                      <span
+                        className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${badge.className}`}
+                      >
+                        <SourceIcon size={13} />
+                        {badge.label}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 mt-4">
+                      <button
+                        onClick={() => setEditing(expense)}
+                        className="py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium"
+                      >
+                        Edit
+                      </button>
+
+                      <button
+                        onClick={() => setDeleteId(expense._id)}
+                        className="py-2 rounded-lg bg-red-500 hover:bg-red-600 text-white text-sm font-medium"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
 
       {editing && (
         <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50 p-4">
           <div
-            className={`w-full max-w-md rounded-2xl p-6 shadow-xl ${
+            className={`w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl p-5 sm:p-6 shadow-xl ${
               isLight
                 ? "bg-white text-black"
                 : "bg-zinc-900 text-white border border-zinc-700"
@@ -441,7 +475,7 @@ export default function ExpenseTable() {
               />
             </div>
 
-            <div className="flex gap-3 mt-6">
+            <div className="flex flex-col sm:flex-row gap-3 mt-6">
               <button
                 onClick={() => setEditing(null)}
                 className={`flex-1 py-3 rounded-lg font-medium ${
@@ -481,7 +515,7 @@ export default function ExpenseTable() {
               This action cannot be undone.
             </p>
 
-            <div className="flex gap-3 mt-6">
+            <div className="flex flex-col sm:flex-row gap-3 mt-6">
               <button
                 onClick={() => setDeleteId(null)}
                 className={`flex-1 py-3 rounded-lg ${
