@@ -547,115 +547,124 @@ export default function Settings() {
             </button>
           </section>
 
-          <section
-            className={`
-              rounded-3xl
-              p-6
-              sm:p-8
-              shadow-xl
-              border
-              ${
-                isLight
-                  ? "bg-white border-gray-200"
-                  : "bg-white/5 border-white/10 backdrop-blur-xl"
-              }
-            `}
-          >
-            <div className="flex items-center gap-3 mb-6">
-              <div
-                className="
-                  w-11
-                  h-11
-                  rounded-2xl
-                  bg-emerald-500/20
-                  text-emerald-500
-                  flex
-                  items-center
-                  justify-center
-                "
-              >
-                <Lock size={22} />
-              </div>
+         <section
+  className={`
+    rounded-3xl
+    p-6
+    sm:p-8
+    shadow-xl
+    border
+    ${
+      isLight
+        ? "bg-white border-gray-200"
+        : "bg-white/5 border-white/10 backdrop-blur-xl"
+    }
+  `}
+>
+  <div className="flex items-center gap-3 mb-6">
+    <div
+      className="
+        w-11
+        h-11
+        rounded-2xl
+        bg-emerald-500/20
+        text-emerald-500
+        flex
+        items-center
+        justify-center
+      "
+    >
+      <Lock size={22} />
+    </div>
 
-              <div>
-                <h2 className="text-2xl font-bold">
-                  Security
-                </h2>
+    <div>
+      <h2 className="text-2xl font-bold">
+        Security
+      </h2>
 
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Change your account password
-                </p>
-              </div>
-            </div>
+      <p className="text-sm text-gray-500 dark:text-gray-400">
+        Change your account password
+      </p>
+    </div>
+  </div>
 
-            <div className="space-y-4">
-              <PasswordInput
-                value={currentPassword}
-                onChange={setCurrentPassword}
-                placeholder="Current Password"
-                isLight={isLight}
-              />
+  <form
+    onSubmit={(e) => {
+      e.preventDefault();
+      handleUpdatePassword();
+    }}
+    className="space-y-4"
+  >
+    <PasswordInput
+      value={currentPassword}
+      onChange={setCurrentPassword}
+      placeholder="Current Password"
+      autoComplete="current-password"
+      isLight={isLight}
+    />
 
-              <PasswordInput
-                value={newPassword}
-                onChange={setNewPassword}
-                placeholder="New Password"
-                isLight={isLight}
-              />
+    <PasswordInput
+      value={newPassword}
+      onChange={setNewPassword}
+      placeholder="New Password"
+      autoComplete="new-password"
+      isLight={isLight}
+    />
 
-              {newPassword && (
-                <div>
-                  <div className="h-2 bg-gray-300 rounded-full overflow-hidden">
-                    <div
-                      className={`${strength.color} h-full rounded-full transition-all`}
-                      style={{
-                        width: strength.width,
-                      }}
-                    />
-                  </div>
+    {newPassword && (
+      <div>
+        <div className="h-2 bg-gray-300 rounded-full overflow-hidden">
+          <div
+            className={`${strength.color} h-full rounded-full transition-all`}
+            style={{
+              width: strength.width,
+            }}
+          />
+        </div>
 
-                  <p className="text-sm mt-1 text-gray-500 dark:text-gray-400">
-                    Password Strength:{" "}
-                    <span className="font-semibold">
-                      {strength.label}
-                    </span>
-                  </p>
-                </div>
-              )}
+        <p className="text-sm mt-1 text-gray-500 dark:text-gray-400">
+          Password Strength:
+          <span className="font-semibold ml-1">
+            {strength.label}
+          </span>
+        </p>
+      </div>
+    )}
 
-              <PasswordInput
-                value={confirmPassword}
-                onChange={setConfirmPassword}
-                placeholder="Confirm Password"
-                isLight={isLight}
-              />
+    <PasswordInput
+      value={confirmPassword}
+      onChange={setConfirmPassword}
+      placeholder="Confirm Password"
+      autoComplete="new-password"
+      isLight={isLight}
+    />
 
-              <button
-                onClick={handleUpdatePassword}
-                disabled={
-                  loading ||
-                  !currentPassword ||
-                  !newPassword ||
-                  !confirmPassword
-                }
-                className="
-                  w-full
-                  py-3
-                  rounded-2xl
-                  bg-emerald-600
-                  hover:bg-emerald-700
-                  text-white
-                  font-semibold
-                  disabled:opacity-60
-                  transition
-                "
-              >
-                {loading
-                  ? "Updating..."
-                  : "Update Password"}
-              </button>
-            </div>
-          </section>
+    <button
+      type="submit"
+      disabled={
+        loading ||
+        !currentPassword ||
+        !newPassword ||
+        !confirmPassword
+      }
+      className="
+        w-full
+        py-3
+        rounded-2xl
+        bg-emerald-600
+        hover:bg-emerald-700
+        text-white
+        font-semibold
+        disabled:opacity-60
+        transition
+      "
+    >
+      {loading
+        ? "Updating..."
+        : "Update Password"}
+    </button>
+  </form>
+</section>
 
           <section
             className={`
@@ -771,12 +780,14 @@ function PasswordInput({
   onChange,
   placeholder,
   isLight,
+  autoComplete,
 }) {
   return (
     <input
       type="password"
       value={value}
       placeholder={placeholder}
+      autoComplete={autoComplete}
       onChange={(e) =>
         onChange(e.target.value)
       }
