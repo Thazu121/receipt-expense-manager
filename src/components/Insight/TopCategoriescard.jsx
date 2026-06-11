@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useSelector } from "react-redux";
 import { formatCurrency } from "../../utils/formatCurrency";
 
-export default function TopCategoriesCard({ expenses = [] }) {
+export default function TopCategoryCard({ expenses = [] }) {
   const currency = useSelector((state) => state.settings.currency);
 
   const categories = useMemo(() => {
