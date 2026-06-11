@@ -1,10 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { useState, useEffect } from "react";
-import {
-  login,
-  clearMessages,
-} from "../../redux/features/authSlice";
+import { login, clearMessages } from "../../redux/features/authSlice";
 
 export default function Login() {
   const isLight = useSelector((state) => state.theme.isLight);
@@ -22,11 +19,10 @@ export default function Login() {
   const [emailErr, setEmailErr] = useState("");
   const [passwordErr, setPasswordErr] = useState("");
 
+  // ---------------- REDIRECT ----------------
   useEffect(() => {
     if (isAuthenticated) {
-      navigate("/dashboard", {
-        replace: true,
-      });
+      navigate("/dashboard", { replace: true });
     }
   }, [isAuthenticated, navigate]);
 
@@ -71,22 +67,15 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-6">
+
       <div
-        className={`
-          w-full
-          max-w-md
-          sm:max-w-lg
-          rounded-2xl
-          p-6
-          sm:p-8
-          transition-all
-          ${
-            isLight
-              ? "bg-white shadow-xl"
-              : "bg-[#0b2a1a]/80 border border-white/10 text-white"
-          }
-        `}
+        className={`w-full max-w-md sm:max-w-lg rounded-2xl p-6 sm:p-8 transition-all ${
+          isLight
+            ? "bg-white shadow-xl"
+            : "bg-[#0b2a1a]/80 border border-white/10"
+        }`}
       >
+
         <h2 className="text-2xl sm:text-3xl font-bold text-center mb-2">
           Welcome Back 👋
         </h2>
@@ -105,15 +94,11 @@ export default function Login() {
           </p>
         )}
 
-        <form
-          className="space-y-4"
-          onSubmit={handleSubmit}
-        >
+        <form className="space-y-4" onSubmit={handleSubmit}>
+
           <div>
             <input
               type="email"
-              name="email"
-              autoComplete="email"
               placeholder="Email"
               value={email}
               onChange={(e) => {
@@ -121,20 +106,11 @@ export default function Login() {
                 setEmailErr("");
                 dispatch(clearMessages());
               }}
-              className={`
-                w-full
-                px-4
-                py-3
-                rounded-lg
-                outline-none
-                focus:ring-2
-                focus:ring-green-500
-                ${
-                  isLight
-                    ? "bg-gray-100 text-black"
-                    : "bg-white/5 border border-white/10 text-white"
-                }
-              `}
+              className={`w-full px-4 py-3 rounded-lg outline-none ${
+                isLight
+                  ? "bg-gray-100"
+                  : "bg-white/5 border border-white/10"
+              }`}
             />
 
             {emailErr && (
@@ -147,8 +123,6 @@ export default function Login() {
           <div>
             <input
               type="password"
-              name="password"
-              autoComplete="current-password"
               placeholder="Password"
               value={password}
               onChange={(e) => {
@@ -156,20 +130,11 @@ export default function Login() {
                 setPasswordErr("");
                 dispatch(clearMessages());
               }}
-              className={`
-                w-full
-                px-4
-                py-3
-                rounded-lg
-                outline-none
-                focus:ring-2
-                focus:ring-green-500
-                ${
-                  isLight
-                    ? "bg-gray-100 text-black"
-                    : "bg-white/5 border border-white/10 text-white"
-                }
-              `}
+              className={`w-full px-4 py-3 rounded-lg outline-none ${
+                isLight
+                  ? "bg-gray-100"
+                  : "bg-white/5 border border-white/10"
+              }`}
             />
 
             {passwordErr && (
@@ -191,19 +156,11 @@ export default function Login() {
           <button
             type="submit"
             disabled={!isFormValid || loading}
-            className={`
-              w-full
-              py-3
-              rounded-lg
-              font-semibold
-              text-white
-              transition
-              ${
-                !isFormValid || loading
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-green-500 hover:bg-green-600"
-              }
-            `}
+            className={`w-full py-3 rounded-lg font-semibold text-white transition ${
+              !isFormValid || loading
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-green-500 hover:bg-green-600"
+            }`}
           >
             {loading ? "Logging in..." : "Login"}
           </button>
@@ -211,13 +168,11 @@ export default function Login() {
 
         <p className="text-center mt-6 text-sm">
           Don't have an account?{" "}
-          <Link
-            to="/signup"
-            className="text-green-500 hover:underline"
-          >
+          <Link to="/signup" className="text-green-500 hover:underline">
             Create Account
           </Link>
         </p>
+
       </div>
     </div>
   );
