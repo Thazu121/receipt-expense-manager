@@ -109,11 +109,9 @@ const router = createBrowserRouter(
         },
       ],
     },
-  ],
-  {
-    basename: "/receipt-expense-manager/",
-  }
-);
+  ]
+ 
+)
 
 ReactDOM.createRoot(
   document.getElementById("root")
