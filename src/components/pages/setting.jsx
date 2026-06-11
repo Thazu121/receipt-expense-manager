@@ -763,13 +763,12 @@ function SettingButton({
     </button>
   );
 }
-
 function PasswordInput({
   value,
   onChange,
   placeholder,
   isLight,
-  autoComplete,
+  autoComplete = "current-password",
 }) {
   return (
     <input
