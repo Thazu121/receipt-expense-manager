@@ -774,24 +774,18 @@ function PasswordInput({
   return (
     <input
       type="password"
+      name={autoComplete}
+      autoComplete={autoComplete}
       value={value}
       placeholder={placeholder}
-      autoComplete={autoComplete}
-      onChange={(e) =>
-        onChange(e.target.value)
-      }
+      onChange={(e) => onChange(e.target.value)}
       className={`
-        w-full
-        rounded-2xl
-        px-4
-        py-3
-        outline-none
-        border
-        focus:ring-2
-        focus:ring-emerald-500
-        ${isLight
-          ? "bg-gray-100 border-gray-200 text-gray-900"
-          : "bg-[#0e2d22] border-white/10 text-white"
+        w-full rounded-2xl px-4 py-3 outline-none border
+        focus:ring-2 focus:ring-emerald-500
+        ${
+          isLight
+            ? "bg-gray-100 border-gray-200 text-gray-900"
+            : "bg-[#0e2d22] border-white/10 text-white"
         }
       `}
     />
