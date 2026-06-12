@@ -21,32 +21,38 @@ const safeDate = (date) => {
   return parsed.toISOString().split("T")[0];
 };
 
-const normalizeReceipt = (r = {}) => ({
-  _id: r._id,
+const normalizeReceipt = (r = {}) => {
+  const verified =
+    r.isVerified === true ||
+    r.status === "Verified" ||
+    r.status === "verified";
 
-  image: r.imageUrl || r.image || "",
+  return {
+    _id: r._id,
 
-  cloudinaryId: r.cloudinaryId || "",
+    image: r.imageUrl || r.image || "",
 
-  store: r.merchantName || r.store || "Unknown Store",
+    cloudinaryId: r.cloudinaryId || "",
 
-  amount: r.extractedAmount ?? r.amount ?? 0,
+    store: r.merchantName || r.store || "Unknown Store",
 
-  date: safeDate(r.extractedDate || r.date),
+    amount: r.extractedAmount ?? r.amount ?? 0,
 
-  category: r.category || "General",
+    date: safeDate(r.extractedDate || r.date),
 
-  createdAt: r.createdAt || new Date().toISOString(),
+    category: r.category || "General",
 
-  confidence: r.confidenceScore ?? r.confidence ?? 0,
+    createdAt: r.createdAt || new Date().toISOString(),
 
-  isVerified: Boolean(r.isVerified),
+    confidence: r.confidenceScore ?? r.confidence ?? 0,
 
-  status: r.isVerified ? "Verified" : "Pending",
+    isVerified: verified,
 
-  rawText: r.extractedText || r.rawText || "",
-});
+    status: verified ? "Verified" : "Pending",
 
+    rawText: r.extractedText || r.rawText || "",
+  };
+};
 const getReceiptKey = (receipt = {}) => {
   const image = receipt.image || "";
   const cloudinaryId = receipt.cloudinaryId || "";

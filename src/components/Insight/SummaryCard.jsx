@@ -21,7 +21,7 @@ export default function SummaryCard({ expenses = [] }) {
 
     const thisMonth = expenses
       .filter((e) => {
-        const date = new Date(e.expenseDate);
+        const date = new Date(e.expenseDate || e.date);
         return (
           !isNaN(date) &&
           date.getMonth() === today.getMonth() &&
@@ -43,7 +43,7 @@ export default function SummaryCard({ expenses = [] }) {
   }, [expenses]);
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
       <Item
         icon={<BadgeIndianRupee size={22} />}
         label="Total Spending"
@@ -73,16 +73,37 @@ export default function SummaryCard({ expenses = [] }) {
 
 function Item({ icon, label, value }) {
   return (
-    <div className="p-5 rounded-2xl bg-white dark:bg-[#0f172a] border border-gray-200 dark:border-gray-700 shadow-sm">
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-gray-500 dark:text-gray-400">
+    <div
+      className="
+        w-full min-w-0
+        rounded-2xl
+        bg-white dark:bg-[#0f172a]
+        border border-gray-200 dark:border-gray-700
+        shadow-sm
+        p-4 sm:p-5
+        overflow-hidden
+      "
+    >
+      <div className="flex items-start justify-between gap-3">
+        <p className="min-w-0 text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">
           {label}
         </p>
 
-        <div className="text-emerald-500">{icon}</div>
+        <div
+          className="
+            shrink-0
+            w-9 h-9
+            rounded-xl
+            bg-emerald-100 dark:bg-emerald-500/10
+            text-emerald-500
+            flex items-center justify-center
+          "
+        >
+          {icon}
+        </div>
       </div>
 
-      <h2 className="text-2xl font-bold mt-3 break-words">
+      <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold mt-3 break-words">
         {value}
       </h2>
     </div>

@@ -69,5 +69,5 @@ export default function StatCard({
         )}
       </h2>
     </div>
-  );
+  )
 }

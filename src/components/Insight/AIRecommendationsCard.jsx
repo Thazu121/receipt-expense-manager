@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useSelector } from "react-redux";
+import { Brain, Lightbulb, TrendingUp } from "lucide-react";
 import { formatCurrency } from "../../utils/formatCurrency";
 
 export default function AIRecommendationsCard({ expenses = [] }) {
@@ -11,11 +12,7 @@ export default function AIRecommendationsCard({ expenses = [] }) {
       0
     );
 
-    const average =
-      expenses.length > 0
-        ? total / expenses.length
-        : 0;
-
+    const average = expenses.length ? total / expenses.length : 0;
     const categoryMap = {};
 
     expenses.forEach((expense) => {
@@ -53,7 +50,7 @@ export default function AIRecommendationsCard({ expenses = [] }) {
 
     if (highest) {
       recommendations.push(
-        `Largest expense: ${highest.title || "Untitled"} (${formatCurrency(
+        `Largest expense: ${highest.title || highest.store || "Untitled"} (${formatCurrency(
           highest.amount,
           currency
         )}).`
@@ -73,12 +70,33 @@ export default function AIRecommendationsCard({ expenses = [] }) {
   }, [expenses, currency]);
 
   return (
-    <div className="p-6 rounded-2xl bg-white dark:bg-[#0f172a] border border-gray-200 dark:border-gray-700 shadow-sm">
-      <h3 className="text-lg font-semibold mb-5">
-        AI Spending Insights
-      </h3>
+    <div
+      className="
+        w-full min-w-0
+        rounded-2xl
+        bg-white dark:bg-[#0f172a]
+        border border-gray-200 dark:border-gray-700
+        shadow-sm
+        p-4 sm:p-5 lg:p-6
+        overflow-hidden
+      "
+    >
+      <div className="flex items-start justify-between gap-3 mb-5">
+        <div className="min-w-0">
+          <h3 className="text-base sm:text-lg font-semibold">
+            AI Spending Insights
+          </h3>
+          <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1">
+            Smart suggestions from your expenses
+          </p>
+        </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="shrink-0 w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
+          <Brain size={20} />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4 mb-5 sm:mb-6">
         <MiniStat
           title="Total Spending"
           value={formatCurrency(analysis.total, currency)}
@@ -99,9 +117,20 @@ export default function AIRecommendationsCard({ expenses = [] }) {
         {analysis.recommendations.map((item, index) => (
           <div
             key={index}
-            className="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 text-sm"
+            className="
+              flex items-start gap-3
+              p-3 sm:p-4
+              rounded-xl
+              bg-emerald-50 dark:bg-emerald-900/20
+              border border-emerald-100 dark:border-emerald-800
+              text-sm text-gray-700 dark:text-gray-200
+            "
           >
-            {item}
+            <Lightbulb
+              size={18}
+              className="shrink-0 text-emerald-600 mt-0.5"
+            />
+            <p className="leading-relaxed break-words">{item}</p>
           </div>
         ))}
       </div>
@@ -111,9 +140,17 @@ export default function AIRecommendationsCard({ expenses = [] }) {
 
 function MiniStat({ title, value }) {
   return (
-    <div className="p-4 rounded-xl bg-gray-50 dark:bg-white/5">
-      <p className="text-sm text-gray-500">{title}</p>
-      <p className="text-xl font-bold mt-1 break-words">{value}</p>
+    <div className="min-w-0 p-4 rounded-xl bg-gray-50 dark:bg-white/5">
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">
+          {title}
+        </p>
+        <TrendingUp size={16} className="shrink-0 text-emerald-500" />
+      </div>
+
+      <p className="text-lg sm:text-xl font-bold mt-2 break-words">
+        {value}
+      </p>
     </div>
   );
 }

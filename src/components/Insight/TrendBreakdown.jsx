@@ -3,22 +3,19 @@ import { useSelector } from "react-redux";
 import { formatCurrency } from "../../utils/formatCurrency";
 
 import {
-  LineChart,
+  AreaChart,
+  Area,
   Line,
   XAxis,
   YAxis,
   Tooltip,
   ResponsiveContainer,
   CartesianGrid,
-  Area,
 } from "recharts";
 
 export default function TrendBreakdown({ expenses = [] }) {
   const [active, setActive] = useState("Daily");
-
-  const currency = useSelector(
-    (state) => state.settings.currency
-  );
+  const currency = useSelector((state) => state.settings.currency);
 
   const chartData = useMemo(() => {
     const map = {};
@@ -35,16 +32,10 @@ export default function TrendBreakdown({ expenses = [] }) {
         key = date.toLocaleDateString("en-GB");
       } else if (active === "Weekly") {
         date = new Date();
-        date.setDate(
-          now.getDate() - now.getDay() - i * 7
-        );
+        date.setDate(now.getDate() - now.getDay() - i * 7);
         key = `Week ${date.toLocaleDateString("en-GB")}`;
       } else {
-        date = new Date(
-          now.getFullYear(),
-          now.getMonth() - i,
-          1
-        );
+        date = new Date(now.getFullYear(), now.getMonth() - i, 1);
         key = `${date.toLocaleString("default", {
           month: "short",
         })} ${date.getFullYear()}`;
@@ -57,14 +48,10 @@ export default function TrendBreakdown({ expenses = [] }) {
     }
 
     expenses.forEach((expense) => {
-      const date = new Date(
-        expense.expenseDate || expense.date
-      );
-
+      const date = new Date(expense.expenseDate || expense.date);
       if (isNaN(date)) return;
 
       const amount = Number(expense.amount || 0);
-
       let key;
 
       if (active === "Daily") {
@@ -76,18 +63,14 @@ export default function TrendBreakdown({ expenses = [] }) {
           date.getDate() - date.getDay()
         );
 
-        key = `Week ${weekStart.toLocaleDateString(
-          "en-GB"
-        )}`;
+        key = `Week ${weekStart.toLocaleDateString("en-GB")}`;
       } else {
         key = `${date.toLocaleString("default", {
           month: "short",
         })} ${date.getFullYear()}`;
       }
 
-      if (map[key]) {
-        map[key].total += amount;
-      }
+      if (map[key]) map[key].total += amount;
     });
 
     return Object.entries(map)
@@ -99,55 +82,46 @@ export default function TrendBreakdown({ expenses = [] }) {
       .sort((a, b) => a.sortKey - b.sortKey);
   }, [expenses, active]);
 
-  const total = chartData.reduce(
-    (sum, item) => sum + item.total,
-    0
-  );
+  const total = chartData.reduce((sum, item) => sum + item.total, 0);
 
   return (
     <div
       className="
-        w-full
-        min-w-0
-        p-4
-        sm:p-6
+        w-full min-w-0
         rounded-2xl
-        bg-white
-        dark:bg-[#0f172a]
-        border
-        border-gray-200
-        dark:border-gray-700
+        border border-gray-200 dark:border-gray-700
+        bg-white dark:bg-[#0f172a]
         shadow-sm
+        p-4 sm:p-5 lg:p-6
+        overflow-hidden
       "
     >
       <div
         className="
-          flex
-          flex-col
+          flex flex-col
           sm:flex-row
           sm:items-center
           sm:justify-between
           gap-4
-          mb-6
+          mb-5 sm:mb-6
         "
       >
-        <div>
-          <h3 className="text-lg font-semibold">
+        <div className="min-w-0">
+          <h3 className="text-base sm:text-lg font-semibold">
             Expense Trend
           </h3>
 
-          <p className="text-sm text-gray-500 mt-1">
-            Total:{" "}
-            {formatCurrency(total, currency)}
+          <p className="text-xs sm:text-sm text-gray-500 mt-1 truncate">
+            Total: {formatCurrency(total, currency)}
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="grid grid-cols-3 gap-2 sm:flex sm:flex-wrap">
           {["Daily", "Weekly", "Monthly"].map((item) => (
             <button
               key={item}
               onClick={() => setActive(item)}
-              className={`px-3 py-2 rounded-lg text-sm font-medium transition ${
+              className={`px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition ${
                 active === item
                   ? "bg-emerald-500 text-white"
                   : "bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-gray-300"
@@ -160,78 +134,45 @@ export default function TrendBreakdown({ expenses = [] }) {
       </div>
 
       {chartData.every((item) => item.total === 0) ? (
-        <div
-          className="
-            h-[320px]
-            flex
-            items-center
-            justify-center
-            text-gray-400
-            text-sm
-          "
-        >
+        <div className="h-[260px] sm:h-[320px] flex items-center justify-center text-gray-400 text-sm text-center">
           No expense trend data available
         </div>
       ) : (
-        <div className="w-full min-w-0 h-[320px]">
-          <ResponsiveContainer
-            width="99%"
-            height={320}
-          >
-            <LineChart
+        <div className="w-full min-w-0 h-[260px] sm:h-[320px] overflow-hidden">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart
               data={chartData}
               margin={{
                 top: 10,
-                right: 10,
-                left: 0,
-                bottom: 10,
+                right: 8,
+                left: -10,
+                bottom: 5,
               }}
             >
               <defs>
-                <linearGradient
-                  id="trendFill"
-                  x1="0"
-                  y1="0"
-                  x2="0"
-                  y2="1"
-                >
-                  <stop
-                    offset="5%"
-                    stopColor="#10b981"
-                    stopOpacity={0.35}
-                  />
-                  <stop
-                    offset="95%"
-                    stopColor="#10b981"
-                    stopOpacity={0}
-                  />
+                <linearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.35} />
+                  <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                 </linearGradient>
               </defs>
 
-              <CartesianGrid
-                strokeDasharray="3 3"
-                strokeOpacity={0.2}
-              />
+              <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} />
 
               <XAxis
                 dataKey="label"
                 tick={{ fontSize: 10 }}
                 interval="preserveStartEnd"
-                minTickGap={12}
+                minTickGap={8}
               />
 
               <YAxis
-                width={70}
+                width={55}
                 tick={{ fontSize: 10 }}
-                tickFormatter={(value) =>
-                  formatCurrency(value, currency)
-                }
+                tickFormatter={(value) => formatCurrency(value, currency)}
               />
 
               <Tooltip
-                formatter={(value) =>
-                  formatCurrency(value, currency)
-                }
+                formatter={(value) => formatCurrency(value, currency)}
               />
 
               <Area
@@ -249,7 +190,7 @@ export default function TrendBreakdown({ expenses = [] }) {
                 dot={{ r: 3 }}
                 activeDot={{ r: 5 }}
               />
-            </LineChart>
+            </AreaChart>
           </ResponsiveContainer>
         </div>
       )}

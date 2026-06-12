@@ -6,7 +6,7 @@ export const scanReceipt = async (file) => {
   formData.append("receipt", file);
 
   const response = await API.post(
-    "/scan",
+    "/scan/receipt",
     formData,
     {
       headers: {

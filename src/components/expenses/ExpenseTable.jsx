@@ -24,14 +24,8 @@ export default function ExpenseTable() {
   const dispatch = useDispatch();
 
   const expenses = useSelector(selectFilteredExpenses);
-
-  const { loading, error } = useSelector(
-    (state) => state.expense
-  );
-
-  const isLight = useSelector(
-    (state) => state.theme.isLight
-  );
+  const { loading, error } = useSelector((state) => state.expense);
+  const isLight = useSelector((state) => state.theme.isLight);
 
   const [editing, setEditing] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
@@ -126,7 +120,7 @@ export default function ExpenseTable() {
 
   if (loading) {
     return (
-      <div className="p-8 text-center text-gray-500 dark:text-gray-400">
+      <div className="p-6 text-center text-gray-500">
         Loading expenses...
       </div>
     );
@@ -134,7 +128,7 @@ export default function ExpenseTable() {
 
   if (error) {
     return (
-      <div className="p-8 text-center text-red-500">
+      <div className="p-6 text-center text-red-500">
         {error}
       </div>
     );
@@ -143,7 +137,7 @@ export default function ExpenseTable() {
   if (!expenses.length) {
     return (
       <div
-        className={`rounded-2xl p-8 sm:p-10 text-center ${
+        className={`rounded-2xl p-8 text-center ${
           isLight
             ? "bg-white border border-gray-200"
             : "bg-white/5 border border-white/10"
@@ -157,16 +151,28 @@ export default function ExpenseTable() {
   return (
     <>
       <div
-        className={`rounded-2xl overflow-hidden ${
-          isLight
-            ? "bg-white border border-gray-200"
-            : "bg-white/5 border border-white/10 backdrop-blur-xl"
-        }`}
+        className={`
+          w-full
+          max-w-full
+          overflow-hidden
+          rounded-2xl
+          ${
+            isLight
+              ? "bg-white border border-gray-200"
+              : "bg-white/5 border border-white/10"
+          }
+        `}
       >
         <div
           className={`
-            hidden xl:grid grid-cols-7 gap-4 px-6 py-4 border-b
-            font-semibold text-sm
+            hidden xl:grid
+            grid-cols-7
+            gap-4
+            px-6
+            py-4
+            border-b
+            text-sm
+            font-semibold
             ${
               isLight
                 ? "border-gray-200 text-gray-600"
@@ -183,28 +189,39 @@ export default function ExpenseTable() {
           <span>Actions</span>
         </div>
 
-        <div className="divide-y divide-gray-200 dark:divide-white/10">
+        <div
+          className={`divide-y ${
+            isLight ? "divide-gray-200" : "divide-white/10"
+          }`}
+        >
           {expenses.map((expense) => {
             const badge = getSourceBadge(expense);
             const SourceIcon = badge.icon;
-            const isFavorite =
-              expense.favorite || expense.isFavorite;
+            const isFavorite = expense.favorite || expense.isFavorite;
 
             return (
               <div
                 key={expense._id}
-                className={`p-3 sm:p-4 xl:px-6 xl:py-5 transition ${
-                  isLight
-                    ? "hover:bg-gray-50"
-                    : "hover:bg-white/5"
-                }`}
+                className={`
+                  w-full
+                  max-w-full
+                  p-3
+                  sm:p-4
+                  transition
+                  ${
+                    isLight
+                      ? "hover:bg-gray-50"
+                      : "hover:bg-white/5"
+                  }
+                `}
               >
+                {/* Desktop */}
                 <div className="hidden xl:grid grid-cols-7 gap-4 items-center">
                   <div className="font-medium truncate">
                     {expense.title || expense.merchant || "Untitled"}
                   </div>
 
-                  <div className="text-sm text-gray-500 dark:text-gray-400">
+                  <div className="text-sm text-gray-500">
                     {formatDate(
                       expense.expenseDate ||
                         expense.date ||
@@ -213,7 +230,7 @@ export default function ExpenseTable() {
                   </div>
 
                   <div>
-                    <span className="inline-flex px-3 py-1 rounded-full text-xs bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">
+                    <span className="inline-flex px-3 py-1 rounded-full text-xs bg-emerald-100 text-emerald-700">
                       {expense.categoryId?.name ||
                         expense.category ||
                         "General"}
@@ -237,12 +254,8 @@ export default function ExpenseTable() {
                   >
                     <Star
                       size={18}
-                      className={
-                        isFavorite ? "text-yellow-500" : ""
-                      }
-                      fill={
-                        isFavorite ? "currentColor" : "none"
-                      }
+                      className={isFavorite ? "text-yellow-500" : ""}
+                      fill={isFavorite ? "currentColor" : "none"}
                     />
                   </button>
 
@@ -267,89 +280,109 @@ export default function ExpenseTable() {
                   </div>
                 </div>
 
-                <div className="xl:hidden">
-                  <div
-                    className={`rounded-xl p-4 ${
-                      isLight ? "bg-gray-50" : "bg-white/5"
-                    }`}
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <h3 className="font-semibold truncate">
-                          {expense.title ||
-                            expense.merchant ||
-                            "Untitled"}
-                        </h3>
+                {/* Mobile / Tablet */}
+                <div
+                  className={`
+                    xl:hidden
+                    w-full
+                    max-w-full
+                    rounded-xl
+                    p-4
+                    overflow-hidden
+                    ${
+                      isLight
+                        ? "bg-gray-50"
+                        : "bg-white/5"
+                    }
+                  `}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <h3
+                        className={`
+                          text-sm
+                          sm:text-base
+                          font-semibold
+                          leading-snug
+                          break-words
+                          ${
+                            isLight
+                              ? "text-gray-900"
+                              : "text-white"
+                          }
+                        `}
+                      >
+                        {expense.title ||
+                          expense.merchant ||
+                          "Untitled"}
+                      </h3>
 
-                        <div className="flex items-center gap-1 text-xs sm:text-sm mt-1 text-gray-500 dark:text-gray-400">
-                          <Calendar size={14} />
+                      <div className="flex items-center gap-1 mt-2 text-xs text-gray-500">
+                        <Calendar size={14} className="shrink-0" />
+                        <span>
                           {formatDate(
                             expense.expenseDate ||
                               expense.date ||
                               expense.createdAt
                           )}
-                        </div>
+                        </span>
                       </div>
+                    </div>
 
-                      <div className="text-right shrink-0">
-                        <p className="font-bold text-emerald-500 text-sm sm:text-base">
-                          ₹{formatAmount(expense.amount)}
-                        </p>
+                    <div className="shrink-0 text-right">
+                      <p className="font-bold text-emerald-500 text-sm">
+                        ₹{formatAmount(expense.amount)}
+                      </p>
 
-                        <button
-                          onClick={() =>
-                            dispatch(
-                              toggleFavoriteExpense(expense._id)
-                            )
+                      <button
+                        onClick={() =>
+                          dispatch(toggleFavoriteExpense(expense._id))
+                        }
+                        className="mt-2"
+                      >
+                        <Star
+                          size={18}
+                          className={
+                            isFavorite ? "text-yellow-500" : ""
                           }
-                          className="mt-2 inline-flex justify-end"
-                        >
-                          <Star
-                            size={18}
-                            className={
-                              isFavorite ? "text-yellow-500" : ""
-                            }
-                            fill={
-                              isFavorite
-                                ? "currentColor"
-                                : "none"
-                            }
-                          />
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-2 mt-4">
-                      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">
-                        <Tag size={13} />
-                        {expense.categoryId?.name ||
-                          expense.category ||
-                          "General"}
-                      </span>
-
-                      <span
-                        className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${badge.className}`}
-                      >
-                        <SourceIcon size={13} />
-                        {badge.label}
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-2 mt-4">
-                      <button
-                        onClick={() => setEditing(expense)}
-                        className="py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium"
-                      >
-                        Edit
-                      </button>
-
-                      <button
-                        onClick={() => setDeleteId(expense._id)}
-                        className="py-2 rounded-lg bg-red-500 hover:bg-red-600 text-white text-sm font-medium"
-                      >
-                        Delete
+                          fill={
+                            isFavorite ? "currentColor" : "none"
+                          }
+                        />
                       </button>
                     </div>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2 mt-4">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] bg-emerald-100 text-emerald-700">
+                      <Tag size={12} />
+                      {expense.categoryId?.name ||
+                        expense.category ||
+                        "General"}
+                    </span>
+
+                    <span
+                      className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium ${badge.className}`}
+                    >
+                      <SourceIcon size={12} />
+                      {badge.label}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 mt-4">
+                    <button
+                      onClick={() => setEditing(expense)}
+                      className="py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium"
+                    >
+                      Edit
+                    </button>
+
+                    <button
+                      onClick={() => setDeleteId(expense._id)}
+                      className="py-2 rounded-lg bg-red-500 hover:bg-red-600 text-white text-sm font-medium"
+                    >
+                      Delete
+                    </button>
                   </div>
                 </div>
               </div>
@@ -361,7 +394,7 @@ export default function ExpenseTable() {
       {editing && (
         <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50 p-4">
           <div
-            className={`w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl p-5 sm:p-6 shadow-xl ${
+            className={`w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl p-5 ${
               isLight
                 ? "bg-white text-black"
                 : "bg-zinc-900 text-white border border-zinc-700"
@@ -373,66 +406,37 @@ export default function ExpenseTable() {
 
             <div className="space-y-4">
               <input
-                type="text"
                 value={editing.title || ""}
                 onChange={(e) =>
-                  setEditing({
-                    ...editing,
-                    title: e.target.value,
-                  })
+                  setEditing({ ...editing, title: e.target.value })
                 }
                 placeholder="Expense title"
-                className={`w-full p-3 rounded-lg border outline-none ${
-                  isLight
-                    ? "bg-white border-gray-300 text-black"
-                    : "bg-zinc-800 border-zinc-700 text-white"
-                }`}
+                className="w-full p-3 rounded-lg border outline-none"
               />
 
               <input
                 type="number"
                 value={editing.amount || ""}
                 onChange={(e) =>
-                  setEditing({
-                    ...editing,
-                    amount: e.target.value,
-                  })
+                  setEditing({ ...editing, amount: e.target.value })
                 }
                 placeholder="Amount"
-                className={`w-full p-3 rounded-lg border outline-none ${
-                  isLight
-                    ? "bg-white border-gray-300 text-black"
-                    : "bg-zinc-800 border-zinc-700 text-white"
-                }`}
+                className="w-full p-3 rounded-lg border outline-none"
               />
 
-              <div className="relative">
-                <Tag
-                  size={16}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 opacity-60"
-                />
-
-                <select
-                  value={editing.category || "General"}
-                  onChange={(e) =>
-                    setEditing({
-                      ...editing,
-                      category: e.target.value,
-                    })
-                  }
-                  className={`w-full pl-10 p-3 rounded-lg border outline-none ${
-                    isLight
-                      ? "bg-white border-gray-300 text-black"
-                      : "bg-zinc-800 border-zinc-700 text-white"
-                  }`}
-                >
-                  {categories.map((category) => (
-                    <option key={category} value={category}>
-                      {category}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <select
+                value={editing.category || "General"}
+                onChange={(e) =>
+                  setEditing({ ...editing, category: e.target.value })
+                }
+                className="w-full p-3 rounded-lg border outline-none"
+              >
+                {categories.map((category) => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                ))}
+              </select>
 
               <input
                 type="date"
@@ -447,49 +451,31 @@ export default function ExpenseTable() {
                     expenseDate: e.target.value,
                   })
                 }
-                style={{
-                  colorScheme: isLight ? "light" : "dark",
-                }}
-                className={`w-full p-3 rounded-lg border outline-none ${
-                  isLight
-                    ? "bg-white border-gray-300 text-black"
-                    : "bg-zinc-800 border-zinc-700 text-white"
-                }`}
+                className="w-full p-3 rounded-lg border outline-none"
               />
 
               <textarea
                 rows={4}
                 value={editing.notes || ""}
                 onChange={(e) =>
-                  setEditing({
-                    ...editing,
-                    notes: e.target.value,
-                  })
+                  setEditing({ ...editing, notes: e.target.value })
                 }
                 placeholder="Notes..."
-                className={`w-full p-3 rounded-lg border outline-none resize-none ${
-                  isLight
-                    ? "bg-white border-gray-300 text-black"
-                    : "bg-zinc-800 border-zinc-700 text-white"
-                }`}
+                className="w-full p-3 rounded-lg border outline-none resize-none"
               />
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3 mt-6">
+            <div className="flex gap-3 mt-6">
               <button
                 onClick={() => setEditing(null)}
-                className={`flex-1 py-3 rounded-lg font-medium ${
-                  isLight
-                    ? "bg-gray-300 text-black"
-                    : "bg-zinc-700 text-white"
-                }`}
+                className="flex-1 py-3 rounded-lg bg-gray-300"
               >
                 Cancel
               </button>
 
               <button
                 onClick={handleSave}
-                className="flex-1 py-3 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white font-medium"
+                className="flex-1 py-3 rounded-lg bg-emerald-500 text-white"
               >
                 Save
               </button>
@@ -515,12 +501,10 @@ export default function ExpenseTable() {
               This action cannot be undone.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-3 mt-6">
+            <div className="flex gap-3 mt-6">
               <button
                 onClick={() => setDeleteId(null)}
-                className={`flex-1 py-3 rounded-lg ${
-                  isLight ? "bg-gray-300" : "bg-zinc-700"
-                }`}
+                className="flex-1 py-3 rounded-lg bg-gray-300"
               >
                 Cancel
               </button>

@@ -7,11 +7,11 @@ import DateFilter from "../Insight/DateFilter";
 import SummaryCard from "../Insight/SummaryCard";
 import FinancialOverviewCard from "../Insight/FinancialOverviewCard";
 import CashFlowCard from "../Insight/CashFlowCard";
-import AverageTransactionCard from "../Insight/AverageTransactionCard"
+import AverageTransactionCard from "../Insight/AverageTransactionCard";
 import MonthlyComparisonCard from "../Insight/MonthlyComparisonCard";
 import TrendBreakdown from "../Insight/TrendBreakdown";
 import CategoryPerformanceCard from "../Insight/CategoryPerformanceCard";
-import TopCategoriesCard from "../Insight/TopCategoriesCard"
+import TopCategoriesCard from "../Insight/TopCategoriesCard";
 import LargeExpensesCard from "../Insight/LargeExpensesCard";
 import TopMerchantCard from "../Insight/TopMerchantCard";
 import AIRecommendationsCard from "../Insight/AIRecommendationsCard";
@@ -38,7 +38,6 @@ export default function InsightsPage() {
     }
 
     const cutoff = new Date();
-
     cutoff.setDate(
       cutoff.getDate() - Number(range)
     );
@@ -60,50 +59,69 @@ export default function InsightsPage() {
           bg-gray-50
           dark:bg-[#071a14]
           transition-colors
+          duration-300
         "
       >
         <div
           className="
             max-w-7xl
             mx-auto
-            px-4
-            sm:px-6
+
+            px-3
+            py-4
+
+            sm:px-5
+            sm:py-6
+
             lg:px-8
-            py-8
-            space-y-8
+            lg:py-8
+
+            space-y-5
+            sm:space-y-6
+            lg:space-y-8
           "
         >
+          {/* Header */}
           <div
             className="
               flex
               flex-col
-              md:flex-row
-              md:items-center
-              md:justify-between
+
+              lg:flex-row
+              lg:items-center
+              lg:justify-between
+
               gap-4
             "
           >
             <InsightsHeader />
 
-            <DateFilter
-              onChange={setRange}
-            />
+            <div className="w-full lg:w-auto">
+              <DateFilter
+                onChange={setRange}
+              />
+            </div>
           </div>
 
+          {/* Summary Cards */}
           <SummaryCard
             expenses={filteredExpenses}
           />
 
+          {/* Financial Overview */}
           <FinancialOverviewCard
             expenses={filteredExpenses}
           />
 
+          {/* Top KPI Cards */}
           <div
             className="
               grid
               grid-cols-1
-              lg:grid-cols-3
-              gap-6
+              md:grid-cols-2
+              xl:grid-cols-3
+              gap-4
+              lg:gap-6
             "
           >
             <CashFlowCard
@@ -119,31 +137,37 @@ export default function InsightsPage() {
             />
           </div>
 
+          {/* Trend + Overspending */}
           <div
             className="
               grid
               grid-cols-1
               xl:grid-cols-3
-              gap-6
+              gap-4
+              lg:gap-6
             "
           >
-            <div className="xl:col-span-2">
+            <div className="xl:col-span-2 min-w-0">
               <TrendBreakdown
                 expenses={filteredExpenses}
               />
             </div>
 
-            <OverspendingCard
-              expenses={expenses}
-            />
+            <div className="min-w-0">
+              <OverspendingCard
+                expenses={expenses}
+              />
+            </div>
           </div>
 
+          {/* Categories */}
           <div
             className="
               grid
               grid-cols-1
-              xl:grid-cols-2
-              gap-6
+              2xl:grid-cols-2
+              gap-4
+              lg:gap-6
             "
           >
             <CategoryPerformanceCard
@@ -155,12 +179,14 @@ export default function InsightsPage() {
             />
           </div>
 
+          {/* Merchants + Large Expenses */}
           <div
             className="
               grid
               grid-cols-1
-              xl:grid-cols-2
-              gap-6
+              2xl:grid-cols-2
+              gap-4
+              lg:gap-6
             "
           >
             <LargeExpensesCard
@@ -172,6 +198,7 @@ export default function InsightsPage() {
             />
           </div>
 
+          {/* AI Insights */}
           <AIRecommendationsCard
             expenses={filteredExpenses}
           />

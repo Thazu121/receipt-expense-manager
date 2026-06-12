@@ -32,34 +32,55 @@ export default function TopCategoriesCard({ expenses = [] }) {
   }, [expenses]);
 
   return (
-    <div className="p-6 rounded-2xl bg-white dark:bg-[#0f172a] border border-gray-200 dark:border-gray-700 shadow-sm">
-      <h3 className="text-lg font-semibold mb-5">
+    <div
+      className="
+        w-full min-w-0
+        rounded-2xl
+        bg-white dark:bg-[#0f172a]
+        border border-gray-200 dark:border-gray-700
+        shadow-sm
+        p-4 sm:p-5 lg:p-6
+        overflow-hidden
+      "
+    >
+      <h3 className="text-base sm:text-lg font-semibold mb-4 sm:mb-5">
         Top Categories
       </h3>
 
-      <div className="space-y-5">
-        {categories.map((item) => (
-          <div key={item.name}>
-            <div className="flex justify-between mb-2">
-              <span className="font-medium">{item.name}</span>
-              <span className="font-semibold">
-                {formatCurrency(item.value, currency)}
-              </span>
-            </div>
+      {categories.length === 0 ? (
+        <div className="h-40 flex items-center justify-center text-sm text-gray-400 text-center">
+          No category data available
+        </div>
+      ) : (
+        <div className="space-y-4 sm:space-y-5">
+          {categories.map((item) => (
+            <div key={item.name} className="min-w-0">
+              <div className="flex items-start justify-between gap-3 mb-2">
+                <span className="min-w-0 truncate text-sm sm:text-base font-medium">
+                  {item.name}
+                </span>
 
-            <div className="w-full h-3 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
-              <div
-                className="h-full bg-emerald-500 rounded-full"
-                style={{ width: `${item.percentage}%` }}
-              />
-            </div>
+                <span className="shrink-0 text-sm sm:text-base font-semibold">
+                  {formatCurrency(item.value, currency)}
+                </span>
+              </div>
 
-            <p className="text-xs text-gray-500 mt-1">
-              {item.percentage.toFixed(1)}% of spending
-            </p>
-          </div>
-        ))}
-      </div>
+              <div className="w-full h-2.5 sm:h-3 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
+                <div
+                  className="h-full bg-emerald-500 rounded-full"
+                  style={{
+                    width: `${Math.min(item.percentage, 100)}%`,
+                  }}
+                />
+              </div>
+
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                {item.percentage.toFixed(1)}% of spending
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useSelector } from "react-redux";
+import { AlertTriangle, CheckCircle } from "lucide-react";
 import { formatCurrency } from "../../utils/formatCurrency";
 
 export default function OverspendingCard({ expenses = [] }) {
@@ -17,11 +18,7 @@ export default function OverspendingCard({ expenses = [] }) {
 
       const amount = Number(expense.amount || 0);
 
-      const prevMonth =
-        now.getMonth() === 0
-          ? 11
-          : now.getMonth() - 1;
-
+      const prevMonth = now.getMonth() === 0 ? 11 : now.getMonth() - 1;
       const prevYear =
         now.getMonth() === 0
           ? now.getFullYear() - 1
@@ -43,9 +40,7 @@ export default function OverspendingCard({ expenses = [] }) {
     });
 
     const change =
-      previous > 0
-        ? ((current - previous) / previous) * 100
-        : 0;
+      previous > 0 ? ((current - previous) / previous) * 100 : 0;
 
     return { current, previous, change };
   }, [expenses]);
@@ -54,36 +49,69 @@ export default function OverspendingCard({ expenses = [] }) {
 
   return (
     <div
-      className={`p-6 rounded-2xl border shadow-sm ${
-        alert
-          ? "bg-red-50 border-red-300 dark:bg-red-900/20"
-          : "bg-green-50 border-green-300 dark:bg-green-900/20"
-      }`}
+      className={`
+        w-full
+        rounded-2xl
+        border
+        shadow-sm
+        p-4
+        sm:p-5
+        lg:p-6
+        transition-all
+        ${
+          alert
+            ? "bg-red-50 border-red-300 dark:bg-red-900/20 dark:border-red-700"
+            : "bg-green-50 border-green-300 dark:bg-green-900/20 dark:border-green-700"
+        }
+      `}
     >
-      <h3 className="text-lg font-semibold mb-4">
-        Overspending Alert
-      </h3>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h3 className="text-base sm:text-lg font-semibold truncate">
+            Overspending Alert
+          </h3>
 
-      <p className="text-sm text-gray-600 dark:text-gray-300">
-        Current Month
-      </p>
+          <p className="mt-1 text-xs sm:text-sm text-gray-600 dark:text-gray-300">
+            Current Month
+          </p>
+        </div>
 
-      <h2 className="text-3xl font-bold mt-1">
+        <div
+          className={`
+            shrink-0
+            h-10
+            w-10
+            rounded-xl
+            flex
+            items-center
+            justify-center
+            ${
+              alert
+                ? "bg-red-100 text-red-600 dark:bg-red-900/40"
+                : "bg-green-100 text-green-600 dark:bg-green-900/40"
+            }
+          `}
+        >
+          {alert ? <AlertTriangle size={20} /> : <CheckCircle size={20} />}
+        </div>
+      </div>
+
+      <h2 className="mt-4 text-2xl sm:text-3xl lg:text-4xl font-bold break-words">
         {formatCurrency(data.current, currency)}
       </h2>
 
-      <div className="mt-5">
+      <div className="mt-4 sm:mt-5 space-y-2">
         {alert ? (
-          <p className="text-red-600 font-semibold">
+          <p className="text-sm sm:text-base text-red-600 font-semibold leading-relaxed">
             ⚠ Spending increased by {data.change.toFixed(1)}%
           </p>
         ) : (
-          <p className="text-green-600 font-semibold">
+          <p className="text-sm sm:text-base text-green-600 font-semibold leading-relaxed">
             ✅ Spending is under control
           </p>
         )}
 
-        <p className="text-sm text-gray-500 mt-2">
+        <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 break-words">
           Previous month: {formatCurrency(data.previous, currency)}
         </p>
       </div>
