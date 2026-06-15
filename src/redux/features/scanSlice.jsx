@@ -18,7 +18,6 @@ export const scanReceipt = createAsyncThunk(
       }
 
       const response = await scanReceiptService(file);
-
       return response;
     } catch (error) {
       return rejectWithValue(
@@ -32,12 +31,10 @@ export const scanReceipt = createAsyncThunk(
 
 const initialState = {
   mode: "camera",
-
   scanning: false,
   progress: 0,
   error: null,
   success: null,
-
   image: null,
   receiptId: null,
 
@@ -76,6 +73,12 @@ const scanSlice = createSlice({
       state.progress = action.payload;
     },
 
+    increaseProgress: (state) => {
+      if (state.scanning && state.progress < 90) {
+        state.progress += 5;
+      }
+    },
+
     setError: (state, action) => {
       state.error = action.payload;
     },
@@ -93,15 +96,7 @@ const scanSlice = createSlice({
       state.error = null;
       state.success = null;
       state.receiptId = null;
-
-      state.extracted = {
-        merchant: "",
-        amount: "",
-        date: "",
-        category: "",
-        rawText: "",
-      };
-
+      state.extracted = initialState.extracted;
       state.confidence = 0;
       state.warnings = [];
       state.isValid = false;
@@ -219,6 +214,7 @@ export const {
   setImage,
   setReceiptId,
   setProgress,
+  increaseProgress,
   setError,
   clearError,
   clearSuccess,
