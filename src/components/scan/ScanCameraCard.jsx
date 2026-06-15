@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import toast from "react-hot-toast";
 
 import {
   scanReceipt,
@@ -34,6 +33,16 @@ export default function CameraCard() {
   }, []);
 
   useEffect(() => {
+    if (!error) return;
+
+    const timer = setTimeout(() => {
+      dispatch(clearError());
+    }, 6000);
+
+    return () => clearTimeout(timer);
+  }, [error, dispatch]);
+
+  useEffect(() => {
     if (!scanning) {
       setDisplayProgress(progress);
       return;
@@ -46,22 +55,10 @@ export default function CameraCard() {
         if (prev >= 90) return prev;
         return prev + 5;
       });
-    }, 500);
+    }, 400);
 
     return () => clearInterval(timer);
   }, [scanning, progress]);
-
-  useEffect(() => {
-    if (!error) return;
-
-    toast.error(error);
-
-    const timer = setTimeout(() => {
-      dispatch(clearError());
-    }, 6000);
-
-    return () => clearTimeout(timer);
-  }, [error, dispatch]);
 
   const getCameraErrorMessage = (err) => {
     if (err?.name === "NotAllowedError") {
@@ -108,8 +105,6 @@ export default function CameraCard() {
         videoRef.current.srcObject = stream;
         await videoRef.current.play();
       }
-
-      toast.success("Camera started");
     } catch (err) {
       dispatch(setError(getCameraErrorMessage(err)));
     }
@@ -140,10 +135,6 @@ export default function CameraCard() {
         return;
       }
 
-      toast.loading("Scanning receipt...", {
-        id: "scan-toast",
-      });
-
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
 
@@ -152,10 +143,6 @@ export default function CameraCard() {
       canvas.toBlob(
         async (blob) => {
           if (!blob) {
-            toast.error("Failed to capture image.", {
-              id: "scan-toast",
-            });
-
             dispatch(setError("Failed to capture image."));
             return;
           }
@@ -172,34 +159,19 @@ export default function CameraCard() {
 
           if (scanReceipt.fulfilled.match(result)) {
             setDisplayProgress(100);
-
-            toast.success("Receipt scanned successfully", {
-              id: "scan-toast",
-            });
           }
 
           if (scanReceipt.rejected.match(result)) {
-            const message =
-              result.payload || "Scan failed";
-
-            toast.error(message, {
-              id: "scan-toast",
-            });
-
-            dispatch(setError(message));
+            dispatch(
+              setError(result.payload || "Scan failed")
+            );
           }
         },
         "image/png",
         0.95
       );
     } catch (err) {
-      const message = err?.message || "Scan failed";
-
-      toast.error(message, {
-        id: "scan-toast",
-      });
-
-      dispatch(setError(message));
+      dispatch(setError(err?.message || "Scan failed"));
     }
   };
 
@@ -252,11 +224,15 @@ export default function CameraCard() {
             <div className="w-full max-w-xs bg-gray-700 h-2 rounded-full overflow-hidden">
               <div
                 className="h-full bg-green-500 transition-all duration-300"
-                style={{ width: `${displayProgress}%` }}
+                style={{
+                  width: `${displayProgress}%`,
+                }}
               />
             </div>
 
-            <span className="text-sm">{displayProgress}%</span>
+            <span className="text-sm">
+              {displayProgress}%
+            </span>
           </div>
         )}
 
