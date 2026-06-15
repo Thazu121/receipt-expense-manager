@@ -6,12 +6,6 @@ import {
 
 import API from "../../api/api";
 
-const auth = () => ({
-  headers: {
-    Authorization: `Bearer ${localStorage.getItem("token")}`,
-  },
-});
-
 const safeDate = (date) => {
   if (!date) return "";
 
@@ -29,43 +23,33 @@ const normalizeReceipt = (r = {}) => {
 
   return {
     _id: r._id,
-
     image: r.imageUrl || r.image || "",
-
     cloudinaryId: r.cloudinaryId || "",
-
-    store: r.merchantName || r.store || "Unknown Store",
-
+    fileHash: r.fileHash || "",
+    store:
+      r.merchantName ||
+      r.store ||
+      "Unknown Store",
     amount: r.extractedAmount ?? r.amount ?? 0,
-
     date: safeDate(r.extractedDate || r.date),
-
     category: r.category || "General",
-
-    createdAt: r.createdAt || new Date().toISOString(),
-
-    confidence: r.confidenceScore ?? r.confidence ?? 0,
-
+    createdAt:
+      r.createdAt || new Date().toISOString(),
+    confidence:
+      r.confidenceScore ?? r.confidence ?? 0,
     isVerified: verified,
-
     status: verified ? "Verified" : "Pending",
-
     rawText: r.extractedText || r.rawText || "",
   };
 };
-const getReceiptKey = (receipt = {}) => {
-  const image = receipt.image || "";
-  const cloudinaryId = receipt.cloudinaryId || "";
-  const store = receipt.store || "";
-  const amount = receipt.amount ?? "";
-  const date = receipt.date || "";
-  const rawText = receipt.rawText || "";
 
+const getReceiptKey = (receipt = {}) => {
   return (
+    receipt.fileHash ||
+    receipt.cloudinaryId ||
+    receipt.image ||
     receipt._id ||
-    cloudinaryId ||
-    image ||
-    `${store}-${amount}-${date}-${rawText.slice(0, 30)}`
+    `${receipt.store}-${receipt.amount}-${receipt.date}`
   );
 };
 
@@ -89,7 +73,7 @@ export const fetchReceipts = createAsyncThunk(
   "receipt/fetchReceipts",
   async (_, thunkAPI) => {
     try {
-      const res = await API.get("/receipts", auth());
+      const res = await API.get("/receipts");
       return res.data.receipts || [];
     } catch (error) {
       return thunkAPI.rejectWithValue(
@@ -112,16 +96,16 @@ export const addReceipt = createAsyncThunk(
         formData,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
             "Content-Type": "multipart/form-data",
           },
         }
       );
 
-      return res.data.receipt;
+      return res.data;
     } catch (error) {
       return thunkAPI.rejectWithValue(
-        error?.response?.data?.message || "Upload failed"
+        error?.response?.data?.message ||
+          "Upload failed"
       );
     }
   }
@@ -133,14 +117,14 @@ export const updateReceipt = createAsyncThunk(
     try {
       const res = await API.put(
         `/receipts/${id}`,
-        updates,
-        auth()
+        updates
       );
 
       return res.data.receipt;
     } catch (error) {
       return thunkAPI.rejectWithValue(
-        error?.response?.data?.message || "Update failed"
+        error?.response?.data?.message ||
+          "Update failed"
       );
     }
   }
@@ -150,11 +134,12 @@ export const deleteReceipt = createAsyncThunk(
   "receipt/deleteReceipt",
   async (id, thunkAPI) => {
     try {
-      await API.delete(`/receipts/${id}`, auth());
+      await API.delete(`/receipts/${id}`);
       return id;
     } catch (error) {
       return thunkAPI.rejectWithValue(
-        error?.response?.data?.message || "Delete failed"
+        error?.response?.data?.message ||
+          "Delete failed"
       );
     }
   }
@@ -214,195 +199,267 @@ const receiptSlice = createSlice({
 
   extraReducers: (builder) => {
     builder
+
       .addCase(fetchReceipts.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
 
-      .addCase(fetchReceipts.fulfilled, (state, action) => {
-        state.loading = false;
+      .addCase(
+        fetchReceipts.fulfilled,
+        (state, action) => {
+          state.loading = false;
 
-        state.receipts = dedupeReceipts(
-          (action.payload || []).map(normalizeReceipt)
-        );
-      })
+          state.receipts = dedupeReceipts(
+            (action.payload || []).map(
+              normalizeReceipt
+            )
+          );
+        }
+      )
 
-      .addCase(fetchReceipts.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
+      .addCase(
+        fetchReceipts.rejected,
+        (state, action) => {
+          state.loading = false;
+          state.error = action.payload;
+        }
+      )
 
       .addCase(addReceipt.pending, (state) => {
         state.uploading = true;
         state.error = null;
+        state.success = null;
       })
 
-      .addCase(addReceipt.fulfilled, (state, action) => {
-        state.uploading = false;
+      .addCase(
+        addReceipt.fulfilled,
+        (state, action) => {
+          state.uploading = false;
 
-        const newReceipt = normalizeReceipt(action.payload);
+          if (action.payload?.duplicate) {
+            state.success = "Receipt already exists";
+            state.receipts = dedupeReceipts(
+              state.receipts
+            );
+            return;
+          }
 
-        const alreadyExists = state.receipts.some((receipt) => {
-          return (
-            receipt._id === newReceipt._id ||
-            receipt.image === newReceipt.image ||
-            receipt.cloudinaryId === newReceipt.cloudinaryId
+          const newReceipt = normalizeReceipt(
+            action.payload?.receipt
           );
-        });
 
-        if (!alreadyExists) {
-          state.receipts.unshift(newReceipt);
+          const alreadyExists =
+            state.receipts.some((receipt) => {
+              return (
+                receipt.fileHash ===
+                  newReceipt.fileHash ||
+                receipt.cloudinaryId ===
+                  newReceipt.cloudinaryId ||
+                receipt.image === newReceipt.image ||
+                receipt._id === newReceipt._id
+              );
+            });
+
+          if (!alreadyExists) {
+            state.receipts.unshift(newReceipt);
+          }
+
+          state.receipts = dedupeReceipts(
+            state.receipts
+          );
+
+          state.success =
+            "Receipt uploaded successfully";
         }
+      )
 
-        state.receipts = dedupeReceipts(state.receipts);
-
-        state.success = "Receipt uploaded successfully";
-      })
-
-      .addCase(addReceipt.rejected, (state, action) => {
-        state.uploading = false;
-        state.error = action.payload;
-      })
+      .addCase(
+        addReceipt.rejected,
+        (state, action) => {
+          state.uploading = false;
+          state.error = action.payload;
+        }
+      )
 
       .addCase(updateReceipt.pending, (state) => {
         state.updating = true;
         state.error = null;
       })
 
-      .addCase(updateReceipt.fulfilled, (state, action) => {
-        state.updating = false;
+      .addCase(
+        updateReceipt.fulfilled,
+        (state, action) => {
+          state.updating = false;
 
-        const updated = normalizeReceipt(action.payload);
+          const updated = normalizeReceipt(
+            action.payload
+          );
 
-        state.receipts = dedupeReceipts(
-          state.receipts.map((receipt) =>
-            receipt._id === updated._id ? updated : receipt
-          )
-        );
+          state.receipts = dedupeReceipts(
+            state.receipts.map((receipt) =>
+              receipt._id === updated._id
+                ? updated
+                : receipt
+            )
+          );
 
-        state.success = "Receipt updated successfully";
-      })
+          state.success =
+            "Receipt updated successfully";
+        }
+      )
 
-      .addCase(updateReceipt.rejected, (state, action) => {
-        state.updating = false;
-        state.error = action.payload;
-      })
+      .addCase(
+        updateReceipt.rejected,
+        (state, action) => {
+          state.updating = false;
+          state.error = action.payload;
+        }
+      )
 
       .addCase(deleteReceipt.pending, (state) => {
         state.deleting = true;
         state.error = null;
       })
 
-      .addCase(deleteReceipt.fulfilled, (state, action) => {
-        state.deleting = false;
+      .addCase(
+        deleteReceipt.fulfilled,
+        (state, action) => {
+          state.deleting = false;
 
-        state.receipts = state.receipts.filter(
-          (receipt) => receipt._id !== action.payload
-        );
+          state.receipts =
+            state.receipts.filter(
+              (receipt) =>
+                receipt._id !== action.payload
+            );
 
-        state.success = "Receipt deleted successfully";
-      })
+          state.success =
+            "Receipt deleted successfully";
+        }
+      )
 
-      .addCase(deleteReceipt.rejected, (state, action) => {
-        state.deleting = false;
-        state.error = action.payload;
-      });
+      .addCase(
+        deleteReceipt.rejected,
+        (state, action) => {
+          state.deleting = false;
+          state.error = action.payload;
+        }
+      );
   },
 });
 
-export const selectFilteredReceipts = createSelector(
-  [(state) => state.receipt],
-  ({
-    receipts,
-    search,
-    statusFilter,
-    categoryFilter,
-    sortBy,
-  }) => {
-    let list = dedupeReceipts(receipts || []);
+export const selectFilteredReceipts =
+  createSelector(
+    [(state) => state.receipt],
+    ({
+      receipts,
+      search,
+      statusFilter,
+      categoryFilter,
+      sortBy,
+    }) => {
+      let list = dedupeReceipts(receipts || []);
 
-    if (search) {
-      const q = search.toLowerCase();
+      if (search) {
+        const q = search.toLowerCase();
 
-      list = list.filter((r) =>
-        [r.store, r.category, r.status]
-          .join(" ")
-          .toLowerCase()
-          .includes(q)
-      );
-    }
-
-    if (statusFilter !== "All") {
-      list = list.filter((r) => r.status === statusFilter);
-    }
-
-    if (categoryFilter !== "All") {
-      list = list.filter(
-        (r) =>
-          String(r.category).toLowerCase() ===
-          String(categoryFilter).toLowerCase()
-      );
-    }
-
-    switch (sortBy) {
-      case "Newest":
-        list.sort(
-          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        list = list.filter((r) =>
+          [r.store, r.category, r.status]
+            .join(" ")
+            .toLowerCase()
+            .includes(q)
         );
-        break;
+      }
 
-      case "Oldest":
-        list.sort(
-          (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
+      if (statusFilter !== "All") {
+        list = list.filter(
+          (r) => r.status === statusFilter
         );
-        break;
+      }
 
-      case "Amount High-Low":
-        list.sort(
-          (a, b) => Number(b.amount || 0) - Number(a.amount || 0)
+      if (categoryFilter !== "All") {
+        list = list.filter(
+          (r) =>
+            String(r.category).toLowerCase() ===
+            String(categoryFilter).toLowerCase()
         );
-        break;
+      }
 
-      case "Amount Low-High":
-        list.sort(
-          (a, b) => Number(a.amount || 0) - Number(b.amount || 0)
-        );
-        break;
+      switch (sortBy) {
+        case "Newest":
+          list.sort(
+            (a, b) =>
+              new Date(b.createdAt) -
+              new Date(a.createdAt)
+          );
+          break;
 
-      default:
-        break;
+        case "Oldest":
+          list.sort(
+            (a, b) =>
+              new Date(a.createdAt) -
+              new Date(b.createdAt)
+          );
+          break;
+
+        case "Amount High-Low":
+          list.sort(
+            (a, b) =>
+              Number(b.amount || 0) -
+              Number(a.amount || 0)
+          );
+          break;
+
+        case "Amount Low-High":
+          list.sort(
+            (a, b) =>
+              Number(a.amount || 0) -
+              Number(b.amount || 0)
+          );
+          break;
+
+        default:
+          break;
+      }
+
+      return list;
     }
+  );
 
-    return list;
-  }
-);
+export const selectReceiptStats =
+  createSelector(
+    [(state) => state.receipt.receipts],
+    (receipts = []) => {
+      const uniqueReceipts =
+        dedupeReceipts(receipts);
 
-export const selectReceiptStats = createSelector(
-  [(state) => state.receipt.receipts],
-  (receipts = []) => {
-    const uniqueReceipts = dedupeReceipts(receipts);
+      const totalAmount =
+        uniqueReceipts.reduce(
+          (sum, receipt) =>
+            sum + Number(receipt.amount || 0),
+          0
+        );
 
-    const totalAmount = uniqueReceipts.reduce(
-      (sum, receipt) => sum + Number(receipt.amount || 0),
-      0
-    );
+      const verified =
+        uniqueReceipts.filter((r) => r.isVerified)
+          .length;
 
-    const verified = uniqueReceipts.filter((r) => r.isVerified).length;
+      const pending =
+        uniqueReceipts.length - verified;
 
-    const pending = uniqueReceipts.length - verified;
-
-    return {
-      totalReceipts: uniqueReceipts.length,
-      totalAmount,
-      verified,
-      pending,
-      averageAmount:
-        uniqueReceipts.length > 0
-          ? totalAmount / uniqueReceipts.length
-          : 0,
-    };
-  }
-);
+      return {
+        totalReceipts: uniqueReceipts.length,
+        totalAmount,
+        verified,
+        pending,
+        averageAmount:
+          uniqueReceipts.length > 0
+            ? totalAmount /
+              uniqueReceipts.length
+            : 0,
+      };
+    }
+  );
 
 export const {
   setSearch,

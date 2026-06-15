@@ -15,32 +15,19 @@ export default function ExpenseFilters() {
     (state) => state.expense
   );
 
-  return (
-    <div
-      className="
-        w-full
-        rounded-2xl
-        border
-        border-gray-200
-        dark:border-white/10
-        bg-white
-        dark:bg-white/5
-        backdrop-blur-xl
-        p-4
-      "
-    >
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+  const selectClass = `
+    rounded-xl border border-gray-300 dark:border-white/10
+    px-4 py-3 bg-white dark:bg-[#0f3b2f]
+    text-gray-800 dark:text-white outline-none
+  `;
 
+  return (
+    <div className="w-full rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 backdrop-blur-xl p-4">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <div className="relative">
           <Search
             size={18}
-            className="
-              absolute
-              left-3
-              top-1/2
-              -translate-y-1/2
-              text-gray-400
-            "
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
           />
 
           <input
@@ -50,22 +37,7 @@ export default function ExpenseFilters() {
             onChange={(e) =>
               dispatch(setExpenseSearch(e.target.value))
             }
-            className="
-              w-full
-              rounded-xl
-              border
-              border-gray-300
-              dark:border-white/10
-              bg-gray-50
-              dark:bg-transparent
-              pl-10
-              pr-4
-              py-3
-              text-sm
-              text-gray-800
-              dark:text-white
-              outline-none
-            "
+            className="w-full rounded-xl border border-gray-300 dark:border-white/10 bg-gray-50 dark:bg-transparent pl-10 pr-4 py-3 text-sm text-gray-800 dark:text-white outline-none"
           />
         </div>
 
@@ -74,16 +46,7 @@ export default function ExpenseFilters() {
           onChange={(e) =>
             dispatch(setExpenseSort(e.target.value))
           }
-          className="
-            rounded-xl
-            border
-            border-gray-300
-            dark:border-white/10
-            px-4
-            py-3
-            bg-white
-            dark:bg-[#0f3b2f]
-          "
+          className={selectClass}
         >
           <option value="latest">Latest</option>
           <option value="oldest">Oldest</option>
@@ -100,16 +63,7 @@ export default function ExpenseFilters() {
               })
             )
           }
-          className="
-            rounded-xl
-            border
-            border-gray-300
-            dark:border-white/10
-            px-4
-            py-3
-            bg-white
-            dark:bg-[#0f3b2f]
-          "
+          className={selectClass}
         >
           <option value="">All Categories</option>
           <option value="Food">Food</option>
@@ -129,22 +83,12 @@ export default function ExpenseFilters() {
               })
             )
           }
-          className="
-            rounded-xl
-            border
-            border-gray-300
-            dark:border-white/10
-            px-4
-            py-3
-            bg-white
-            dark:bg-[#0f3b2f]
-          "
+          className={selectClass}
         >
           <option value="">All Sources</option>
           <option value="manual">Manual</option>
           <option value="recurring">Recurring</option>
-          <option value="receipt-scan">Receipt Scan</option>
-          <option value="ocr">OCR</option>
+          <option value="receipt-scan">Receipt / OCR</option>
         </select>
 
         <select
@@ -156,16 +100,7 @@ export default function ExpenseFilters() {
               })
             )
           }
-          className="
-            rounded-xl
-            border
-            border-gray-300
-            dark:border-white/10
-            px-4
-            py-3
-            bg-white
-            dark:bg-[#0f3b2f]
-          "
+          className={selectClass}
         >
           <option value="">All Expenses</option>
           <option value="favorite">Favorites Only</option>
@@ -175,21 +110,11 @@ export default function ExpenseFilters() {
       <div className="flex justify-end mt-4">
         <button
           onClick={() => dispatch(clearExpenseFilters())}
-          className="
-            px-4
-            py-2
-            rounded-xl
-            text-sm
-            border
-            border-gray-300
-            dark:border-white/10
-            hover:bg-gray-100
-            dark:hover:bg-white/10
-          "
+          className="px-4 py-2 rounded-xl text-sm border border-gray-300 dark:border-white/10 hover:bg-gray-100 dark:hover:bg-white/10"
         >
           Clear Filters
         </button>
       </div>
     </div>
-  )
+  );
 }

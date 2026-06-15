@@ -6,12 +6,6 @@ import {
 
 import API from "../../api/api";
 
-const auth = () => ({
-  headers: {
-    Authorization: `Bearer ${localStorage.getItem("token")}`,
-  },
-});
-
 const getNotificationId = (notification = {}) =>
   notification._id ||
   notification.id ||
@@ -21,7 +15,8 @@ export const fetchNotifications = createAsyncThunk(
   "notification/fetchNotifications",
   async (_, thunkAPI) => {
     try {
-      const res = await API.get("/notification", auth());
+      const res = await API.get("/notification");
+
       return res.data.notifications || [];
     } catch (error) {
       return thunkAPI.rejectWithValue(
@@ -32,65 +27,81 @@ export const fetchNotifications = createAsyncThunk(
   }
 );
 
-export const markNotificationRead = createAsyncThunk(
-  "notification/markNotificationRead",
-  async (id, thunkAPI) => {
-    try {
-      await API.put(`/notification/${id}/read`, {}, auth());
-      return id;
-    } catch (error) {
-      return thunkAPI.rejectWithValue(
-        error?.response?.data?.message ||
-          "Failed to mark read"
-      );
-    }
-  }
-);
+export const markNotificationRead =
+  createAsyncThunk(
+    "notification/markNotificationRead",
+    async (id, thunkAPI) => {
+      try {
+        await API.put(
+          `/notification/${id}/read`,
+          {}
+        );
 
-export const markAllNotificationsRead = createAsyncThunk(
-  "notification/markAllNotificationsRead",
-  async (_, thunkAPI) => {
-    try {
-      await API.put("/notification/read-all", {}, auth());
-      return true;
-    } catch (error) {
-      return thunkAPI.rejectWithValue(
-        error?.response?.data?.message ||
-          "Failed to mark all read"
-      );
+        return id;
+      } catch (error) {
+        return thunkAPI.rejectWithValue(
+          error?.response?.data?.message ||
+            "Failed to mark read"
+        );
+      }
     }
-  }
-);
+  );
 
-export const deleteNotification = createAsyncThunk(
-  "notification/deleteNotification",
-  async (id, thunkAPI) => {
-    try {
-      await API.delete(`/notification/${id}`, auth());
-      return id;
-    } catch (error) {
-      return thunkAPI.rejectWithValue(
-        error?.response?.data?.message ||
-          "Failed to delete notification"
-      );
-    }
-  }
-);
+export const markAllNotificationsRead =
+  createAsyncThunk(
+    "notification/markAllNotificationsRead",
+    async (_, thunkAPI) => {
+      try {
+        await API.put(
+          "/notification/read-all",
+          {}
+        );
 
-export const clearNotifications = createAsyncThunk(
-  "notification/clearNotifications",
-  async (_, thunkAPI) => {
-    try {
-      await API.delete("/notification/clear", auth());
-      return true;
-    } catch (error) {
-      return thunkAPI.rejectWithValue(
-        error?.response?.data?.message ||
-          "Failed to clear notifications"
-      );
+        return true;
+      } catch (error) {
+        return thunkAPI.rejectWithValue(
+          error?.response?.data?.message ||
+            "Failed to mark all read"
+        );
+      }
     }
-  }
-);
+  );
+
+export const deleteNotification =
+  createAsyncThunk(
+    "notification/deleteNotification",
+    async (id, thunkAPI) => {
+      try {
+        await API.delete(`/notification/${id}`);
+
+        return id;
+      } catch (error) {
+        return thunkAPI.rejectWithValue(
+          error?.response?.data?.message ||
+            "Failed to delete notification"
+        );
+      }
+    }
+  );
+
+export const clearNotifications =
+  createAsyncThunk(
+    "notification/clearNotifications",
+    async (_, thunkAPI) => {
+      try {
+        await API.delete(
+          "/notification/clear"
+        );
+
+        return true;
+      } catch (error) {
+        return thunkAPI.rejectWithValue(
+          error?.response?.data?.message ||
+            "Failed to clear notifications"
+        );
+      }
+    }
+  );
 
 const notificationSlice = createSlice({
   name: "notification",
@@ -102,20 +113,25 @@ const notificationSlice = createSlice({
   },
 
   reducers: {
-    addRealtimeNotification: (state, action) => {
+    addRealtimeNotification: (
+      state,
+      action
+    ) => {
       const incoming = action.payload || {};
-
       const id = getNotificationId(incoming);
 
-      const exists = state.notifications.some((n) => {
-        const existingId = getNotificationId(n);
+      const exists =
+        state.notifications.some((n) => {
+          const existingId =
+            getNotificationId(n);
 
-        return (
-          existingId === id ||
-          (incoming.uniqueKey &&
-            n.uniqueKey === incoming.uniqueKey)
-        );
-      });
+          return (
+            existingId === id ||
+            (incoming.uniqueKey &&
+              n.uniqueKey ===
+                incoming.uniqueKey)
+          );
+        });
 
       if (!exists) {
         state.notifications.unshift({
@@ -136,46 +152,75 @@ const notificationSlice = createSlice({
 
   extraReducers: (builder) => {
     builder
-      .addCase(fetchNotifications.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
 
-      .addCase(fetchNotifications.fulfilled, (state, action) => {
-        state.loading = false;
-        state.notifications = action.payload || [];
-      })
-
-      .addCase(fetchNotifications.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-
-      .addCase(markNotificationRead.fulfilled, (state, action) => {
-        const notification = state.notifications.find(
-          (n) => getNotificationId(n) === action.payload
-        );
-
-        if (notification) {
-          notification.read = true;
+      .addCase(
+        fetchNotifications.pending,
+        (state) => {
+          state.loading = true;
+          state.error = null;
         }
-      })
+      )
 
-      .addCase(markAllNotificationsRead.fulfilled, (state) => {
-        state.notifications.forEach((n) => {
-          n.read = true;
-        });
-      })
+      .addCase(
+        fetchNotifications.fulfilled,
+        (state, action) => {
+          state.loading = false;
+          state.notifications =
+            action.payload || [];
+        }
+      )
 
-      .addCase(deleteNotification.fulfilled, (state, action) => {
-        state.notifications = state.notifications.filter(
-          (n) => getNotificationId(n) !== action.payload
-        );
-      })
+      .addCase(
+        fetchNotifications.rejected,
+        (state, action) => {
+          state.loading = false;
+          state.error = action.payload;
+        }
+      )
 
-      .addCase(clearNotifications.fulfilled, (state) => {
-        state.notifications = [];
-      });
+      .addCase(
+        markNotificationRead.fulfilled,
+        (state, action) => {
+          const notification =
+            state.notifications.find(
+              (n) =>
+                getNotificationId(n) ===
+                action.payload
+            );
+
+          if (notification) {
+            notification.read = true;
+          }
+        }
+      )
+
+      .addCase(
+        markAllNotificationsRead.fulfilled,
+        (state) => {
+          state.notifications.forEach((n) => {
+            n.read = true;
+          });
+        }
+      )
+
+      .addCase(
+        deleteNotification.fulfilled,
+        (state, action) => {
+          state.notifications =
+            state.notifications.filter(
+              (n) =>
+                getNotificationId(n) !==
+                action.payload
+            );
+        }
+      )
+
+      .addCase(
+        clearNotifications.fulfilled,
+        (state) => {
+          state.notifications = [];
+        }
+      );
   },
 });
 

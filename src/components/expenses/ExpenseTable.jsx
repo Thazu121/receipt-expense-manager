@@ -44,6 +44,15 @@ export default function ExpenseTable() {
     "General",
   ];
 
+  const inputClass = `
+    w-full p-3 rounded-lg border outline-none transition
+    ${
+      isLight
+        ? "bg-white text-gray-900 border-gray-300 placeholder:text-gray-400"
+        : "bg-zinc-800 text-white border-zinc-600 placeholder:text-zinc-400"
+    }
+  `;
+
   const getSourceBadge = (expense) => {
     if (expense.source === "recurring" || expense.isRecurring) {
       return {
@@ -140,7 +149,7 @@ export default function ExpenseTable() {
         className={`rounded-2xl p-8 text-center ${
           isLight
             ? "bg-white border border-gray-200"
-            : "bg-white/5 border border-white/10"
+            : "bg-white/5 border border-white/10 text-white"
         }`}
       >
         No expenses found
@@ -152,27 +161,18 @@ export default function ExpenseTable() {
     <>
       <div
         className={`
-          w-full
-          max-w-full
-          overflow-hidden
-          rounded-2xl
+          w-full max-w-full overflow-hidden rounded-2xl
           ${
             isLight
               ? "bg-white border border-gray-200"
-              : "bg-white/5 border border-white/10"
+              : "bg-white/5 border border-white/10 text-white"
           }
         `}
       >
         <div
           className={`
-            hidden xl:grid
-            grid-cols-7
-            gap-4
-            px-6
-            py-4
-            border-b
-            text-sm
-            font-semibold
+            hidden xl:grid grid-cols-7 gap-4 px-6 py-4 border-b
+            text-sm font-semibold
             ${
               isLight
                 ? "border-gray-200 text-gray-600"
@@ -202,20 +202,10 @@ export default function ExpenseTable() {
             return (
               <div
                 key={expense._id}
-                className={`
-                  w-full
-                  max-w-full
-                  p-3
-                  sm:p-4
-                  transition
-                  ${
-                    isLight
-                      ? "hover:bg-gray-50"
-                      : "hover:bg-white/5"
-                  }
-                `}
+                className={`p-3 sm:p-4 transition ${
+                  isLight ? "hover:bg-gray-50" : "hover:bg-white/5"
+                }`}
               >
-                {/* Desktop */}
                 <div className="hidden xl:grid grid-cols-7 gap-4 items-center">
                   <div className="font-medium truncate">
                     {expense.title || expense.merchant || "Untitled"}
@@ -280,45 +270,24 @@ export default function ExpenseTable() {
                   </div>
                 </div>
 
-                {/* Mobile / Tablet */}
                 <div
                   className={`
-                    xl:hidden
-                    w-full
-                    max-w-full
-                    rounded-xl
-                    p-4
-                    overflow-hidden
-                    ${
-                      isLight
-                        ? "bg-gray-50"
-                        : "bg-white/5"
-                    }
+                    xl:hidden rounded-xl p-4 overflow-hidden
+                    ${isLight ? "bg-gray-50" : "bg-white/5"}
                   `}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
                       <h3
-                        className={`
-                          text-sm
-                          sm:text-base
-                          font-semibold
-                          leading-snug
-                          break-words
-                          ${
-                            isLight
-                              ? "text-gray-900"
-                              : "text-white"
-                          }
-                        `}
+                        className={`text-sm sm:text-base font-semibold break-words ${
+                          isLight ? "text-gray-900" : "text-white"
+                        }`}
                       >
-                        {expense.title ||
-                          expense.merchant ||
-                          "Untitled"}
+                        {expense.title || expense.merchant || "Untitled"}
                       </h3>
 
                       <div className="flex items-center gap-1 mt-2 text-xs text-gray-500">
-                        <Calendar size={14} className="shrink-0" />
+                        <Calendar size={14} />
                         <span>
                           {formatDate(
                             expense.expenseDate ||
@@ -342,12 +311,8 @@ export default function ExpenseTable() {
                       >
                         <Star
                           size={18}
-                          className={
-                            isFavorite ? "text-yellow-500" : ""
-                          }
-                          fill={
-                            isFavorite ? "currentColor" : "none"
-                          }
+                          className={isFavorite ? "text-yellow-500" : ""}
+                          fill={isFavorite ? "currentColor" : "none"}
                         />
                       </button>
                     </div>
@@ -396,7 +361,7 @@ export default function ExpenseTable() {
           <div
             className={`w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl p-5 ${
               isLight
-                ? "bg-white text-black"
+                ? "bg-white text-gray-900"
                 : "bg-zinc-900 text-white border border-zinc-700"
             }`}
           >
@@ -408,31 +373,51 @@ export default function ExpenseTable() {
               <input
                 value={editing.title || ""}
                 onChange={(e) =>
-                  setEditing({ ...editing, title: e.target.value })
+                  setEditing({
+                    ...editing,
+                    title: e.target.value,
+                  })
                 }
                 placeholder="Expense title"
-                className="w-full p-3 rounded-lg border outline-none"
+                className={inputClass}
               />
 
               <input
                 type="number"
                 value={editing.amount || ""}
                 onChange={(e) =>
-                  setEditing({ ...editing, amount: e.target.value })
+                  setEditing({
+                    ...editing,
+                    amount: e.target.value,
+                  })
                 }
                 placeholder="Amount"
-                className="w-full p-3 rounded-lg border outline-none"
+                className={inputClass}
               />
 
               <select
                 value={editing.category || "General"}
                 onChange={(e) =>
-                  setEditing({ ...editing, category: e.target.value })
+                  setEditing({
+                    ...editing,
+                    category: e.target.value,
+                  })
                 }
-                className="w-full p-3 rounded-lg border outline-none"
+                className={inputClass}
+                style={{
+                  colorScheme: isLight ? "light" : "dark",
+                }}
               >
                 {categories.map((category) => (
-                  <option key={category} value={category}>
+                  <option
+                    key={category}
+                    value={category}
+                    className={
+                      isLight
+                        ? "bg-white text-gray-900"
+                        : "bg-zinc-800 text-white"
+                    }
+                  >
                     {category}
                   </option>
                 ))}
@@ -451,31 +436,41 @@ export default function ExpenseTable() {
                     expenseDate: e.target.value,
                   })
                 }
-                className="w-full p-3 rounded-lg border outline-none"
+                className={inputClass}
+                style={{
+                  colorScheme: isLight ? "light" : "dark",
+                }}
               />
 
               <textarea
                 rows={4}
                 value={editing.notes || ""}
                 onChange={(e) =>
-                  setEditing({ ...editing, notes: e.target.value })
+                  setEditing({
+                    ...editing,
+                    notes: e.target.value,
+                  })
                 }
                 placeholder="Notes..."
-                className="w-full p-3 rounded-lg border outline-none resize-none"
+                className={`${inputClass} resize-none`}
               />
             </div>
 
-            <div className="flex gap-3 mt-6">
+            <div className="flex flex-col sm:flex-row gap-3 mt-6">
               <button
                 onClick={() => setEditing(null)}
-                className="flex-1 py-3 rounded-lg bg-gray-300"
+                className={`flex-1 py-3 rounded-lg ${
+                  isLight
+                    ? "bg-gray-200 text-gray-900 hover:bg-gray-300"
+                    : "bg-zinc-700 text-white hover:bg-zinc-600"
+                }`}
               >
                 Cancel
               </button>
 
               <button
                 onClick={handleSave}
-                className="flex-1 py-3 rounded-lg bg-emerald-500 text-white"
+                className="flex-1 py-3 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white"
               >
                 Save
               </button>
@@ -489,7 +484,7 @@ export default function ExpenseTable() {
           <div
             className={`rounded-2xl p-6 w-full max-w-sm ${
               isLight
-                ? "bg-white text-black"
+                ? "bg-white text-gray-900"
                 : "bg-zinc-900 text-white border border-zinc-700"
             }`}
           >
@@ -497,14 +492,22 @@ export default function ExpenseTable() {
               Delete Expense?
             </h2>
 
-            <p className="text-sm text-gray-500 mt-2">
+            <p
+              className={`text-sm mt-2 ${
+                isLight ? "text-gray-500" : "text-zinc-400"
+              }`}
+            >
               This action cannot be undone.
             </p>
 
-            <div className="flex gap-3 mt-6">
+            <div className="flex flex-col sm:flex-row gap-3 mt-6">
               <button
                 onClick={() => setDeleteId(null)}
-                className="flex-1 py-3 rounded-lg bg-gray-300"
+                className={`flex-1 py-3 rounded-lg ${
+                  isLight
+                    ? "bg-gray-200 text-gray-900 hover:bg-gray-300"
+                    : "bg-zinc-700 text-white hover:bg-zinc-600"
+                }`}
               >
                 Cancel
               </button>
@@ -514,7 +517,7 @@ export default function ExpenseTable() {
                   dispatch(deleteExpense(deleteId));
                   setDeleteId(null);
                 }}
-                className="flex-1 py-3 bg-red-500 text-white rounded-lg"
+                className="flex-1 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg"
               >
                 Delete
               </button>

@@ -6,18 +6,11 @@ import {
 
 import API from "../../api/api";
 
-const authConfig = () => ({
-  headers: {
-    Authorization: `Bearer ${localStorage.getItem("token")}`,
-  },
-});
-
 export const fetchExpenses = createAsyncThunk(
   "expense/fetchExpenses",
   async (params = {}, thunkAPI) => {
     try {
       const response = await API.get("/expenses", {
-        ...authConfig(),
         params,
       });
 
@@ -37,8 +30,7 @@ export const createExpense = createAsyncThunk(
     try {
       const response = await API.post(
         "/expenses",
-        expenseData,
-        authConfig()
+        expenseData
       );
 
       return response.data.expense;
@@ -57,8 +49,7 @@ export const updateExpense = createAsyncThunk(
     try {
       const response = await API.put(
         `/expenses/${id}`,
-        updates,
-        authConfig()
+        updates
       );
 
       return response.data.expense;
@@ -75,10 +66,7 @@ export const deleteExpense = createAsyncThunk(
   "expense/deleteExpense",
   async (id, thunkAPI) => {
     try {
-      await API.delete(
-        `/expenses/${id}`,
-        authConfig()
-      );
+      await API.delete(`/expenses/${id}`);
 
       return id;
     } catch (error) {
@@ -97,8 +85,7 @@ export const toggleFavoriteExpense =
       try {
         const response = await API.put(
           `/expenses/${id}/favorite`,
-          {},
-          authConfig()
+          {}
         );
 
         return response.data.expense;
@@ -139,6 +126,29 @@ const initialState = {
   },
 };
 
+const getExpenseSourceType = (expense = {}) => {
+  const source = String(expense.source || "")
+    .toLowerCase()
+    .trim();
+
+  if (
+    expense.isRecurring === true ||
+    source === "recurring"
+  ) {
+    return "recurring";
+  }
+
+  if (
+    source.includes("receipt") ||
+    source.includes("scan") ||
+    source.includes("ocr")
+  ) {
+    return "receipt-scan";
+  }
+
+  return "manual";
+};
+
 const expenseSlice = createSlice({
   name: "expense",
   initialState,
@@ -168,6 +178,8 @@ const expenseSlice = createSlice({
     },
 
     clearExpenseFilters: (state) => {
+      state.search = "";
+      state.sort = "latest";
       state.filters = {
         category: "",
         paymentMethod: "",
@@ -188,67 +200,90 @@ const expenseSlice = createSlice({
         state.error = null;
       })
 
-      .addCase(fetchExpenses.fulfilled, (state, action) => {
-        state.loading = false;
+      .addCase(
+        fetchExpenses.fulfilled,
+        (state, action) => {
+          state.loading = false;
 
-        state.expenses =
-          action.payload.expenses || [];
+          state.expenses =
+            action.payload.expenses || [];
 
-        state.totalExpenses =
-          action.payload.totalExpenses || 0;
+          state.totalExpenses =
+            action.payload.totalExpenses || 0;
 
-        state.totalPages =
-          action.payload.totalPages || 1;
+          state.totalPages =
+            action.payload.totalPages || 1;
 
-        state.currentPage =
-          action.payload.currentPage || 1;
+          state.currentPage =
+            action.payload.currentPage || 1;
 
-        state.count =
-          action.payload.count || 0;
-      })
+          state.count = action.payload.count || 0;
+        }
+      )
 
-      .addCase(fetchExpenses.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
+      .addCase(
+        fetchExpenses.rejected,
+        (state, action) => {
+          state.loading = false;
+          state.error = action.payload;
+        }
+      )
 
       .addCase(createExpense.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
 
-      .addCase(createExpense.fulfilled, (state, action) => {
-        state.loading = false;
-        state.success = "Expense created successfully";
-        state.expenses.unshift(action.payload);
-      })
+      .addCase(
+        createExpense.fulfilled,
+        (state, action) => {
+          state.loading = false;
+          state.success =
+            "Expense created successfully";
 
-      .addCase(createExpense.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-
-      .addCase(updateExpense.fulfilled, (state, action) => {
-        const index = state.expenses.findIndex(
-          (expense) =>
-            expense._id === action.payload._id
-        );
-
-        if (index !== -1) {
-          state.expenses[index] = action.payload;
+          state.expenses.unshift(action.payload);
         }
+      )
 
-        state.success = "Expense updated successfully";
-      })
+      .addCase(
+        createExpense.rejected,
+        (state, action) => {
+          state.loading = false;
+          state.error = action.payload;
+        }
+      )
 
-      .addCase(deleteExpense.fulfilled, (state, action) => {
-        state.expenses = state.expenses.filter(
-          (expense) =>
-            expense._id !== action.payload
-        );
+      .addCase(
+        updateExpense.fulfilled,
+        (state, action) => {
+          const index = state.expenses.findIndex(
+            (expense) =>
+              expense._id === action.payload._id
+          );
 
-        state.success = "Expense deleted successfully";
-      })
+          if (index !== -1) {
+            state.expenses[index] =
+              action.payload;
+          }
+
+          state.success =
+            "Expense updated successfully";
+        }
+      )
+
+      .addCase(
+        deleteExpense.fulfilled,
+        (state, action) => {
+          state.expenses =
+            state.expenses.filter(
+              (expense) =>
+                expense._id !== action.payload
+            );
+
+          state.success =
+            "Expense deleted successfully";
+        }
+      )
 
       .addCase(
         toggleFavoriteExpense.fulfilled,
@@ -259,7 +294,8 @@ const expenseSlice = createSlice({
           );
 
           if (index !== -1) {
-            state.expenses[index] = action.payload;
+            state.expenses[index] =
+              action.payload;
           }
         }
       );
@@ -275,96 +311,135 @@ export const selectFilteredExpenses =
       if (search) {
         const q = search.toLowerCase();
 
-        filtered = filtered.filter(
-          (expense) =>
-            expense.title?.toLowerCase().includes(q) ||
-            expense.notes?.toLowerCase().includes(q) ||
-            expense.merchant?.toLowerCase().includes(q)
-        );
+        filtered = filtered.filter((expense) => {
+          return (
+            expense.title
+              ?.toLowerCase()
+              .includes(q) ||
+            expense.notes
+              ?.toLowerCase()
+              .includes(q) ||
+            expense.merchant
+              ?.toLowerCase()
+              .includes(q)
+          );
+        });
       }
 
       if (filters.category) {
         filtered = filtered.filter(
           (expense) =>
-            expense.category === filters.category
+            String(expense.category || "")
+              .toLowerCase()
+              .trim() ===
+            String(filters.category || "")
+              .toLowerCase()
+              .trim()
         );
       }
 
       if (filters.paymentMethod) {
         filtered = filtered.filter(
           (expense) =>
-            expense.paymentMethod ===
-            filters.paymentMethod
+            String(expense.paymentMethod || "")
+              .toLowerCase()
+              .trim() ===
+            String(filters.paymentMethod || "")
+              .toLowerCase()
+              .trim()
         );
       }
 
       if (filters.favorite) {
         filtered = filtered.filter(
-          (expense) => expense.favorite
+          (expense) =>
+            expense.favorite === true ||
+            expense.isFavorite === true
         );
       }
 
       if (filters.source) {
         filtered = filtered.filter(
           (expense) =>
-            expense.source === filters.source
+            getExpenseSourceType(expense) ===
+            filters.source
         );
       }
 
       if (filters.isRecurring === "true") {
         filtered = filtered.filter(
-          (expense) => expense.isRecurring === true
+          (expense) =>
+            getExpenseSourceType(expense) ===
+            "recurring"
         );
       }
 
       if (filters.isRecurring === "false") {
         filtered = filtered.filter(
-          (expense) => expense.isRecurring === false
+          (expense) =>
+            getExpenseSourceType(expense) !==
+            "recurring"
         );
       }
 
       if (filters.startDate) {
         filtered = filtered.filter(
           (expense) =>
-            new Date(expense.expenseDate) >=
-            new Date(filters.startDate)
+            new Date(
+              expense.expenseDate ||
+                expense.createdAt
+            ) >= new Date(filters.startDate)
         );
       }
 
       if (filters.endDate) {
         filtered = filtered.filter(
           (expense) =>
-            new Date(expense.expenseDate) <=
-            new Date(filters.endDate)
+            new Date(
+              expense.expenseDate ||
+                expense.createdAt
+            ) <= new Date(filters.endDate)
         );
       }
 
       switch (sort) {
         case "highest":
           filtered.sort(
-            (a, b) => b.amount - a.amount
+            (a, b) =>
+              Number(b.amount || 0) -
+              Number(a.amount || 0)
           );
           break;
 
         case "lowest":
           filtered.sort(
-            (a, b) => a.amount - b.amount
+            (a, b) =>
+              Number(a.amount || 0) -
+              Number(b.amount || 0)
           );
           break;
 
         case "oldest":
           filtered.sort(
             (a, b) =>
-              new Date(a.expenseDate) -
-              new Date(b.expenseDate)
+              new Date(
+                a.expenseDate || a.createdAt
+              ) -
+              new Date(
+                b.expenseDate || b.createdAt
+              )
           );
           break;
 
         default:
           filtered.sort(
             (a, b) =>
-              new Date(b.expenseDate) -
-              new Date(a.expenseDate)
+              new Date(
+                b.expenseDate || b.createdAt
+              ) -
+              new Date(
+                a.expenseDate || a.createdAt
+              )
           );
       }
 
@@ -378,8 +453,8 @@ export const selectRecurringExpenses =
     (expenses) =>
       expenses.filter(
         (expense) =>
-          expense.source === "recurring" ||
-          expense.isRecurring === true
+          getExpenseSourceType(expense) ===
+          "recurring"
       )
   );
 
